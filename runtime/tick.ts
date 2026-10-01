@@ -28,13 +28,17 @@ function cronMatch(expr: string, d: Date) {
   }));
 }
 
+// delay: leaves the newest messages out of the window, so Badr can answer them himself first.
+const lag = (sig: { meta: any }) => sig.meta.delay ? duration(sig.meta.delay) : 0;
+
 function tick() {
   const s = readState();
   for (const sig of readDir('signals')) {
     const key = `signal:${sig.name}`, j = s.jobs[key] ?? {};
     if (sig.meta.paused === true || !sig.meta.tools?.length || alive(j.pid)) continue;
     if (!j.last_checked) { withState(st => { job(st, key).last_checked = iso(now); }); continue; } // first run: no backfill
-    if (+now - +new Date(j.last_checked) >= duration(sig.meta.every)) detach(key, ['signal', sig.name]);
+    // last_checked is where the previous window ended, which is now − delay for a delayed signal.
+    if (+now - lag(sig) - +new Date(j.last_checked) >= duration(sig.meta.every)) detach(key, ['signal', sig.name]);
   }
   for (const sch of readDir('schedules')) {
     const key = `schedule:${sch.name}`, j = s.jobs[key] ?? {};
@@ -68,14 +72,15 @@ function runSignal(name: string, dry?: number) {
   const key = `signal:${name}`;
   try {
     const sig = readMd(path.join(ROOT, 'signals', `${name}.md`));
-    const last = dry ? new Date(+now - dry * 6e4) : new Date(readState().jobs[key]?.last_checked ?? now);
-    const from = new Date(Math.max(+last - duration(config.window_overlap), +now - duration(config.window_cap)));
+    const end = new Date(+now - lag(sig));
+    const last = dry ? new Date(+end - dry * 6e4) : new Date(readState().jobs[key]?.last_checked ?? end);
+    const from = new Date(Math.max(+last - duration(config.window_overlap), +end - duration(config.window_cap)));
     const routing = readDir('workstreams').map(w => `## ${w.name}\n${section(w.body, 'Routing')}`).join('\n\n');
     const prompt = [
       instructions(),
       `# Signal: ${name}\n\nSource label: ${name}. Linear team: ${config.linear_team}.\n\n${sig.body}`,
       `# Workstreams (Linear project = workstream name)\n\n${routing}`,
-      `# Window\n\nFetch items with activity from ${iso(from)} up to ${iso(now)}. Ignore anything outside it.`,
+      `# Window\n\nFetch items with activity from ${iso(from)} up to ${iso(end)}. Ignore anything outside it.`,
       dry ? `# Output\n\nDRY RUN: apply the filing rules but create, change and comment on nothing. Report what you would do (action = what you would do, issue = the existing issue for a comment, else null).`
           : `# Output\n\nFile each item per the filing rules, then return {"items": [...]} with one entry per item, filed or dropped.`,
     ].join('\n\n---\n\n');
@@ -84,12 +89,12 @@ function runSignal(name: string, dry?: number) {
     const out = claude(prompt, { tools: [...sig.meta.tools, ...filing], model: config.model, schema: ITEMS_SCHEMA });
     const items = (typeof out === 'string' ? JSON.parse(out.replace(/^[^{]*|[^}]*$/g, '')) : out).items;
     if (!Array.isArray(items)) throw new Error(`bad output: ${JSON.stringify(out).slice(0, 500)}`);
-    if (dry) return console.log(JSON.stringify({ window: [iso(from), iso(now)], seconds: (Date.now() - started) / 1e3, items }, null, 2));
+    if (dry) return console.log(JSON.stringify({ window: [iso(from), iso(end)], seconds: (Date.now() - started) / 1e3, items }, null, 2));
     fs.appendFileSync(path.join(STATE_DIR, 'decisions.jsonl'),
-      items.map(i => JSON.stringify({ ts: iso(Date.now()), signal: name, window: [iso(from), iso(now)], ...i }) + '\n').join(''));
-    const cut = +last < +now - duration(config.window_cap);
+      items.map(i => JSON.stringify({ ts: iso(Date.now()), signal: name, window: [iso(from), iso(end)], ...i }) + '\n').join(''));
+    const cut = +last < +end - duration(config.window_cap);
     withState(s => { if (cut) (job(s, key).gaps ??= []).push({ from: iso(last), to: iso(from) }); });
-    succeeded(key, { last_checked: iso(now) });
+    succeeded(key, { last_checked: iso(end) });
     log(key, `${items.length} items`, items.map(i => `${i.action}${i.issue ? ' ' + i.issue : ''}`).join(', '));
   } catch (e) { if (dry) throw e; failed(key, e); }
 }

@@ -8,7 +8,7 @@ Claude Code and his claude.ai connectors. The system is a directory: one Markdow
 autopilot.yaml           config: Linear team, model, paths, limits, Linear filing tools
 instructions.md          shared rules prepended to every Claude call (incl. the filing rules)
 workstreams/<name>.md    routing + work; file name = workstream id = Linear project
-signals/<source>.md      every:, tools:, what counts; `paused: true` until /autopilot:add enables it
+signals/<source>.md      every:, optional delay:, tools:, what counts; `paused: true` until /autopilot:add enables it
 schedules/dream.md       cron: + prompt; the nightly routing review
 skills/work/SKILL.md     autopilot:work, how a session works an issue
 commands/                /autopilot:init, :add, :why, :status

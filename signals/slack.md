@@ -1,5 +1,6 @@
 ---
 every: 15m
+delay: 30m               # leave Slack threads 30 minutes so I can answer them myself
 tools: [mcp__claude_ai_Slack__slack_search_public_and_private, mcp__claude_ai_Slack__slack_search_channels, mcp__claude_ai_Slack__slack_read_thread, mcp__claude_ai_Slack__slack_read_channel]
 ---
 Only threads that ask me for an explicit action an AI session can help
