@@ -66,6 +66,7 @@ Node ≥ 24 runs the TypeScript directly; there are no dependencies.
 - **Dream.** `schedules/dream.md` runs at 03:30 and commits `autopilot(dream): …` plus the journal.
 
 Run a single job by hand: `node runtime/tick.ts signal gmail`, `… schedule dream`, `… launch`.
+Preview a signal without filing anything: `node runtime/tick.ts signal gmail --dry=15` (last 15 minutes).
 
 ## Day-one checks
 

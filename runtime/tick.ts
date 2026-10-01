@@ -63,11 +63,12 @@ const ITEMS_SCHEMA = {
     } } } },
 };
 
-function runSignal(name: string) {
+// --dry=<minutes>: preview a window of that length; read-only Linear tools, nothing filed, no state or log written.
+function runSignal(name: string, dry?: number) {
   const key = `signal:${name}`;
   try {
     const sig = readMd(path.join(ROOT, 'signals', `${name}.md`));
-    const last = new Date(readState().jobs[key]?.last_checked ?? now);
+    const last = dry ? new Date(+now - dry * 6e4) : new Date(readState().jobs[key]?.last_checked ?? now);
     const from = new Date(Math.max(+last - duration(config.window_overlap), +now - duration(config.window_cap)));
     const routing = readDir('workstreams').map(w => `## ${w.name}\n${section(w.body, 'Routing')}`).join('\n\n');
     const prompt = [
@@ -75,18 +76,22 @@ function runSignal(name: string) {
       `# Signal: ${name}\n\nSource label: ${name}. Linear team: ${config.linear_team}.\n\n${sig.body}`,
       `# Workstreams (Linear project = workstream name)\n\n${routing}`,
       `# Window\n\nFetch items with activity from ${iso(from)} up to ${iso(now)}. Ignore anything outside it.`,
-      `# Output\n\nFile each item per the filing rules, then return {"items": [...]} with one entry per item, filed or dropped.`,
+      dry ? `# Output\n\nDRY RUN: apply the filing rules but create, change and comment on nothing. Report what you would do (action = what you would do, issue = the existing issue for a comment, else null).`
+          : `# Output\n\nFile each item per the filing rules, then return {"items": [...]} with one entry per item, filed or dropped.`,
     ].join('\n\n---\n\n');
-    const out = claude(prompt, { tools: [...sig.meta.tools, ...config.filing_tools], model: config.model, schema: ITEMS_SCHEMA });
+    const filing = dry ? config.filing_tools.filter((t: string) => !/__save_/.test(t)) : config.filing_tools;
+    const started = Date.now();
+    const out = claude(prompt, { tools: [...sig.meta.tools, ...filing], model: config.model, schema: ITEMS_SCHEMA });
     const items = (typeof out === 'string' ? JSON.parse(out.replace(/^[^{]*|[^}]*$/g, '')) : out).items;
     if (!Array.isArray(items)) throw new Error(`bad output: ${JSON.stringify(out).slice(0, 500)}`);
+    if (dry) return console.log(JSON.stringify({ window: [iso(from), iso(now)], seconds: (Date.now() - started) / 1e3, items }, null, 2));
     fs.appendFileSync(path.join(STATE_DIR, 'decisions.jsonl'),
       items.map(i => JSON.stringify({ ts: iso(Date.now()), signal: name, window: [iso(from), iso(now)], ...i }) + '\n').join(''));
     const cut = +last < +now - duration(config.window_cap);
     withState(s => { if (cut) (job(s, key).gaps ??= []).push({ from: iso(last), to: iso(from) }); });
     succeeded(key, { last_checked: iso(now) });
     log(key, `${items.length} items`, items.map(i => `${i.action}${i.issue ? ' ' + i.issue : ''}`).join(', '));
-  } catch (e) { failed(key, e); }
+  } catch (e) { if (dry) throw e; failed(key, e); }
 }
 
 function runSchedule(name: string) {
@@ -138,7 +143,7 @@ function install() {
   console.log(`linked ${link}; merged ${ours.permissions.deny.length} deny rules into ${file}`);
 }
 
-if (cmd === 'signal') runSignal(args[0]);
+if (cmd === 'signal') runSignal(args[0], Number(args.find(a => a.startsWith('--dry='))?.slice(6)) || undefined);
 else if (cmd === 'schedule') runSchedule(args[0]);
 else if (cmd === 'health') runHealth(args[0], args[1]);
 else if (cmd === 'launch') {
@@ -146,4 +151,4 @@ else if (cmd === 'launch') {
   try { await launch(); succeeded('launcher'); } catch (e) { failed('launcher', e); }
 } else if (cmd === 'install') install();
 else if (!cmd || cmd === 'tick') tick();
-else { console.error('usage: autopilot [tick|signal <name>|schedule <name>|launch|install]'); process.exit(1); }
+else { console.error('usage: autopilot [tick|signal <name> [--dry=<minutes>]|schedule <name>|launch|install]'); process.exit(1); }
