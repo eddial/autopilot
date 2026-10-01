@@ -2,6 +2,11 @@
 every: 15m
 tools: [mcp__claude_ai_Gmail__search_threads, mcp__claude_ai_Gmail__get_thread]
 ---
+First gate, before anything else: the sender must be one of the people
+below. Everyone else is dropped, however direct their question: cold
+outreach, sales and partnership pitches, agencies, recruiters I have
+not written to, surveys and research requests.
+
 Inbox threads not sent by me, from people who matter:
 - investors: Peak Capital (peak.capital) and Quickbase (quickbase.com);
 - customers: Ynvolve, TAKS (taks.nl) and any other customer domain;
