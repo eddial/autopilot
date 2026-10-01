@@ -11,6 +11,12 @@ Inbox threads not sent by me, from people who matter:
   (a question, decision, approval or review addressed to me), not when
   I am only in CC on a thread someone else is handling.
 
+File only threads that ask me for an explicit action an AI session can
+help with: a question to answer, a draft to write, something to
+research, analyse, decide on with a recommendation, or fix. Drop FYIs,
+thanks, status updates, scheduling, and threads a colleague already
+owns or has resolved.
+
 Skip newsletters, receipts, calendar notifications, automated mail,
 mail from my own accounts (badr@lleverage.onmicrosoft.com), and
 threads whose last message is mine.
