@@ -56,7 +56,7 @@ function tick() {
 
 const ITEMS_SCHEMA = {
   type: 'object', required: ['items'], properties: { items: { type: 'array', items: {
-    type: 'object', required: ['source', 'source_url', 'action', 'reason'], properties: {
+    type: 'object', required: ['source', 'source_url', 'from', 'subject', 'snippet', 'action', 'reason', 'workstream', 'priority', 'issue'], properties: {
       source: { type: 'string' }, source_url: { type: 'string' }, from: { type: 'string' }, subject: { type: 'string' },
       snippet: { type: 'string' }, action: { enum: ['created', 'commented', 'dropped'] }, reason: { type: 'string' },
       workstream: { type: ['string', 'null'] }, priority: { type: ['integer', 'null'] }, issue: { type: ['string', 'null'] },

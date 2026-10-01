@@ -1,7 +1,7 @@
 ---
 paused: true             # remove once /add has previewed it
 every: 15m
-tools: [mcp__67b05302-0fa0-41a5-8158-94bacb5a8352__search_threads, mcp__67b05302-0fa0-41a5-8158-94bacb5a8352__get_thread]
+tools: [mcp__claude_ai_Gmail__search_threads, mcp__claude_ai_Gmail__get_thread]
 ---
 Inbox threads not sent by me. Skip newsletters, receipts,
 calendar notifications and automated mail.

@@ -27,17 +27,10 @@ Node ≥ 24 runs the TypeScript directly; there are no dependencies.
 1. Create an `autopilot` Unix user with access only to this repo, `repos_dir` and `worktrees_dir`;
    install Claude Code, Node 24, git and tmux.
 2. As that user: `claude auth login` with Badr's claude.ai account; run `/mcp` and check the
-   connector tool names. The files use the names of Badr's claude.ai connectors:
-
-   | Connector | Tool prefix |
-   | --- | --- |
-   | Gmail | `mcp__67b05302-0fa0-41a5-8158-94bacb5a8352__` |
-   | Slack | `mcp__40251ff7-c90e-4271-bf2b-f4bf03a01b37__` |
-   | Linear | `mcp__c8562be6-ba3e-44a3-8490-a10e54f113e2__` |
-   | GitHub | none connected yet; `signals/github.md` stays paused with no tools |
-
-   If the server lists them under other prefixes, replace each prefix across `autopilot.yaml`,
-   `signals/`, `schedules/` and `.claude/settings.json` (e.g. with `sed -i`).
+   connector tool names. claude.ai connectors register in the CLI as `claude.ai Gmail` etc., so the
+   files use `mcp__claude_ai_Gmail__…`, `mcp__claude_ai_Slack__…` and `mcp__claude_ai_Linear__…` (the
+   desktop app shows the same tools under connector UUIDs). GitHub has no connector yet, so
+   `signals/github.md` stays paused with no tools.
 3. Clone this repo and the work repos into `repos_dir`; `cp .env.example .env` and add a Linear
    personal API key.
 4. Write the workstream files (or `/add` them), then run `/init` in Claude Code here. It creates the

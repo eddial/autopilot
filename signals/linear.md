@@ -1,7 +1,7 @@
 ---
 paused: true             # remove once /add has previewed it
 every: 10m
-tools: [mcp__c8562be6-ba3e-44a3-8490-a10e54f113e2__get_notifications, mcp__c8562be6-ba3e-44a3-8490-a10e54f113e2__list_issues, mcp__c8562be6-ba3e-44a3-8490-a10e54f113e2__get_issue, mcp__c8562be6-ba3e-44a3-8490-a10e54f113e2__list_comments]
+tools: [mcp__claude_ai_Linear__get_notifications, mcp__claude_ai_Linear__list_issues, mcp__claude_ai_Linear__get_issue, mcp__claude_ai_Linear__list_comments]
 ---
 Issues in other teams' Linear (never the Autopilot team itself)
 that were assigned to me, mention me, or got a comment addressed to

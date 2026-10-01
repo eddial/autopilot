@@ -1,7 +1,7 @@
 ---
 paused: true             # remove once /add has previewed it
 every: 15m
-tools: [mcp__40251ff7-c90e-4271-bf2b-f4bf03a01b37__slack_search_public_and_private, mcp__40251ff7-c90e-4271-bf2b-f4bf03a01b37__slack_read_thread, mcp__40251ff7-c90e-4271-bf2b-f4bf03a01b37__slack_read_channel]
+tools: [mcp__claude_ai_Slack__slack_search_public_and_private, mcp__claude_ai_Slack__slack_read_thread, mcp__claude_ai_Slack__slack_read_channel]
 ---
 Direct messages to me, group DMs I am in, and channel messages that
 mention me or reply in threads I started or replied to. Skip bot
