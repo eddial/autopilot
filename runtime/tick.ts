@@ -127,13 +127,14 @@ function runHealth(target: string, mode: string) {
   } catch (e) { failed(key, e); }
 }
 
-// Links the work skill and the deny rules into the autopilot user's ~/.claude so every repo gets them.
+// Links this repo into ~/.claude/skills/autopilot, where Claude Code loads it as the `autopilot` plugin in
+// every session and repo, and merges the deny rules into the user's settings.
 function install() {
   const dir = path.join(os.homedir(), '.claude');
   fs.mkdirSync(path.join(dir, 'skills'), { recursive: true });
-  const link = path.join(dir, 'skills', 'work');
+  const link = path.join(dir, 'skills', 'autopilot');
   fs.rmSync(link, { force: true, recursive: false });
-  fs.symlinkSync(path.join(ROOT, 'skills', 'work'), link);
+  fs.symlinkSync(ROOT, link);
   const file = path.join(dir, 'settings.json');
   const user = fs.existsSync(file) ? JSON.parse(fs.readFileSync(file, 'utf8')) : {};
   const ours = JSON.parse(fs.readFileSync(path.join(ROOT, '.claude', 'settings.json'), 'utf8'));

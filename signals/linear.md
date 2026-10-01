@@ -1,5 +1,5 @@
 ---
-paused: true             # remove once /add has previewed it
+paused: true             # remove once /autopilot:add has previewed it
 every: 10m
 tools: [mcp__claude_ai_Linear__get_notifications, mcp__claude_ai_Linear__list_issues, mcp__claude_ai_Linear__get_issue, mcp__claude_ai_Linear__list_comments]
 ---

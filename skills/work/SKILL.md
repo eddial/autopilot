@@ -1,6 +1,6 @@
 ---
 name: work
-description: How an Autopilot session works a Linear issue — read the issue and its source, prepare a draft, document or branch, report on the issue, and hand over in Review or Waiting. Use when asked to "use the work skill on Linear issue <ID>".
+description: How an Autopilot session works a Linear issue — read the issue and its source, prepare a draft, document or branch, report on the issue, and hand over in Review or Waiting. Use when asked to "use the autopilot:work skill on Linear issue <ID>".
 ---
 
 # Work an Autopilot issue

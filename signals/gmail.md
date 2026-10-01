@@ -1,5 +1,5 @@
 ---
-paused: true             # remove once /add has previewed it
+paused: true             # remove once /autopilot:add has previewed it
 every: 15m
 tools: [mcp__claude_ai_Gmail__search_threads, mcp__claude_ai_Gmail__get_thread]
 ---

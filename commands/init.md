@@ -21,11 +21,11 @@ Never delete or rename anything that is not listed here.
    | Canceled | canceled |
    The Linear connector may not be able to create statuses. If not, list
    the missing ones and tell Badr to add them in Linear → Team settings →
-   Workflow, then re-run /init.
+   Workflow, then re-run /autopilot:init.
 3. **Labels.** Ensure team labels `autopilot`, `gmail`, `slack`, `linear`,
    `github` (one per file in `signals/`).
-4. **Local.** Run `node runtime/tick.ts install` to link the work skill and
-   deny rules into `~/.claude`, and check that `.env` has `LINEAR_API_KEY`.
+4. **Local.** Check that `~/.claude/skills/autopilot` links to this repo (else run `node runtime/tick.ts install`), the
+   deny rules are in `~/.claude/settings.json`, and `.env` has `LINEAR_API_KEY`.
 
 End with a checklist of what is now in place and what Badr still has to
 do by hand (Slack notifications for issues assigned to him, the crontab line).

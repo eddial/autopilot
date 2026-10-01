@@ -1,0 +1,5 @@
+{
+  "name": "autopilot",
+  "description": "Autopilot: files what needs Badr's attention as Linear issues and works them in prepared sessions. Commands /autopilot:init, :add, :why, :status; skill autopilot:work.",
+  "author": { "name": "Badr Eddial", "email": "badr@lleverage.ai" }
+}

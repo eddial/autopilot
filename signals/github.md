@@ -1,5 +1,5 @@
 ---
-paused: true             # remove once /add has previewed it
+paused: true             # remove once /autopilot:add has previewed it
 every: 10m
 tools: []                 # no GitHub connector on this account yet; add one in claude.ai, then list its read tools
 ---

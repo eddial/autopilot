@@ -1,5 +1,5 @@
 ---
-paused: true             # remove once /add has previewed it
+paused: true             # remove once /autopilot:add has previewed it
 every: 15m
 tools: [mcp__claude_ai_Slack__slack_search_public_and_private, mcp__claude_ai_Slack__slack_read_thread, mcp__claude_ai_Slack__slack_read_channel]
 ---

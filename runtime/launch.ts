@@ -31,7 +31,7 @@ export async function launch() {
     { k: config.linear_team })).teams.nodes[0];
   if (!team) throw new Error(`Linear team ${config.linear_team} not found`);
   const states: Record<string, string> = Object.fromEntries(team.states.nodes.map((s: any) => [s.name, s.id]));
-  for (const n of ['Start', 'Working', 'Triage']) if (!states[n]) throw new Error(`status ${n} missing; run /init`);
+  for (const n of ['Start', 'Working', 'Triage']) if (!states[n]) throw new Error(`status ${n} missing; run /autopilot:init`);
   const inTeam = (name: string) => ({ team: { key: { eq: config.linear_team } }, state: { name: { eq: name } } });
 
   // Cleanup first, so finished sessions free their slot.
@@ -74,7 +74,7 @@ async function start(issue: any) {
   try { tmux('has-session', '-t', TMUX); } catch { tmux('new-session', '-d', '-s', TMUX, '-n', 'home'); }
   if (hasWindow(id)) tmux('kill-window', '-t', `${TMUX}:${id}`);
 
-  const prompt = [instructions(), section(ws.body, 'Work'), `Use the work skill on Linear issue ${id}.`].filter(Boolean).join('\n\n---\n\n');
+  const prompt = [instructions(), section(ws.body, 'Work'), `Use the autopilot:work skill on Linear issue ${id}.`].filter(Boolean).join('\n\n---\n\n');
   tmux('new-window', '-d', '-t', `${TMUX}:`, '-n', id, '-c', worktree,
     'claude', '--remote-control', id, '--permission-mode', 'acceptEdits', '--settings', path.join(ROOT, '.claude', 'settings.json'), prompt);
 

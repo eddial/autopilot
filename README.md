@@ -8,10 +8,11 @@ Claude Code and his claude.ai connectors. The system is a directory: one Markdow
 autopilot.yaml           config: Linear team, model, paths, limits, Linear filing tools
 instructions.md          shared rules prepended to every Claude call (incl. the filing rules)
 workstreams/<name>.md    routing + work; file name = workstream id = Linear project
-signals/<source>.md      every:, tools:, what counts; `paused: true` until /add enables it
+signals/<source>.md      every:, tools:, what counts; `paused: true` until /autopilot:add enables it
 schedules/dream.md       cron: + prompt; the nightly routing review
-skills/work/SKILL.md     how a session works an issue
-commands/                /init, /add, /why, /status
+skills/work/SKILL.md     autopilot:work, how a session works an issue
+commands/                /autopilot:init, :add, :why, :status
+.claude-plugin/          makes the repo the `autopilot` plugin, so commands and skill are namespaced
 runtime/tick.ts          scheduler: signals, schedules, health, launcher (each a detached process)
 runtime/launch.ts        Linear poll, sessions in tmux, cleanup
 runtime/lib.ts           config, Markdown, state.json, claude -p
@@ -33,12 +34,14 @@ Node ≥ 24 runs the TypeScript directly; there are no dependencies.
    `signals/github.md` stays paused with no tools.
 3. Clone this repo and the work repos into `repos_dir`; `cp .env.example .env` and add a Linear
    personal API key.
-4. Write the workstream files (or `/add` them), then run `/init` in Claude Code here. It creates the
-   projects, statuses and labels, and runs `node runtime/tick.ts install`, which links the work skill
-   and the deny rules into `~/.claude` so sessions in every repo get them.
+4. Run `node runtime/tick.ts install`. It symlinks this repo into `~/.claude/skills/autopilot`, where Claude
+   Code loads it as the `autopilot` plugin in every session and repo (`/autopilot:*` commands, the
+   `autopilot:work` skill; edits are live), and merges the deny rules into `~/.claude/settings.json`.
+   Then write the workstream files (or `/autopilot:add` them) and run `/autopilot:init`, which creates
+   the projects, statuses and labels.
 5. In Linear's notification settings, enable Slack delivery for issues assigned to Badr (priority 1).
 6. `crontab -e`: `* * * * * /home/autopilot/autopilot/bin/autopilot tick`
-7. Enable signals one by one with `/add <source>` (GitHub, Linear, then Slack, then Gmail). Use `/why`
+7. Enable signals one by one with `/autopilot:add <source>` (GitHub, Linear, then Slack, then Gmail). Use `/autopilot:why`
    on every misfiled issue in the first days.
 
 ## How it runs
