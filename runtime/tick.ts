@@ -133,7 +133,8 @@ function install() {
   const dir = path.join(os.homedir(), '.claude');
   fs.mkdirSync(path.join(dir, 'skills'), { recursive: true });
   const link = path.join(dir, 'skills', 'autopilot');
-  fs.rmSync(link, { force: true, recursive: false });
+  // unlink, not rmSync: rmSync on a symlink to a directory throws EISDIR. A real directory is left alone.
+  if (fs.lstatSync(link, { throwIfNoEntry: false })?.isSymbolicLink()) fs.unlinkSync(link);
   fs.symlinkSync(ROOT, link);
   const file = path.join(dir, 'settings.json');
   const user = fs.existsSync(file) ? JSON.parse(fs.readFileSync(file, 'utf8')) : {};

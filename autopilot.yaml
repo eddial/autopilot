@@ -1,4 +1,4 @@
-linear_team: BADR
+linear_team: AP
 model: haiku                 # signals and classification
 max_parallel_sessions: 3
 window_cap: 24h
