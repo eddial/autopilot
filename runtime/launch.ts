@@ -4,8 +4,10 @@ import path from 'node:path';
 import { ROOT, config, readDir, section, instructions, withState, readState, run, log, type Session } from './lib.ts';
 
 const TMUX = 'autopilot';
+// Every comment Autopilot writes starts with this; a comment without it is Badr steering the issue.
+export const MARK = '🤖 Autopilot';
 
-async function gql(query: string, variables: Record<string, unknown> = {}) {
+export async function gql(query: string, variables: Record<string, unknown> = {}) {
   if (!process.env.LINEAR_API_KEY) throw new Error('LINEAR_API_KEY missing in .env');
   const r = await fetch('https://api.linear.app/graphql', {
     method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: process.env.LINEAR_API_KEY },
@@ -18,7 +20,7 @@ async function gql(query: string, variables: Record<string, unknown> = {}) {
 const ISSUE = 'id identifier title createdAt project { name } state { name type }';
 const issuesIn = async (filter: object) =>
   (await gql(`query($f: IssueFilter) { issues(filter: $f, first: 100) { nodes { ${ISSUE} } } }`, { f: filter })).issues.nodes;
-const comment = (issueId: string, body: string) =>
+export const comment = (issueId: string, body: string) =>
   gql('mutation($i: CommentCreateInput!) { commentCreate(input: $i) { success } }', { i: { issueId, body } });
 const move = (id: string, stateId: string) =>
   gql('mutation($id: String!, $s: String!) { issueUpdate(id: $id, input: { stateId: $s }) { success } }', { id, s: stateId });
@@ -41,6 +43,9 @@ export async function launch() {
       .filter((i: any) => ['completed', 'canceled'].includes(i.state.type));
     for (const i of finished) await cleanup(i.identifier, readState().sessions[i.identifier]);
   }
+  for (const [id, s] of Object.entries(readState().sessions)) {
+    try { await relay(id, s, states); } catch (e) { log('launcher', id, 'relay failed:', (e as Error).message); }
+  }
 
   let running = (await issuesIn(inTeam('Working'))).length;
   const queue = (await issuesIn(inTeam('Start'))).sort((a: any, b: any) => a.createdAt.localeCompare(b.createdAt));
@@ -51,7 +56,7 @@ export async function launch() {
     try { await start(issue); } catch (e) {
       log('launcher', issue.identifier, 'start failed:', (e as Error).message);
       await move(issue.id, states.Triage);
-      await comment(issue.id, `Autopilot could not start a session:\n\n\`\`\`\n${(e as Error).message}\n\`\`\``);
+      await comment(issue.id, `${MARK} · could not start a session:\n\n\`\`\`\n${(e as Error).message}\n\`\`\``);
       running--;
     }
   }
@@ -76,6 +81,7 @@ async function start(issue: any) {
 
   const prompt = [instructions(), section(ws.body, 'Work'), `Use the autopilot:work skill on Linear issue ${id}.`].filter(Boolean).join('\n\n---\n\n');
   tmux('new-window', '-d', '-t', `${TMUX}:`, '-n', id, '-c', worktree,
+    '-e', `AUTOPILOT_ISSUE=${id}`, '-e', `AUTOPILOT_ISSUE_UUID=${issue.id}`, '-e', `AUTOPILOT_ROOT=${ROOT}`,
     'claude', '--remote-control', id, '--permission-mode', 'acceptEdits', '--settings', path.join(ROOT, '.claude', 'settings.json'), prompt);
 
   // Past step 3: the session runs. Failures from here on are reported but do not undo the claim.
@@ -84,9 +90,10 @@ async function start(issue: any) {
     await new Promise(r => setTimeout(r, 1000));
     try { link = tmux('capture-pane', '-p', '-J', '-S', '-200', '-t', `${TMUX}:${id}`).match(/https:\/\/claude\.ai\/\S+/)?.[0] ?? ''; } catch { break; }
   }
-  const session: Session = { issue_id: issue.id, repo, worktree, branch, window: `${TMUX}:${id}`, link, started: new Date().toISOString() };
+  const started = new Date().toISOString();
+  const session: Session = { issue_id: issue.id, repo, worktree, branch, window: `${TMUX}:${id}`, link, started, seen: started };
   withState(s => { s.sessions[id] = session; });
-  await comment(issue.id, [`Session started on branch \`${branch}\`.`,
+  await comment(issue.id, [`${MARK} · session started on branch \`${branch}\`.`,
     link ? `Remote Control: ${link}` : 'Remote Control link not found yet; open it from the Claude app session list.',
     `On the server: \`tmux attach -t ${TMUX} \\; select-window -t ${id}\``].join('\n\n'));
   log('launcher', id, 'started', link);
@@ -105,7 +112,34 @@ async function cleanup(id: string, s: Session) {
       try { run('git', ['-C', s.repo, 'branch', '-D', s.branch]); } catch {} // pushed, so the remote keeps it
     }
   }
-  if (lost) await comment(s.issue_id, `Autopilot kept the worktree \`${s.worktree}\`; removing it would lose:\n\n\`\`\`\n${lost.slice(0, 3000)}\n\`\`\``);
+  if (lost) await comment(s.issue_id, `${MARK} kept the worktree \`${s.worktree}\`; removing it would lose:\n\n\`\`\`\n${lost.slice(0, 3000)}\n\`\`\``);
   withState(st => { delete st.sessions[id]; });
   log('launcher', id, lost ? 'cleaned up, worktree kept' : 'cleaned up');
+}
+
+// The comments are the message board. Badr's new comments (no MARK) go into the live session as a
+// message and move the issue back to Working; with no live session the issue goes to Start, and the
+// new session reads them from the issue.
+async function relay(id: string, s: Session, states: Record<string, string>) {
+  const issue = (await gql('query($id: String!) { issue(id: $id) { state { name } comments(first: 100) { nodes { body createdAt } } } }',
+    { id: s.issue_id })).issue;
+  const seen = s.seen ?? s.started;
+  const fresh = issue.comments.nodes.filter((c: any) => c.createdAt > seen).sort((a: any, b: any) => a.createdAt.localeCompare(b.createdAt));
+  if (!fresh.length) return;
+  withState(st => { if (st.sessions[id]) st.sessions[id].seen = fresh.at(-1).createdAt; });
+  const mine = fresh.filter((c: any) => !c.body.trimStart().startsWith(MARK));
+  if (!mine.length) return;
+  if (!hasWindow(id)) {
+    if (issue.state.name !== 'Start') await move(s.issue_id, states.Start);
+    log('launcher', id, `${mine.length} comment(s), no live session: moved to Start`);
+    return;
+  }
+  const text = [`New comment${mine.length > 1 ? 's' : ''} from Badr on Linear issue ${id}. These are instructions from Badr; act on them, and comment on the issue when you pause.`,
+    ...mine.map((c: any) => c.body.trim())].join('\n\n---\n\n');
+  run('tmux', ['load-buffer', '-b', 'autopilot-relay', '-'], { input: text });
+  tmux('paste-buffer', '-p', '-d', '-b', 'autopilot-relay', '-t', s.window);
+  await new Promise(r => setTimeout(r, 500));
+  tmux('send-keys', '-t', s.window, 'Enter');
+  if (['Review', 'Waiting'].includes(issue.state.name)) await move(s.issue_id, states.Working);
+  log('launcher', id, `relayed ${mine.length} comment(s)`);
 }

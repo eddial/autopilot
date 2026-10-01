@@ -52,7 +52,7 @@ export type Job = {
   pid?: number | null; last_checked?: string; last_run?: string; last_success?: string; last_error?: string | null;
   failures?: number; failing_since?: string | null; gaps?: { from: string; to: string }[]; health_reported?: boolean;
 };
-export type Session = { issue_id: string; repo: string; worktree: string; branch: string; window: string; link?: string; started: string };
+export type Session = { issue_id: string; repo: string; worktree: string; branch: string; window: string; link?: string; started: string; seen?: string };
 export type State = { jobs: Record<string, Job>; sessions: Record<string, Session> };
 const STATE = path.join(STATE_DIR, 'state.json');
 export const readState = (): State => {

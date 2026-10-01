@@ -91,5 +91,28 @@
       "Bash(git reset --hard:*)",
       "Bash(rm -rf:*)"
     ]
+  },
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "[ -z \"$AUTOPILOT_ISSUE\" ] || node \"$AUTOPILOT_ROOT/runtime/hook.ts\" stop"
+          }
+        ]
+      }
+    ],
+    "Notification": [
+      {
+        "matcher": "permission_prompt",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "[ -z \"$AUTOPILOT_ISSUE\" ] || node \"$AUTOPILOT_ROOT/runtime/hook.ts\" notify"
+          }
+        ]
+      }
+    ]
   }
 }
