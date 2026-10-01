@@ -29,10 +29,12 @@ const tmux = (...a: string[]) => run('tmux', a);
 const hasWindow = (name: string) => { try { return tmux('list-windows', '-t', TMUX, '-F', '#W').split('\n').includes(name); } catch { return false; } };
 
 export async function launch() {
-  const team = (await gql('query($k: String!) { teams(filter: { key: { eq: $k } }) { nodes { states { nodes { id name } } } } }',
+  const team = (await gql('query($k: String!) { teams(filter: { key: { eq: $k } }) { nodes { states { nodes { id name type } } } } }',
     { k: config.linear_team })).teams.nodes[0];
   if (!team) throw new Error(`Linear team ${config.linear_team} not found`);
-  const states: Record<string, string> = Object.fromEntries(team.states.nodes.map((s: any) => [s.name, s.id]));
+  // Two statuses can share a name (Linear's own Triage next to a backlog one made while triage was off); the triage one wins.
+  const byType = [...team.states.nodes].sort((a: any, b: any) => +(a.type === 'triage') - +(b.type === 'triage'));
+  const states: Record<string, string> = Object.fromEntries(byType.map((s: any) => [s.name, s.id]));
   for (const n of ['Start', 'Working', 'Triage']) if (!states[n]) throw new Error(`status ${n} missing; run /autopilot:init`);
   const inTeam = (name: string) => ({ team: { key: { eq: config.linear_team } }, state: { name: { eq: name } } });
 

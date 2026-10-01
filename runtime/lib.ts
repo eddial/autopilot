@@ -8,6 +8,11 @@ export const ROOT = path.resolve(import.meta.dirname, '..');
 export const STATE_DIR = path.join(ROOT, '.state');
 const home = (p: string) => p.replace(/^~(?=\/|$)/, os.homedir());
 try { process.loadEnvFile(path.join(ROOT, '.env')); } catch {}
+// Cron cannot read the keychain, so git gets GitHub credentials from GH_TOKEN through gh instead.
+if (process.env.GH_TOKEN) Object.assign(process.env, {
+  GIT_CONFIG_COUNT: '2', GIT_CONFIG_KEY_0: 'credential.helper', GIT_CONFIG_VALUE_0: '',
+  GIT_CONFIG_KEY_1: 'credential.https://github.com.helper', GIT_CONFIG_VALUE_1: '!gh auth git-credential',
+});
 
 // Flat YAML: `key: value`, `key: [a, b]`, `# comments`. Enough for config and frontmatter.
 export function parseYaml(text: string): Record<string, any> {
