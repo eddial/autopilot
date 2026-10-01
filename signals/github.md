@@ -1,7 +1,7 @@
 ---
 paused: true             # remove once /add has previewed it
 every: 10m
-tools: [mcp__claude_ai_GitHub__search_issues, mcp__claude_ai_GitHub__get_pull_request, mcp__claude_ai_GitHub__get_issue]
+tools: []                 # no GitHub connector on this account yet; add one in claude.ai, then list its read tools
 ---
 Pull requests where my review is requested, issues and PRs assigned
 to me, and comments that mention me, updated in the window. Skip bot

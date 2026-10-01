@@ -32,7 +32,7 @@ function tick() {
   const s = readState();
   for (const sig of readDir('signals')) {
     const key = `signal:${sig.name}`, j = s.jobs[key] ?? {};
-    if (sig.meta.paused === true || alive(j.pid)) continue;
+    if (sig.meta.paused === true || !sig.meta.tools?.length || alive(j.pid)) continue;
     if (!j.last_checked) { withState(st => { job(st, key).last_checked = iso(now); }); continue; } // first run: no backfill
     if (+now - +new Date(j.last_checked) >= duration(sig.meta.every)) detach(key, ['signal', sig.name]);
   }

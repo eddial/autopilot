@@ -26,9 +26,18 @@ Node ≥ 24 runs the TypeScript directly; there are no dependencies.
 
 1. Create an `autopilot` Unix user with access only to this repo, `repos_dir` and `worktrees_dir`;
    install Claude Code, Node 24, git and tmux.
-2. As that user: `claude auth login` with Badr's claude.ai account; run `/mcp` and check that the
-   Gmail, Slack, Linear and GitHub tool names match those in `autopilot.yaml`, `signals/*.md`,
-   `schedules/dream.md` and `.claude/settings.json` (they assume the `mcp__claude_ai_<Name>__` prefix).
+2. As that user: `claude auth login` with Badr's claude.ai account; run `/mcp` and check the
+   connector tool names. The files use the names of Badr's claude.ai connectors:
+
+   | Connector | Tool prefix |
+   | --- | --- |
+   | Gmail | `mcp__67b05302-0fa0-41a5-8158-94bacb5a8352__` |
+   | Slack | `mcp__40251ff7-c90e-4271-bf2b-f4bf03a01b37__` |
+   | Linear | `mcp__c8562be6-ba3e-44a3-8490-a10e54f113e2__` |
+   | GitHub | none connected yet; `signals/github.md` stays paused with no tools |
+
+   If the server lists them under other prefixes, replace each prefix across `autopilot.yaml`,
+   `signals/`, `schedules/` and `.claude/settings.json` (e.g. with `sed -i`).
 3. Clone this repo and the work repos into `repos_dir`; `cp .env.example .env` and add a Linear
    personal API key.
 4. Write the workstream files (or `/add` them), then run `/init` in Claude Code here. It creates the
@@ -62,6 +71,6 @@ Run a single job by hand: `node runtime/tick.ts signal gmail`, `… schedule dre
 
 - [ ] `claude -p` from cron, with no terminal, can use the claude.ai connectors under `--allowedTools`.
 - [ ] A Haiku signal call over a real 15-minute window returns valid JSON well within the interval.
-- [ ] Dedupe works: the Linear connector can find an issue by its attachment URL.
+- [ ] Dedupe works: `list_issues` with `query` = a source URL finds the issue (filed issues carry `Source: <url>` in the description, since the connector cannot filter by attachment).
 - [ ] A session in tmux with Remote Control prints its link to the pane (the launcher scrapes it).
 - [ ] Permission rules block send, merge and force-push inside a session.

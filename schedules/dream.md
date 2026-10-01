@@ -1,6 +1,6 @@
 ---
 cron: 30 3 * * *
-tools: [Read, Glob, Grep, Edit, Write, Bash(git add:*), Bash(git commit:*), Bash(git log:*), Bash(git diff:*), Bash(git status:*), Bash(tail:*), Bash(wc:*), mcp__claude_ai_Linear__list_issues, mcp__claude_ai_Linear__get_issue, mcp__claude_ai_Linear__list_comments, mcp__claude_ai_Linear__list_projects, mcp__claude_ai_Linear__save_issue, mcp__claude_ai_Linear__save_comment, mcp__claude_ai_Linear__create_attachment, mcp__claude_ai_Linear__list_issue_labels]
+tools: [Read, Glob, Grep, Edit, Write, Bash(git add:*), Bash(git commit:*), Bash(git log:*), Bash(git diff:*), Bash(git status:*), Bash(tail:*), Bash(wc:*), mcp__c8562be6-ba3e-44a3-8490-a10e54f113e2__list_issues, mcp__c8562be6-ba3e-44a3-8490-a10e54f113e2__get_issue, mcp__c8562be6-ba3e-44a3-8490-a10e54f113e2__list_comments, mcp__c8562be6-ba3e-44a3-8490-a10e54f113e2__list_projects, mcp__c8562be6-ba3e-44a3-8490-a10e54f113e2__save_issue, mcp__c8562be6-ba3e-44a3-8490-a10e54f113e2__save_comment, mcp__c8562be6-ba3e-44a3-8490-a10e54f113e2__list_issue_labels]
 ---
 # Dream
 
