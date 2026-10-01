@@ -1,4 +1,5 @@
 ---
+paused: true             # no connectors under cron; re-enable once Autopilot runs as a LaunchAgent
 every: 15m
 tools: [mcp__claude_ai_Gmail__search_threads, mcp__claude_ai_Gmail__get_thread]
 ---
