@@ -1,0 +1,28 @@
+{
+  "permissions": {
+    "allow": [
+      "Read", "Glob", "Grep", "Edit", "Write",
+      "Bash(git status:*)", "Bash(git diff:*)", "Bash(git log:*)", "Bash(git add:*)", "Bash(git commit:*)",
+      "Bash(git switch:*)", "Bash(git fetch:*)", "Bash(git push origin claude/:*)", "Bash(git push -u origin claude/:*)",
+      "mcp__claude_ai_Linear__list_issues", "mcp__claude_ai_Linear__get_issue", "mcp__claude_ai_Linear__list_comments",
+      "mcp__claude_ai_Linear__save_comment", "mcp__claude_ai_Linear__save_issue", "mcp__claude_ai_Linear__get_attachment",
+      "mcp__claude_ai_Gmail__search_threads", "mcp__claude_ai_Gmail__get_thread", "mcp__claude_ai_Gmail__create_draft", "mcp__claude_ai_Gmail__update_draft",
+      "mcp__claude_ai_Slack__slack_search_public_and_private", "mcp__claude_ai_Slack__slack_read_thread", "mcp__claude_ai_Slack__slack_read_channel",
+      "mcp__claude_ai_Slack__slack_send_message_draft"
+    ],
+    "deny": [
+      "mcp__claude_ai_Gmail__send_message", "mcp__claude_ai_Gmail__reply", "mcp__claude_ai_Gmail__forward",
+      "mcp__claude_ai_Gmail__trash_message", "mcp__claude_ai_Gmail__trash_thread", "mcp__claude_ai_Gmail__delete_draft",
+      "mcp__claude_ai_Gmail__delete_label", "mcp__claude_ai_Gmail__send_draft",
+      "mcp__claude_ai_Slack__slack_send_message", "mcp__claude_ai_Slack__slack_schedule_message",
+      "mcp__claude_ai_Slack__slack_create_conversation", "mcp__claude_ai_Slack__slack_delete_message",
+      "mcp__claude_ai_GitHub__merge_pull_request", "mcp__claude_ai_GitHub__delete_file", "mcp__claude_ai_GitHub__delete_branch",
+      "mcp__claude_ai_GitHub__add_issue_comment", "mcp__claude_ai_GitHub__create_pull_request_review", "mcp__claude_ai_GitHub__update_issue",
+      "mcp__claude_ai_Linear__delete_comment", "mcp__claude_ai_Linear__delete_attachment", "mcp__claude_ai_Linear__merge_diff",
+      "Bash(git push --force:*)", "Bash(git push -f:*)", "Bash(git push --force-with-lease:*)", "Bash(git push origin +:*)",
+      "Bash(git push origin main:*)", "Bash(git push origin master:*)", "Bash(git push origin HEAD:main:*)", "Bash(git push origin HEAD:master:*)",
+      "Bash(gh pr merge:*)", "Bash(gh pr close:*)", "Bash(gh pr comment:*)", "Bash(gh pr review:*)", "Bash(gh issue close:*)",
+      "Bash(gh issue comment:*)", "Bash(gh api:*)", "Bash(git branch -D:*)", "Bash(git reset --hard:*)", "Bash(rm -rf:*)"
+    ]
+  }
+}

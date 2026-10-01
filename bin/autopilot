@@ -1,0 +1,6 @@
+#!/bin/sh
+# Entry point for cron: `* * * * * /path/to/autopilot/bin/autopilot tick`
+DIR="$(cd "$(dirname "$(readlink -f "$0")")/.." && pwd)"
+export PATH="$HOME/.local/bin:/usr/local/bin:/opt/homebrew/bin:$PATH"
+mkdir -p "$DIR/.state"
+exec node "$DIR/runtime/tick.ts" "$@" >>"$DIR/.state/tick.log" 2>&1
