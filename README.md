@@ -40,7 +40,7 @@ Node ≥ 24 runs the TypeScript directly; there are no dependencies.
    Then write the workstream files (or `/autopilot:add` them) and run `/autopilot:init`, which creates
    the projects, statuses and labels.
 5. In Linear's notification settings, enable Slack delivery for issues assigned to Badr (priority 1).
-6. Run `claude setup-token` and put the token in `.env` as `CLAUDE_CODE_OAUTH_TOKEN` (cron cannot use the keychain login), then `crontab -e`: `* * * * * /home/autopilot/autopilot/bin/autopilot tick`
+6. Run the tick every minute from a LaunchAgent (not cron: cron cannot read the keychain, so it has no claude.ai connectors and no GitHub login): `~/Library/LaunchAgents/ai.lleverage.autopilot.plist` running `bin/autopilot tick` with `StartInterval` 60, loaded with `launchctl bootstrap gui/$(id -u) <plist>`. Do not set `CLAUDE_CODE_OAUTH_TOKEN`: a `setup-token` token has no connectors.
 7. Enable signals one by one with `/autopilot:add <source>` (GitHub, Linear, then Slack, then Gmail). Use `/autopilot:why`
    on every misfiled issue in the first days.
 

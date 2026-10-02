@@ -103,11 +103,20 @@ export function run(cmd: string, args: string[], opts: { cwd?: string; input?: s
 }
 
 // One non-interactive Claude call. Tools not listed are denied (dontAsk); the prompt goes in on stdin.
+// claude.ai connectors connect in the background and a run can start before they do; then the run would
+// "succeed" without them. So every listed MCP tool must be in the init event's tools, or the call fails
+// and the next tick retries the same window.
 export function claude(prompt: string, o: { tools: string[]; model?: string; schema?: object; timeout?: number }) {
-  const args = ['-p', '--output-format', 'json', '--permission-mode', 'dontAsk', '--allowedTools', o.tools.join(',')];
+  const args = ['-p', '--output-format', 'stream-json', '--verbose', '--permission-mode', 'dontAsk', '--allowedTools', o.tools.join(',')];
   if (o.model) args.push('--model', o.model);
   if (o.schema) args.push('--json-schema', JSON.stringify(o.schema));
-  const out = JSON.parse(run('claude', args, { cwd: ROOT, input: prompt, timeout: o.timeout ?? 30 * 6e4 }));
+  const events = run('claude', args, { cwd: ROOT, input: prompt, timeout: o.timeout ?? 30 * 6e4 })
+    .split('\n').flatMap(l => { try { return [JSON.parse(l)]; } catch { return []; } });
+  const init = events.find(e => e.type === 'system' && e.subtype === 'init');
+  const missing = o.tools.filter(t => t.startsWith('mcp__') && !init?.tools?.includes(t));
+  if (missing.length) throw new Error(`claude: tools not available (connector not connected?): ${missing.join(', ')}`);
+  const out = events.findLast(e => e.type === 'result');
+  if (!out) throw new Error('claude: no result event');
   if (out.is_error) throw new Error(`claude: ${out.result ?? out.subtype}`);
   return out.structured_output ?? out.result;
 }
