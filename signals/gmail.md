@@ -26,7 +26,10 @@ Skip newsletters, receipts, calendar notifications, automated mail,
 mail from my own accounts (badr@lleverage.onmicrosoft.com), and
 threads whose last message is mine.
 
-Search with `in:inbox -from:me after:<window start date, YYYY/MM/DD>`
-(dates only, so drop threads whose latest message is before the window),
+Search with `in:inbox -from:me after:<window start as Unix seconds>`
+(e.g. `after:1790886000`; Gmail takes seconds, so the search itself
+excludes older mail). A thread qualifies only when a message not from
+me arrived inside the window; an older thread is not new, even if it
+is still unanswered,
 page through all results, and read each remaining thread with get_thread.
 Source URL: the thread's `viewUrl`.

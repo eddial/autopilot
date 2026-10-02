@@ -80,7 +80,7 @@ function runSignal(name: string, dry?: number) {
       instructions(),
       `# Signal: ${name}\n\nSource label: ${name}. Linear team: ${config.linear_team}.\n\n${sig.body}`,
       `# Workstreams (Linear project = workstream name)\n\n${routing}`,
-      `# Window\n\nFetch items with activity from ${iso(from)} up to ${iso(end)}. Ignore anything outside it.`,
+      `# Window\n\nFetch items with activity from ${iso(from)} up to ${iso(end)} (Unix seconds ${Math.floor(+from / 1e3)} to ${Math.floor(+end / 1e3)}). Ignore anything outside it.`,
       dry ? `# Output\n\nDRY RUN: apply the filing rules but create, change and comment on nothing. Report what you would do (action = what you would do, issue = the existing issue for a comment, else null).`
           : `# Output\n\nFile each item per the filing rules, then return {"items": [...]} with one entry per item, filed or dropped.`,
     ].join('\n\n---\n\n');
