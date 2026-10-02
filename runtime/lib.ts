@@ -96,21 +96,23 @@ export function failed(key: string, err: unknown) {
 export const alive = (pid?: number | null) => { try { return !!pid && process.kill(pid, 0); } catch { return false; } };
 export const log = (...a: unknown[]) => console.log(new Date().toISOString(), ...a);
 
-export function run(cmd: string, args: string[], opts: { cwd?: string; input?: string; timeout?: number } = {}) {
+export function run(cmd: string, args: string[], opts: { cwd?: string; input?: string; timeout?: number; env?: NodeJS.ProcessEnv } = {}) {
   const r = spawnSync(cmd, args, { encoding: 'utf8', maxBuffer: 64 << 20, ...opts });
   if (r.status !== 0) throw new Error(`${cmd} ${args.slice(0, 3).join(' ')}: ${r.error?.message ?? (r.stderr || r.stdout).trim().slice(-1500)}`);
   return r.stdout.trim();
 }
 
 // One non-interactive Claude call. Tools not listed are denied (dontAsk); the prompt goes in on stdin.
-// claude.ai connectors connect in the background and a run can start before they do; then the run would
-// "succeed" without them. So every listed MCP tool must be in the init event's tools, or the call fails
-// and the next tick retries the same window.
+// claude.ai connectors connect in the background, and -p only waits briefly for them. Make it wait until
+// they are connected (MCP_CONNECTION_NONBLOCKING=0, up to 30s). As a safety net every listed MCP tool must
+// be in the init event's tools, or the call fails and the next tick retries the same window instead of
+// "succeeding" without them.
 export function claude(prompt: string, o: { tools: string[]; model?: string; schema?: object; timeout?: number }) {
   const args = ['-p', '--output-format', 'stream-json', '--verbose', '--permission-mode', 'dontAsk', '--allowedTools', o.tools.join(',')];
   if (o.model) args.push('--model', o.model);
   if (o.schema) args.push('--json-schema', JSON.stringify(o.schema));
-  const events = run('claude', args, { cwd: ROOT, input: prompt, timeout: o.timeout ?? 30 * 6e4 })
+  const env = { ...process.env, MCP_CONNECTION_NONBLOCKING: '0', CLAUDE_CODE_MCP_STARTUP_WAIT_MS: '30000' };
+  const events = run('claude', args, { cwd: ROOT, input: prompt, env, timeout: o.timeout ?? 30 * 6e4 })
     .split('\n').flatMap(l => { try { return [JSON.parse(l)]; } catch { return []; } });
   const init = events.find(e => e.type === 'system' && e.subtype === 'init');
   const missing = o.tools.filter(t => t.startsWith('mcp__') && !init?.tools?.includes(t));
