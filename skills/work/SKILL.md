@@ -6,7 +6,7 @@ description: How an Autopilot session works a Linear issue — read the issue an
 # Work an Autopilot issue
 
 You run in a fresh git worktree on branch `claude/<issue-id>`, started
-because Badr moved the issue to Start. The launcher already moved it to
+because Badr moved the issue to Start or commented on it. The launcher already moved it to
 Working. Badr may watch through Remote Control or `tmux attach`.
 
 ## 1. Read

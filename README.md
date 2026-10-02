@@ -1,7 +1,7 @@
 # Autopilot
 
 Turns everything that needs Badr's attention into Linear issues, one workstream each, and starts a
-prepared Claude Code session when he moves an issue to **Start**. Runs on his own server on top of
+prepared Claude Code session when he moves an issue to **Start** or comments on it. Runs on his own server on top of
 Claude Code and his claude.ai connectors. The system is a directory: one Markdown file per capability.
 
 ```
@@ -53,7 +53,8 @@ Node ≥ 24 runs the TypeScript directly; there are no dependencies.
   every item goes to `.state/decisions.jsonl`. A failed or unparseable run leaves `last_checked`, so the
   next tick retries. The first run only sets `last_checked` (no backfill).
 - **Launcher.** Every tick: issues in Done/Canceled with a session are cleaned up (tmux window killed,
-  worktree removed unless it has uncommitted or unpushed work); then issues in Start, oldest first, are
+  worktree removed unless it has uncommitted or unpushed work); issues in Triage or Backlog without a
+  session whose latest comment is Badr's move to Start; then issues in Start, oldest first, are
   claimed (→ Working) while fewer than `max_parallel_sessions` are Working. Each gets a worktree at
   `worktrees_dir/<ID>` on `claude/<id>` and a tmux window in session `autopilot` running
   `claude --remote-control <ID> --permission-mode bypassPermissions`: no permission prompts, only the
