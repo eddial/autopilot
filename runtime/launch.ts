@@ -85,7 +85,7 @@ async function start(issue: any) {
   const prompt = [instructions(), section(ws.body, 'Work'), `Use the autopilot:work skill on Linear issue ${id}.`].filter(Boolean).join('\n\n---\n\n');
   tmux('new-window', '-d', '-t', `${TMUX}:`, '-n', id, '-c', worktree,
     '-e', `AUTOPILOT_ISSUE=${id}`, '-e', `AUTOPILOT_ISSUE_UUID=${issue.id}`, '-e', `AUTOPILOT_ROOT=${ROOT}`,
-    'claude', '--remote-control', id, '--no-chrome', '--permission-mode', 'bypassPermissions', '--settings', path.join(ROOT, '.claude', 'settings.json'), prompt);
+    'claude', '--remote-control', `${id} ${issue.title}`, '--no-chrome', '--permission-mode', 'bypassPermissions', '--settings', path.join(ROOT, '.claude', 'settings.json'), prompt);
 
   // Past step 3: the session runs. Failures from here on are reported but do not undo the claim.
   let link = '';
