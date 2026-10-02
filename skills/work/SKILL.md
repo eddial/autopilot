@@ -46,8 +46,10 @@ Do the work up to the point where Badr only has to decide:
 - **Reply needed** → a draft in the source's own place: a Gmail draft
   in the thread, a Slack draft, or the text in a comment when no draft
   tool exists. Never send.
-- **Document needed** → write it in the worktree and commit it, or a
-  draft doc through the connector.
+- **Document needed** → publish it as a Claude artifact (Artifact
+  tool; private by default) and link it in the briefing. Also commit
+  the source file in the worktree. Badr prefers artifacts over files
+  in the repo.
 - **Code needed** → commit on this branch and push the branch. Never
   push to the default branch, force-push, or merge. Opening a draft PR
   is fine when the repo expects one.
