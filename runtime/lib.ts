@@ -107,12 +107,14 @@ export function run(cmd: string, args: string[], opts: { cwd?: string; input?: s
 // they are connected (MCP_CONNECTION_NONBLOCKING=0, up to 30s). As a safety net every listed MCP tool must
 // be in the init event's tools, or the call fails and the next tick retries the same window instead of
 // "succeeding" without them.
-export function claude(prompt: string, o: { tools: string[]; model?: string; schema?: object; timeout?: number }) {
+export function claude(prompt: string, o: { tools: string[]; model?: string; schema?: object; timeout?: number; log?: string }) {
   const args = ['-p', '--output-format', 'stream-json', '--verbose', '--permission-mode', 'dontAsk', '--allowedTools', o.tools.join(',')];
   if (o.model) args.push('--model', o.model);
   if (o.schema) args.push('--json-schema', JSON.stringify(o.schema));
   const env = { ...process.env, MCP_CONNECTION_NONBLOCKING: '0', CLAUDE_CODE_MCP_STARTUP_WAIT_MS: '30000' };
-  const events = run('claude', args, { cwd: ROOT, input: prompt, env, timeout: o.timeout ?? 30 * 6e4 })
+  const raw = run('claude', args, { cwd: ROOT, input: prompt, env, timeout: o.timeout ?? 30 * 6e4 });
+  if (o.log) { fs.mkdirSync(path.join(STATE_DIR, 'runs'), { recursive: true }); fs.writeFileSync(path.join(STATE_DIR, 'runs', `${o.log}.jsonl`), raw); }
+  const events = raw
     .split('\n').flatMap(l => { try { return [JSON.parse(l)]; } catch { return []; } });
   const init = events.find(e => e.type === 'system' && e.subtype === 'init');
   const missing = o.tools.filter(t => t.startsWith('mcp__') && !init?.tools?.includes(t));
