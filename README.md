@@ -31,7 +31,8 @@ Node ≥ 24 runs the TypeScript directly; there are no dependencies.
    connector tool names. claude.ai connectors register in the CLI as `claude.ai Gmail` etc., so the
    files use `mcp__claude_ai_Gmail__…`, `mcp__claude_ai_Slack__…` and `mcp__claude_ai_Linear__…` (the
    desktop app shows the same tools under connector UUIDs). GitHub has no connector yet, so
-   `signals/github.md` stays paused with no tools.
+   `signals/github.md` stays paused with no tools. Run `claude --permission-mode bypassPermissions`
+   once and accept the warning, or the first launched session waits on it in tmux.
 3. Clone this repo and the work repos into `repos_dir`; `cp .env.example .env` and add a Linear
    personal API key.
 4. Run `node runtime/tick.ts install`. It symlinks this repo into `~/.claude/skills/autopilot`, where Claude
@@ -55,8 +56,9 @@ Node ≥ 24 runs the TypeScript directly; there are no dependencies.
   worktree removed unless it has uncommitted or unpushed work); then issues in Start, oldest first, are
   claimed (→ Working) while fewer than `max_parallel_sessions` are Working. Each gets a worktree at
   `worktrees_dir/<ID>` on `claude/<id>` and a tmux window in session `autopilot` running
-  `claude --remote-control <ID>`. The Remote Control link is scraped from the pane and commented on
-  the issue. A failure before the session starts moves the issue back to Triage with the error.
+  `claude --remote-control <ID> --permission-mode bypassPermissions`: no permission prompts, only the
+  deny rules in `.claude/settings.json` block. The Remote Control link is scraped from the pane and
+  commented on the issue. A failure before the session starts moves the issue back to Triage with the error.
 - **Health.** A job failing for 60 minutes, or a window cut by the 24-hour cap, makes a Claude call that
   creates or updates a p2 issue in the `autopilot` project; the failing issue is closed once runs succeed.
 - **Dream.** `schedules/dream.md` runs at 03:30 and commits `autopilot(dream): …` plus the journal.
