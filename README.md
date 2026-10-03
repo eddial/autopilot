@@ -59,7 +59,7 @@ Node ≥ 24 runs the TypeScript directly; there are no dependencies.
   `claude --remote-control <ID> --permission-mode bypassPermissions`: no permission prompts, only the
   deny rules in `.claude/settings.json` block. The Remote Control link is scraped from the pane and
   commented on the issue. A failure before the session starts moves the issue back to Triage with the error.
-- **Health.** A job failing for 60 minutes, or a window cut by the 24-hour cap, makes a Claude call that
+- **Health.** A job failing for 60 minutes and at least 3 runs, or a window cut by the 24-hour cap, makes a Claude call that
   creates or updates a p2 issue in the `autopilot` project; the failing issue is closed once runs succeed.
 - **Dream.** `schedules/dream.md` runs at 03:30 and commits `autopilot(dream): …` plus the journal.
 

@@ -49,10 +49,11 @@ function tick() {
     }
   }
   if (!alive(s.jobs.launcher?.pid)) detach('launcher', ['launch']);
-  // Health: report after 60 minutes of failure or on a capped window; close once runs succeed.
+  // Health: report after 60 minutes and 3 runs of failure, or on a capped window; close once runs succeed.
+  // The run count keeps a single failure followed by sleep (a laptop's dark wake) from counting as an hour.
   for (const [key, j] of Object.entries(s.jobs)) {
     if (key.startsWith('health:') || alive(s.jobs[`health:${key}`]?.pid)) continue;
-    const failing = !!j.failing_since && +now - +new Date(j.failing_since) >= 60 * 6e4;
+    const failing = !!j.failing_since && (j.failures ?? 0) >= 3 && +now - +new Date(j.failing_since) >= 60 * 6e4;
     if ((failing && !j.health_reported) || j.gaps?.length) detach(`health:${key}`, ['health', key, 'open']);
     else if (!j.failing_since && j.health_reported) detach(`health:${key}`, ['health', key, 'close']);
   }
@@ -128,7 +129,8 @@ function runHealth(target: string, mode: string) {
     withState(s => {
       const t = job(s, target);
       if (mode === 'close') t.health_reported = false;
-      else { t.health_reported = !!t.failing_since; t.gaps = (t.gaps ?? []).slice(j.gaps?.length ?? 0); }
+      // What was reported, not the state now: the job may have recovered meanwhile, and the next tick closes the issue.
+      else { t.health_reported = !!j.failing_since; t.gaps = (t.gaps ?? []).slice(j.gaps?.length ?? 0); }
     });
     succeeded(key);
   } catch (e) { failed(key, e); }
