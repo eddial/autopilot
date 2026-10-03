@@ -23,7 +23,7 @@ Never delete or rename anything that is not listed here.
    the missing ones and tell Badr to add them in Linear → Team settings →
    Workflow, then re-run /autopilot:init.
 3. **Labels.** Ensure team labels `autopilot`, `gmail`, `slack`, `linear`,
-   `github` (one per file in `signals/`).
+   `github`, `product-weekly` (one per file in `signals/`).
 4. **Local.** Check that `~/.claude/skills/autopilot` links to this repo (else run `node runtime/tick.ts install`), the
    deny rules are in `~/.claude/settings.json`, and `.env` has `LINEAR_API_KEY`.
 

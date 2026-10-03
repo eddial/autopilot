@@ -8,7 +8,7 @@ Claude Code and his claude.ai connectors. The system is a directory: one Markdow
 autopilot.yaml           config: Linear team, model, paths, limits, Linear filing tools
 instructions.md          shared rules prepended to every Claude call (incl. the filing rules)
 workstreams/<name>.md    routing + work; file name = workstream id = Linear project
-signals/<source>.md      every:, optional delay:, tools:, what counts; `paused: true` until /autopilot:add enables it
+signals/<source>.md      every: (or cron: for a digest), optional delay:/window_cap:, tools:, what counts; `paused: true` until /autopilot:add enables it
 schedules/dream.md       cron: + prompt; the nightly routing review
 skills/work/SKILL.md     autopilot:work, how a session works an issue
 commands/                /autopilot:init, :add, :why, :status
@@ -51,7 +51,9 @@ Node ≥ 24 runs the TypeScript directly; there are no dependencies.
   window is `max(last_checked − window_overlap, now − window_cap)` → start of run. One `claude -p
   --model haiku --json-schema …` call with the signal's read tools plus `filing_tools` files the items;
   every item goes to `.state/decisions.jsonl`. A failed or unparseable run leaves `last_checked`, so the
-  next tick retries. The first run only sets `last_checked` (no backfill).
+  next tick retries. The first run only sets `last_checked` (no backfill). A signal with `cron:` is a
+  digest instead: it runs when the cron matches, over everything since its previous run (the first run
+  covers its `window_cap:`, which overrides the global cap), and a failed run is retried every `every:`.
 - **Launcher.** Every tick: issues in Done/Canceled with a session are cleaned up (tmux window killed,
   worktree removed unless it has uncommitted or unpushed work); issues in Triage or Backlog without a
   session whose latest comment is Badr's move to Start; then issues in Start, oldest first, are
