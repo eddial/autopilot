@@ -1,7 +1,7 @@
 linear_team: AP
 model: haiku                 # signals and classification
 max_parallel_sessions: 3
-window_cap: 24h
+window_cap: 72h              # a weekend with the laptop closed still gets read in full
 window_overlap: 2m
 repos_dir: ~/repos
 worktrees_dir: ~/work

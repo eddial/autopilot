@@ -1,7 +1,7 @@
 // Launcher. Polls Linear with the API key: starts a session for each issue in Start, cleans up after Done/Canceled.
 import fs from 'node:fs';
 import path from 'node:path';
-import { ROOT, config, readDir, section, instructions, withState, readState, run, log, type Session } from './lib.ts';
+import { ROOT, config, readDir, section, instructions, withState, readState, run, log, transient, type Session } from './lib.ts';
 
 const TMUX = 'autopilot';
 // Every comment Autopilot writes starts with this; a comment without it is Badr steering the issue.
@@ -57,9 +57,10 @@ export async function launch() {
     running++;
     try { await start(issue); } catch (e) {
       log('launcher', issue.identifier, 'start failed:', (e as Error).message);
+      running--;
+      if (transient(e)) { await move(issue.id, states.Start); continue; } // network dropped: retry next tick
       await move(issue.id, states.Triage);
       await comment(issue.id, `${MARK} · could not start a session:\n\n\`\`\`\n${(e as Error).message}\n\`\`\``);
-      running--;
     }
   }
 }
@@ -95,9 +96,11 @@ async function start(issue: any) {
   const started = new Date().toISOString();
   const session: Session = { issue_id: issue.id, repo, worktree, branch, window: `${TMUX}:${id}`, link, started, seen: started };
   withState(s => { s.sessions[id] = session; });
+  // The session runs whatever happens here; a lost comment must not send the issue back.
   await comment(issue.id, [`${MARK} · session started on branch \`${branch}\`.`,
     link ? `Remote Control: ${link}` : 'Remote Control link not found yet; open it from the Claude app session list.',
-    `On the server: \`tmux attach -t ${TMUX} \\; select-window -t ${id}\``].join('\n\n'));
+    `On the server: \`tmux attach -t ${TMUX} \\; select-window -t ${id}\``].join('\n\n'))
+    .catch(e => log('launcher', id, 'start comment failed:', (e as Error).message));
   log('launcher', id, 'started', link);
 }
 
