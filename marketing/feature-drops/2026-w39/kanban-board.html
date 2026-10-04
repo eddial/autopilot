@@ -102,7 +102,7 @@
         </div>
       </div>
       <div class="menu" id="menu">
-        <div id="mS"><span data-fa="faCaretDown"></span>Status</div>
+        <div id="mS"><span data-fa="faCaretDown"></span>Match</div>
         <div id="mO"><span data-fa="faUser"></span>Owner</div>
         <div id="mT"><span data-fa="faFont"></span>Supplier</div>
         <div><span data-fa="faToggleOn"></span>Paid</div>
@@ -116,14 +116,14 @@
 
   <div class="card-full" id="hook">
     <div class="kicker"><span id="hl"></span>New in Lleverage</div>
-    <h1>Your table,<br><em>as a board.</em></h1>
+    <h1>Your invoices,<br><em>as a board.</em></h1>
     <p>Every data table now has a Kanban view.</p>
     <div class="mark"><span data-logo></span>Lleverage</div>
   </div>
   <div class="card-full" id="end">
     <div class="kicker"><span id="el"></span>Live now</div>
     <h1>List or board.<br><em>Same data.</em></h1>
-    <p>Board view for every data table in Lleverage.</p>
+    <p>Board view for every data table: invoices, orders, returns.</p>
     <div class="mark"><span data-logo></span>Lleverage</div>
     <div class="url">lleverage.ai</div>
   </div>
@@ -138,30 +138,30 @@
   $("#hl").innerHTML = APP.loader(30); $("#el").innerHTML = APP.loader(30);
 
   // Choice colours (lib/data-tables/choice-colours.ts) and select badges (cell-formatters.tsx).
-  const COL = { "To match": "#3b82f6", "Needs PO": "#f59e0b", Approved: "#10b981" };
+  const COL = { "To match": "#3b82f6", "Price difference": "#f59e0b", "Ready to book": "#10b981" };
   const PEOPLE = { Sanne: "hsl(280 30% 42%)", Joris: "hsl(170 35% 35%)", Mila: "hsl(15 45% 45%)" };
   const chip = (s) => `<span class="chip" style="background:color-mix(in srgb, ${COL[s]} 12%, transparent);border-color:color-mix(in srgb, ${COL[s]} 30%, transparent);color:color-mix(in srgb, ${COL[s]} 75%, hsl(var(--foreground)))">${s}</span>`;
   const who = (n) => `<span class="who"><span class="uav" style="background:${PEOPLE[n]}">${n[0]}</span>${n}</span>`;
   const R = [
-    ["Van Dijk Metaal", "€4,820", "Needs PO", "Sanne", "6 Oct"], ["Brouwer Verpakking", "€1,265", "To match", "Joris", "8 Oct"],
-    ["Rijnstaal", "€12,940", "Approved", "Sanne", "3 Oct"], ["De Graaf Transport", "€860", "To match", "Mila", "10 Oct"],
-    ["Kuipers Hout", "€3,410", "Needs PO", "Joris", "7 Oct"], ["Noord Coatings", "€7,150", "Approved", "Mila", "9 Oct"],
-    ["Smit Elektro", "€2,290", "To match", "Sanne", "12 Oct"], ["Hendriks Logistiek", "€5,075", "To match", "Joris", "14 Oct"],
+    ["Van Dijk Metaal", "€4,820", "Price difference", "Sanne", "4500012877"], ["Brouwer Verpakking", "€1,265", "To match", "Joris", "4500012902"],
+    ["Rijnstaal", "€12,940", "Ready to book", "Sanne", "4500012851"], ["De Graaf Transport", "€860", "To match", "Mila", "4500012915"],
+    ["Kuipers Hout", "€3,410", "Price difference", "Joris", "4500012888"], ["Noord Coatings", "€7,150", "Ready to book", "Mila", "4500012860"],
+    ["Smit Elektro", "€2,290", "To match", "Sanne", "4500012921"], ["Hendriks Logistiek", "€5,075", "To match", "Joris", "4500012930"],
   ];
-  $("#grid").innerHTML = `<colgroup><col style="width:56px"><col style="width:220px"><col style="width:130px"><col style="width:150px"><col style="width:150px"><col></colgroup>
-    <tr><th class="n"></th><th>Supplier</th><th>Amount</th><th>Status</th><th>Owner</th><th>Due date</th></tr>`
-    + R.map((r, i) => `<tr><td class="n">${i + 1}</td><td>${r[0]}</td><td class="tnum">${r[1]}</td><td>${chip(r[2])}</td><td>${who(r[3])}</td><td>${r[4]}</td></tr>`).join("");
+  $("#grid").innerHTML = `<colgroup><col style="width:56px"><col style="width:200px"><col style="width:130px"><col style="width:120px"><col style="width:170px"><col></colgroup>
+    <tr><th class="n"></th><th>Supplier</th><th>PO number</th><th>Amount</th><th>Match</th><th>Owner</th></tr>`
+    + R.map((r, i) => `<tr><td class="n">${i + 1}</td><td>${r[0]}</td><td class="tnum">${r[4]}</td><td class="tnum">${r[1]}</td><td>${chip(r[2])}</td><td>${who(r[3])}</td></tr>`).join("");
 
   const card = (r, fields, id = "") => `<div class="kc" ${id}><p>${r[0]}</p><dl>${fields.map(([k, v]) => `<div><dt>${k}</dt><dd>${v}</dd></div>`).join("")}</dl></div>`;
   const lane = (label, dot, cards, id) => `<div class="lane"><div class="lh"><span class="grip" data-fa="faGripDotsVertical"></span>${dot}<span class="lbl">${label}</span><span class="xs mf tnum" id="${id}n">${cards.length}</span></div><div class="lb" id="${id}">${cards.join("")}</div></div>`;
-  const sFields = (r) => [["Amount", r[1]], ["Owner", who(r[3])]];
+  const sFields = (r) => [["PO number", r[4]], ["Amount", r[1]], ["Owner", who(r[3])]];
   const byS = (s) => R.filter((r) => r[2] === s && r[0] !== "Van Dijk Metaal").map((r) => card(r, sFields(r)));
   const vd = R[0];
   $("#boardS").innerHTML =
     lane("To match", `<span class="dot" style="background:${COL["To match"]}"></span>`, byS("To match"), "lM")
-    + lane("Needs PO", `<span class="dot" style="background:${COL["Needs PO"]}"></span>`, [card(vd, sFields(vd), 'id="vdA"'), ...byS("Needs PO")], "lP")
-    + lane("Approved", `<span class="dot" style="background:${COL.Approved}"></span>`, [...byS("Approved"), card(vd, sFields(vd), 'id="vdB"')], "lA");
-  const oFields = (r) => [["Amount", r[1]], ["Status", chip(r[0] === "Van Dijk Metaal" ? "Approved" : r[2])]];
+    + lane("Price difference", `<span class="dot" style="background:${COL["Price difference"]}"></span>`, [card(vd, sFields(vd), 'id="vdA"'), ...byS("Price difference")], "lP")
+    + lane("Ready to book", `<span class="dot" style="background:${COL["Ready to book"]}"></span>`, [...byS("Ready to book"), card(vd, sFields(vd), 'id="vdB"')], "lA");
+  const oFields = (r) => [["Amount", r[1]], ["Match", chip(r[0] === "Van Dijk Metaal" ? "Ready to book" : r[2])]];
   $("#boardO").innerHTML = Object.keys(PEOPLE).map((n, i) => lane(n, `<span class="uav" style="background:${PEOPLE[n]};width:16px;height:16px;font-size:9px">${n[0]}</span>`, R.filter((r) => r[3] === n).map((r) => card(r, oFields(r))), "o" + i)).join("");
   $("#tcard").insertAdjacentHTML("beforeend", `<div class="kc drag" id="drag">${$("#vdA").innerHTML}</div>`);
   $$("[data-fa]").forEach((el) => (el.innerHTML = fa(el.dataset.fa, "", el.dataset.s || "")));
@@ -191,9 +191,9 @@
   cam(0);
 
   const cap = C.captions([
-    [2.6, 6.8, "Any data table.<br><em>Now a board.</em>"],
-    [7.0, 11.6, "Drag a card to a lane.<br><em>The record updates.</em>"],
-    [11.8, 16.0, "Group by status, person<br><em>or yes / no.</em>"],
+    [2.6, 6.8, "Three-way match,<br><em>as a board.</em>"],
+    [7.0, 11.6, "Price difference approved?<br><em>Drag it to Ready to book.</em>"],
+    [11.8, 16.0, "Group by match, owner<br><em>or paid / unpaid.</em>"],
   ]);
 
   C.run(D, (t) => {
@@ -211,7 +211,7 @@
     const isBoard = t >= 4.15;
     $("#vList").className = isBoard ? "" : "on"; $("#vBoard").className = isBoard ? "on" : "";
     $("#bset").style.display = isBoard ? "" : "none";
-    const gb = t >= 14.05 ? "Owner" : t >= 5.35 ? "Status" : "";
+    const gb = t >= 14.05 ? "Owner" : t >= 5.35 ? "Match" : "";
     $("#gbv").textContent = gb || "Choose a column"; $("#gbv").className = gb ? "" : "ph";
     const menu = (t >= 4.75 && t < 5.35) || (t >= 12.95 && t < 14.05);
     $("#menu").style.display = menu ? "" : "none";
@@ -228,7 +228,7 @@
     $("#boardO").style.opacity = toO;
     $("#boardO").style.transform = `translateY(${(1 - toO) * 10}px)`;
 
-    // Drag Van Dijk Metaal from Needs PO to Approved (ghost at opacity-40, overlay shadow-md, target lane bg-accent).
+    // Drag Van Dijk Metaal from Price difference to Ready to book (ghost at opacity-40, overlay shadow-md, target lane bg-accent).
     const dragging = t >= 8.15 && t < 9.65, dropped = t >= 9.65;
     $("#vdA").style.display = dropped ? "none" : "";
     $("#vdA").className = "kc" + (dragging ? " ghost" : "");

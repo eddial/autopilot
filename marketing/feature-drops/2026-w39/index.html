@@ -81,9 +81,9 @@ button.copy:focus-visible { outline: 2px solid var(--accent); outline-offset: 2p
         <div class="post-head">Company post<button class="copy" type="button">Copy</button></div>
         <p>Most AI assistants tell you what to click. Then you go and click it.
 
-Llev doesn't. Call the agent from the chat and say "add a chart of last month's runs, split by outcome". The chart is on your Overview page before you finish the call.
+Llev doesn't. Call the agent from the chat and say "add a chart of last month's orders: booked in Exact or handed to a person". The chart is on your Overview page before you finish the call.
 
-Ask "when did the last run fail?" and you get the run, the reason and who has it.
+Ask "which orders are waiting for a PO number?" and you get the three orders, the oldest one, and who has them.
 
 Cut it off mid-sentence and it stops and listens. Everything you said lands in the chat transcript.
 
@@ -96,17 +96,17 @@ Talk to Llev is live now in the Lleverage agent.</p>
     <video src="kanban-board.mp4" poster="kanban-board.png" autoplay muted loop playsinline controls></video>
     <div class="meta">
       <h2 id="f2">Board view for data tables</h2>
-      <p class="why">Any data table switches from list to board in the Columns dialog. Drag a card to another lane and the record updates. Very visual, and it shows Lleverage as the team's workspace, not a chat window.</p>
+      <p class="why">Supplier invoices as a three-way-match board: to match, price difference, ready to book. Any data table switches from list to board in the Columns dialog. Very visual, and it shows Lleverage as the team's workspace, not a chat window.</p>
       <div class="facts"><span>18s · 4:5</span><a href="https://lleverage.slack.com/archives/C09PS3956F5/p1790153229252049" target="_blank" rel="noopener">#change-log 23 Sep</a></div>
       <div class="post">
         <div class="post-head">Company post<button class="copy" type="button">Copy</button></div>
-        <p>An accounts payable team doesn't think in rows. They think in "waiting for a PO", "ready to match" and "approved".
+        <p>An accounts payable team doesn't think in rows. They think in "to match", "price difference" and "ready to book".
 
 Every data table in Lleverage now has a board view. Switch from list to board, pick a column to group by, and each record becomes a card.
 
-Drag a card to another lane and the record updates.
+Approve a price difference by dragging the invoice to Ready to book. The record updates.
 
-Group by status, person, select or yes/no columns. Choose which fields show on each card. Same data, in the view the team actually works in.</p>
+Group by status, owner, select or yes/no columns. Choose which fields show on each card. Same data, in the view the team actually works in.</p>
       </div>
     </div>
   </section>
@@ -115,7 +115,7 @@ Group by status, person, select or yes/no columns. Choose which fields show on e
     <video src="skill-tests.mp4" poster="skill-tests.png" autoplay muted loop playsinline controls></video>
     <div class="meta">
       <h2 id="f3">Skill tests</h2>
-      <p class="why">Tests run a skill against saved checks. When one fails you see which check and why, and the agent fixes the instructions. Supports two differentiators: built for messy reality, and the path from coworker to autonomous.</p>
+      <p class="why">Tests run a skill against saved checks. When one fails you see which check and why, and the agent fixes the instructions. Shows the work the ERP never sees: a PO number that isn't there, an order for two sites, and an agent that learns the rule instead of guessing.</p>
       <div class="facts"><span>20s · 4:5</span><a href="https://lleverage.slack.com/archives/C09PS3956F5/p1790343555673919" target="_blank" rel="noopener">#change-log 25 Sep</a></div>
       <div class="post">
         <div class="post-head">Company post<button class="copy" type="button">Copy</button></div>
@@ -141,7 +141,7 @@ That's not how operations teams work. A purchasing team has one or two people wh
 
 So we build for the champions. They build a skill, the agent writes tests for it, and it reaches the rest of the team once it passes. When a test fails, the agent shows why and fixes the instructions, not the test.
 
-Start as a coworker. Promote it to run on its own once the tests and the monitoring say it's ready.
+Start with a person approving every draft order. Let it book straight into Exact once the tests and the monitoring say it's ready.
 
 That's the loop we shipped this week.</p>
     </div>

@@ -111,8 +111,8 @@
   $("#hl").innerHTML = APP.loader(30); $("#el").innerHTML = APP.loader(30);
 
   const T = [
-    ["Three order lines", "Standard PO, one delivery address", 1], ["Scanned PO", "Rotated scan, Dutch text", 1],
-    ["No PO number", "Order in the email body, PO missing", 0], ["Prices excluding VAT", "Totals must match the PO", 1],
+    ["Three order lines", "Standard PO, one delivery address", 1], ["Customer price list", "Price from Exact, not from the PO", 1],
+    ["No PO number", "Order in the email body, PO missing", 0], ["Customer's own article codes", "Mapped to Exact item numbers", 1],
     ["Two delivery addresses", "One PO, two sites", 0], ["Same PO sent twice", "Second email is a reminder", 1],
   ];
   $("#list").innerHTML = T.map(([n, d], i) => `<li id="t${i}"><div class="row"><div class="nm"><span class="chev">${lu("chevronDown")}</span><b>${n}</b><span>${d}</span></div>
@@ -145,7 +145,7 @@
   cam(0);
 
   const cap = C.captions([
-    [2.6, 6.8, "Test a skill<br><em>against real cases.</em>"],
+    [2.6, 6.8, "Test your order intake<br><em>against real orders.</em>"],
     [7.0, 10.8, "See why one failed.<br><em>Check by check.</em>"],
     [11.0, 14.6, "The agent fixes the skill,<br><em>not the test.</em>"],
     [14.8, 17.6, "Run again.<br><em>All passing.</em>"],

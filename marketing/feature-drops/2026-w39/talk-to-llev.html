@@ -73,17 +73,17 @@
         <div class="ov">
           <div class="greet"><div class="eyebrow">Saturday 4 October</div><h2>Good morning, <em>Sanne</em></h2></div>
           <div class="tiles">
-            <div class="tile"><span class="ic" id="i1"></span><div><b class="tnum">12</b><small>Workflows</small></div></div>
-            <div class="tile"><span class="ic" id="i2"></span><div><b class="tnum">4</b><small>Requests</small></div></div>
-            <div class="tile"><span class="ic" id="i3"></span><div><b class="tnum">38</b><small>Agent sessions</small></div></div>
+            <div class="tile"><span class="ic" id="i1"></span><div><b class="tnum">184</b><small>Orders today</small></div></div>
+            <div class="tile"><span class="ic" id="i2"></span><div><b class="tnum">167</b><small>Booked</small></div></div>
+            <div class="tile"><span class="ic" id="i3"></span><div><b class="tnum">3</b><small>Need a PO</small></div></div>
           </div>
           <div class="slot" id="slot"></div>
         </div>
         <div class="card widget" id="widget">
-          <div class="wh"><h3>Runs last month</h3><span class="xs mf">by outcome</span></div>
+          <div class="wh"><h3>Orders last month</h3><span class="xs mf">by outcome</span></div>
           <div class="plot" id="plot"></div>
           <div class="xt"><span>1 Sep</span><span>15 Sep</span><span>30 Sep</span></div>
-          <div class="lg"><span><i style="background:var(--ok)"></i>Completed</span><span><i style="background:hsl(var(--chart-3))"></i>Failed</span></div>
+          <div class="lg"><span><i style="background:var(--ok)"></i>Booked in Exact</span><span><i style="background:hsl(var(--chart-3))"></i>Handed to a person</span></div>
         </div>
       </main>
       <aside class="as">
@@ -92,8 +92,8 @@
           <div class="msg user" id="u1"><span class="av">S</span><div class="bubble" id="u1t"></div></div>
           <div class="msg" id="a1"><span id="a1av"></span><div class="prose">
             <div class="cot-head" id="cot1">Working…</div>
-            <div class="step" id="st1"><span class="dot" data-fa="faChartLine"></span><span class="txt">Read runs for the last 30 days (0.8s)</span></div>
-            <div class="step" id="st2"><span class="dot" data-fa="faPlus"></span><span class="txt">Added "Runs last month" to Overview (1.1s)</span></div>
+            <div class="step" id="st1"><span class="dot" data-fa="faChartLine"></span><span class="txt">Read orders for the last 30 days (0.8s)</span></div>
+            <div class="step" id="st2"><span class="dot" data-fa="faPlus"></span><span class="txt">Added "Orders last month" to Overview (1.1s)</span></div>
             <div id="a1t"></div></div></div>
           <div class="msg user" id="u2"><span class="av">S</span><div class="bubble" id="u2t"></div></div>
           <div class="msg" id="a2"><span id="a2av"></span><div class="prose"><div id="a2t"></div></div></div>
@@ -132,7 +132,7 @@
   const { $, p, out, show, type } = C;
   $("#sb").outerHTML = APP.sidebar("Overview");
   $("#agentBtn").innerHTML = APP.loader(18);
-  $("#i1").innerHTML = fa("faBolt"); $("#i2").innerHTML = fa("faClock"); $("#i3").innerHTML = fa("faPlay");
+  $("#i1").innerHTML = fa("faInbox"); $("#i2").innerHTML = fa("faCheck"); $("#i3").innerHTML = fa("faClock");
   $("#chev").innerHTML = fa("faChevronDown", "", "width:10px;height:10px;color:hsl(var(--muted-foreground))");
   $("#mchev").innerHTML = fa("faChevronDown", "", "width:9px;height:9px");
   $("#plus").innerHTML = lu("plus", "", "width:16px;height:16px");
@@ -143,9 +143,9 @@
   $("#app").style.setProperty("--ok", "color-mix(in srgb, hsl(170 35% 35%) 55%, white)");
 
   // Stacked bars: completed + failed per day, Recharts-style axes (dashed horizontal grid, 11px ticks).
-  const days = Array.from({ length: 30 }, (_, i) => { const tot = 52 + 38 * Math.abs(Math.sin(i * 1.7)) - (i % 7 > 4 ? 30 : 0); return [tot * 0.93, tot * 0.07]; });
-  $("#plot").innerHTML = [0, 50, 100].map((v) => `<div class="grid-line" style="top:${150 - v * 1.4}px"></div><div class="ytick" style="top:${150 - v * 1.4}px">${v}</div>`).join("")
-    + `<div class="bars">${days.map(([c, f]) => `<div class="bar"><i style="height:${c * 1.4}px;background:var(--ok)"></i><i style="height:${f * 1.4}px;background:hsl(var(--chart-3))"></i></div>`).join("")}</div>`;
+  const days = Array.from({ length: 30 }, (_, i) => { const tot = 95 + 70 * Math.abs(Math.sin(i * 1.7)) - (i % 7 > 4 ? 60 : 0); return [tot * 0.93, tot * 0.07]; });
+  $("#plot").innerHTML = [0, 100, 200].map((v) => `<div class="grid-line" style="top:${150 - v * 0.7}px"></div><div class="ytick" style="top:${150 - v * 0.7}px">${v}</div>`).join("")
+    + `<div class="bars">${days.map(([c, f]) => `<div class="bar"><i style="height:${c * 0.7}px;background:var(--ok)"></i><i style="height:${f * 0.7}px;background:hsl(var(--chart-3))"></i></div>`).join("")}</div>`;
   const bars = [...document.querySelectorAll(".bar")];
   // Place the widget over the dashed slot (layout is static, so once is enough).
   $("#widget").style.top = $("#slot").offsetTop + "px";
@@ -153,7 +153,7 @@
   const cap = C.captions([
     [2.6, 7.4, "Call the agent.<br><em>Say what you want.</em>"],
     [7.6, 12.6, "It makes the change.<br><em>Not a suggestion.</em>"],
-    [12.8, 17.4, "Ask about the work.<br><em>Get the answer.</em>"],
+    [12.8, 17.4, "Ask about your orders.<br><em>Get the answer.</em>"],
   ]);
   // Camera: whole app, then the agent sidebar, the new chart, and back.
   const VW = 952, VH = 900;
@@ -162,8 +162,8 @@
   const callAt = F(1244, 772);
   const cur = C.cursor([[2.9, 700, 1320], [3.5, callAt[0], callAt[1], true], [4.3, 1120, 1420]]);
 
-  const ask1 = "Add a chart of last month's runs, split by outcome.";
-  const ask2 = "When did the last run fail?";
+  const ask1 = "Add a chart of last month's orders: booked in Exact or handed to a person.";
+  const ask2 = "Which orders are waiting for a PO number?";
   C.run(D, (t) => {
     C.hook($("#hook"), t, 2.2);
     C.endcard($("#end"), t, 17.6);
@@ -189,10 +189,10 @@
     $("#a1").style.display = t >= 6.9 ? "" : "none";
     $("#cot1").textContent = t < 10.4 ? "Working…" : "Worked for 3s";
     show($("#st1"), t, 7.2, Infinity, -8, 0.25); show($("#st2"), t, 8.4, Infinity, -8, 0.25);
-    type($("#a1t"), "Done. Runs last month is on your Overview, split into completed and failed.", t, 10.6, 12.0);
+    type($("#a1t"), "Done. Orders last month is on your Overview: 3,425 booked straight into Exact, 258 handed to a person.", t, 10.6, 12.0);
     $("#u2").style.display = t >= 12.9 ? "" : "none"; type($("#u2t"), ask2, t, 12.9, 14.2);
     $("#a2").style.display = t >= 14.4 ? "" : "none";
-    type($("#a2t"), "Yesterday at 16:42. An order PDF from Van Dijk Metaal had no PO number. It's waiting in Requests for purchasing.", t, 15.3, 17.2);
+    type($("#a2t"), "Three: Van Dijk Metaal, Kuipers Hout and Smit Elektro. The oldest came in on Thursday. All three are in Requests for purchasing.", t, 15.3, 17.2);
 
     // The widget lands in the empty slot.
     const g = p(t, 9.0, 9.6);
