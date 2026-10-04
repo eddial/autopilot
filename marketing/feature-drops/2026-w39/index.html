@@ -75,13 +75,13 @@ button.copy:focus-visible { outline: 2px solid var(--accent); outline-offset: 2p
     <video src="talk-to-llev.mp4" poster="talk-to-llev.png" autoplay muted loop playsinline controls></video>
     <div class="meta">
       <h2 id="f1">Talk to Llev</h2>
-      <p class="why">Voice in the agent. You say what you want and Llev makes the change in the platform, then answers questions about the work. Easiest to show, and clearly unlike assistants that only suggest.</p>
+      <p class="why">A voice call with the agent. You say what you want and it makes the change in the platform, then answers questions about the work. Easiest to show, and clearly unlike assistants that only suggest.</p>
       <div class="facts"><span>20s · 4:5</span><a href="https://lleverage.slack.com/archives/C09PS3956F5/p1790343555673919" target="_blank" rel="noopener">#change-log 25 Sep</a></div>
       <div class="post">
         <div class="post-head">Company post<button class="copy" type="button">Copy</button></div>
         <p>Most AI assistants tell you what to click. Then you go and click it.
 
-Llev doesn't. Press the mic in the agent and say "add a chart of last month's runs, split by outcome". The chart is on your Overview page.
+Llev doesn't. Call the agent from the chat and say "add a chart of last month's runs, split by outcome". The chart is on your Overview page before you finish the call.
 
 Ask "when did the last run fail?" and you get the run, the reason and who has it.
 
@@ -96,13 +96,13 @@ Talk to Llev is live now in the Lleverage agent.</p>
     <video src="kanban-board.mp4" poster="kanban-board.png" autoplay muted loop playsinline controls></video>
     <div class="meta">
       <h2 id="f2">Board view for data tables</h2>
-      <p class="why">Any data table switches from grid to board. Drag a card to another lane and the record updates. Very visual, and it shows Lleverage as the team's workspace, not a chat window.</p>
+      <p class="why">Any data table switches from list to board in the Columns dialog. Drag a card to another lane and the record updates. Very visual, and it shows Lleverage as the team's workspace, not a chat window.</p>
       <div class="facts"><span>18s · 4:5</span><a href="https://lleverage.slack.com/archives/C09PS3956F5/p1790153229252049" target="_blank" rel="noopener">#change-log 23 Sep</a></div>
       <div class="post">
         <div class="post-head">Company post<button class="copy" type="button">Copy</button></div>
         <p>An accounts payable team doesn't think in rows. They think in "waiting for a PO", "ready to match" and "approved".
 
-Every data table in Lleverage now has a board view. Switch from grid to board in the table header, pick a column to group by, and each record becomes a card.
+Every data table in Lleverage now has a board view. Switch from list to board, pick a column to group by, and each record becomes a card.
 
 Drag a card to another lane and the record updates.
 
@@ -115,7 +115,7 @@ Group by status, person, select or yes/no columns. Choose which fields show on e
     <video src="skill-tests.mp4" poster="skill-tests.png" autoplay muted loop playsinline controls></video>
     <div class="meta">
       <h2 id="f3">Skill tests</h2>
-      <p class="why">The agent writes tests for a skill, runs them, reads why one failed and fixes the instructions. Supports two differentiators: built for messy reality, and the path from coworker to autonomous.</p>
+      <p class="why">Tests run a skill against saved checks. When one fails you see which check and why, and the agent fixes the instructions. Supports two differentiators: built for messy reality, and the path from coworker to autonomous.</p>
       <div class="facts"><span>20s · 4:5</span><a href="https://lleverage.slack.com/archives/C09PS3956F5/p1790343555673919" target="_blank" rel="noopener">#change-log 25 Sep</a></div>
       <div class="post">
         <div class="post-head">Company post<button class="copy" type="button">Copy</button></div>
@@ -149,7 +149,7 @@ That's the loop we shipped this week.</p>
 
   <section class="how">
     <b>How these are made</b>
-    <span>Each clip is an HTML page in the Lleverage styling where every frame is a function of time. A Playwright script steps through it at 30 fps and ffmpeg encodes a 1080×1350 H.264 MP4. A new clip is a new HTML file: write the timeline, render, review a few stills.</span>
+    <span>Each clip rebuilds the real app UI (tokens, components and icons taken from the lleverage codebase) as an HTML page where every frame is a function of time. A Playwright script steps through it at 30 fps and ffmpeg encodes a 1080×1350 H.264 MP4. A new clip is a new HTML file: write the timeline, render, review a few stills.</span>
     <span>Source: <code>marketing/feature-drops/2026-w39/</code> on branch <code>claude/ap-10</code>.</span>
   </section>
 </main>

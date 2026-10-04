@@ -1,39 +1,53 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8">
 <title>Skill Tests</title>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Abhaya+Libre:wght@700&family=Public+Sans:wght@400;500;600;700&family=Roboto+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@100..900&family=Roboto+Mono:wght@400;500&display=swap">
 <link rel="stylesheet" href="clip.css">
+<link rel="stylesheet" href="app.css">
 <style>
-  .tabs { position: absolute; top: 76px; left: 28px; right: 28px; height: 60px; display: flex; gap: 32px; align-items: center; font-size: 21px; color: var(--muted-fg); font-weight: 500; }
-  .tabs .on { color: var(--fg); font-weight: 600; box-shadow: inset 0 -4px 0 var(--orange); height: 100%; display: flex; align-items: center; }
-  .score { position: absolute; top: 160px; left: 28px; right: 28px; display: flex; align-items: baseline; gap: 16px; }
-  .score b { font-size: 56px; font-weight: 700; font-variant-numeric: tabular-nums; }
-  .score span { font-size: 22px; color: var(--muted-fg); }
-  .score .agent { margin-left: auto; align-self: center; font-size: 19px; font-weight: 600; color: var(--orange); background: var(--orange-tint); padding: 8px 16px; border-radius: 999px; }
-  .meter { position: absolute; top: 236px; left: 28px; right: 28px; height: 10px; border-radius: 5px; background: var(--muted); overflow: hidden; display: flex; }
-  .meter i { display: block; height: 100%; }
-  .list { position: absolute; top: 270px; left: 28px; right: 28px; }
-  .t { height: 62px; display: flex; align-items: center; gap: 18px; padding: 0 18px; border-bottom: 2px solid var(--muted); font-size: 22px; }
-  .t .st { width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; font-size: 20px; font-weight: 700; flex: none; color: #fff; }
-  .t .st.pend { border: 3px solid var(--border); }
-  .t .st.run { border: 3px solid var(--orange-tint); border-top-color: var(--orange); }
-  .t .st.pass { background: var(--success); }
-  .t .st.fail { background: var(--danger); }
-  .t .ms { margin-left: auto; font-family: var(--mono); font-size: 17px; color: var(--muted-fg); }
-  .t.sel { background: var(--danger-tint); border-radius: 10px; }
-  .panel { position: absolute; left: 0; right: 0; bottom: 0; height: 420px; background: #fff; border-top: 2px solid var(--border); box-shadow: 0 -16px 40px rgb(0 0 0 / .1); padding: 26px 28px; }
-  .panel h3 { margin: 0 0 16px; font-size: 24px; font-weight: 600; display: flex; align-items: center; gap: 12px; }
-  .cmp { display: grid; grid-template-columns: 150px 1fr; gap: 12px 18px; font-size: 22px; align-items: baseline; }
-  .cmp dt { font-family: var(--mono); font-size: 17px; color: var(--muted-fg); text-transform: uppercase; letter-spacing: .04em; }
-  .cmp dd { margin: 0; padding: 10px 14px; border-radius: 10px; }
-  .cmp .exp { background: var(--success-tint); }
-  .cmp .got { background: var(--danger-tint); }
-  .why { margin-top: 18px; font-size: 21px; color: var(--muted-fg); line-height: 1.4; }
-  .why b { color: var(--fg); }
-  .code { font-family: var(--mono); font-size: 19px; line-height: 1.7; }
-  .code div { padding: 0 12px; border-radius: 6px; white-space: nowrap; overflow: hidden; }
-  .code .dim { color: var(--muted-fg); }
-  .code .add { background: var(--success-tint); color: var(--success); font-weight: 500; }
+  /* context/skills/[skillId]: page header, SkillBuilder, skill-side-panel, skill-tests-tab, evaluation-card, skill-field-diff */
+  .sh { display: flex; align-items: center; gap: 12px; padding: 16px 32px; }
+  .sh .back { color: hsl(var(--muted-foreground)); }
+  .sh .back svg { width: 14px; height: 14px; }
+  .sh h1 { margin: 0; font-size: 20px; line-height: 28px; font-weight: 600; letter-spacing: -.025em; }
+  .sh .right { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+  .chg { background: hsl(var(--secondary)); color: hsl(var(--muted-foreground)); font-weight: 400; }
+  .ed { position: absolute; left: 32px; top: 76px; width: 400px; display: flex; flex-direction: column; gap: 20px; }
+  .fl { font-weight: 500; color: hsl(var(--muted-foreground)); margin-bottom: 8px; }
+  .fv { border: 1px solid hsl(var(--border)); border-radius: 8px; background: hsl(var(--card)); padding: 12px 14px; line-height: 22px; }
+  .fv.pulse { box-shadow: 0 0 0 3px hsl(var(--highlight) / var(--pa, 0)); border-color: hsl(var(--highlight) / calc(.3 + var(--pa, 0))); }
+  .dr { margin: 0 -4px; display: flex; gap: 8px; border-radius: 2px; padding: 0 4px; }
+  .dr .g { width: 8px; flex: none; text-align: center; color: hsl(var(--muted-foreground)); }
+  .dr.add { background: hsl(var(--success) / .1); }
+  .side { position: absolute; right: 12px; top: 12px; bottom: 12px; width: 560px; border: 1px solid hsl(var(--border)); border-radius: 12px; background: hsl(var(--card)); box-shadow: 0 4px 12px rgb(0 0 0 / .06); padding: 4px 16px 16px; display: flex; flex-direction: column; gap: 12px; }
+  .side .tabs .tab { display: flex; align-items: center; gap: 6px; }
+  .side .tabs .spin svg { width: 12px; height: 12px; color: hsl(var(--highlight)); }
+  .bar { display: flex; align-items: center; gap: 8px; }
+  .bar .r { margin-left: auto; display: flex; gap: 8px; }
+  .bar .btn svg { width: 14px; height: 14px; }
+  ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+  li { border: 1px solid hsl(var(--border)); border-radius: 8px; overflow: hidden; }
+  .row { display: flex; align-items: center; gap: 8px; padding: 12px; }
+  .row .nm { flex: 1; min-width: 0; display: flex; align-items: center; gap: 8px; }
+  .row .nm b { font-weight: 500; white-space: nowrap; }
+  .row .nm span { font-size: 12px; line-height: 16px; color: hsl(var(--muted-foreground)); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .row .chev svg { width: 14px; height: 14px; color: hsl(var(--muted-foreground)); }
+  .ib { width: 28px; height: 28px; display: grid; place-items: center; color: hsl(var(--muted-foreground)); }
+  .ib svg { width: 14px; height: 14px; }
+  .exp { border-top: 1px solid hsl(var(--border)); padding: 12px; display: flex; flex-direction: column; gap: 12px; }
+  .modes { display: flex; gap: 4px; }
+  .fail { display: flex; gap: 8px; color: hsl(var(--destructive)); font-size: 12px; line-height: 19px; font-weight: 600; }
+  .fail svg { width: 14px; height: 14px; margin-top: 2px; }
+  .ac { border: 1px solid hsl(var(--muted)); border-radius: 12px; overflow: hidden; font-size: 12px; line-height: 16px; }
+  .ac .hd { background: hsl(var(--muted)); padding: 8px 12px; font-weight: 500; }
+  .ai { display: flex; align-items: flex-start; gap: 8px; padding: 12px; border-top: 1px solid hsl(var(--muted)); font-weight: 500; }
+  .ai svg { width: 12px; height: 12px; margin-top: 2px; }
+  .ai .ok { color: hsl(var(--success)); } .ai .no { color: hsl(var(--destructive)); }
+  .rs { background: hsl(var(--muted)); border-top: 1px solid hsl(var(--border)); padding: 8px 12px; display: flex; flex-direction: column; gap: 4px; }
+  .rs .k { font-size: 10px; line-height: 14px; font-weight: 500; text-transform: uppercase; color: hsl(var(--muted-foreground)); }
+  .rs .v { line-height: 19px; }
+  .rs .d { display: flex; gap: 8px; font-size: 10px; color: hsl(var(--muted-foreground)); margin-top: 4px; }
+  .rs .d b { color: hsl(var(--success)); font-size: 12px; }
 </style></head>
 <body>
 <div class="frame">
@@ -42,102 +56,137 @@
   <div class="captions"></div>
 
   <div class="stage">
-    <div class="stage-bar"><span class="crumb">Skills ›</span> Purchase order intake</div>
-    <div class="tabs"><span>Instructions</span><span class="on">Tests</span><span>Runs</span></div>
-    <div class="score"><b id="score">0 / 8</b><span>passing</span><div class="agent" id="agent">Llev is writing tests</div></div>
-    <div class="meter"><i id="mp" style="background:var(--success)"></i><i id="mf" style="background:var(--danger)"></i></div>
-    <div class="list" id="list"></div>
-
-    <div class="panel" id="detail">
-      <h3><span class="st" style="width:30px;height:30px;border-radius:50%;background:var(--danger);color:#fff;display:grid;place-items:center;font-size:18px">✕</span>No PO number on the document</h3>
-      <dl class="cmp"><dt>Expected</dt><dd class="exp">Hand the order to purchasing</dd><dt>Got</dt><dd class="got">Took PO 4500012877 from the email subject</dd></dl>
-      <div class="why" id="why"></div>
-    </div>
-    <div class="panel" id="fix">
-      <h3>Instructions · <span style="color:var(--success)">2 lines added</span></h3>
-      <div class="code">
-        <div class="dim">3. Match each line to an article in the ERP.</div>
-        <div class="dim">4. Check price and stock per line.</div>
-        <div class="add" id="add1"></div>
-        <div class="dim">5. Create the sales order as a draft.</div>
-        <div class="add" id="add2"></div>
-      </div>
+    <div class="app" id="app">
+      <div id="sb"></div>
+      <main class="panel">
+        <div class="sh">
+          <span class="back" data-fa="faArrowLeft"></span>
+          <div><h1>Purchase order intake</h1><div class="xs mf">Skill • Edited 2 days ago • Sanne</div></div>
+          <div class="right"><span class="badge chg" id="chg">Unpublished Changes</span><span class="btn pri">Publish</span></div>
+        </div>
+        <div class="ed">
+          <div><div class="fl">Description</div><div class="fv">Turns purchase orders from email into draft sales orders in Exact.</div></div>
+          <div><div class="fl">Instructions</div><div class="fv pulse" id="instr">
+            <div class="dr"><span class="g"></span><span>1. Read the order from the email or its attachment.</span></div>
+            <div class="dr"><span class="g"></span><span>2. Find the customer in Exact by name or VAT number.</span></div>
+            <div class="dr"><span class="g"></span><span>3. Match each line to an article and check the price.</span></div>
+            <div class="dr add" id="add1"><span class="g">+</span><span id="add1t"></span></div>
+            <div class="dr add" id="add2"><span class="g">+</span><span id="add2t"></span></div>
+            <div class="dr"><span class="g"></span><span>4. Create the sales order as a draft for review.</span></div>
+          </div></div>
+        </div>
+        <aside class="side">
+          <div class="tabs"><span class="tab">Preview</span><span class="tab on">Tests <span class="spin" id="spin"></span></span><span class="tab">Versions</span></div>
+          <div class="bar"><span class="xs mf">Tests run this skill against saved assertions.</span>
+            <div class="r"><span class="btn out h7"><span data-lu="plus"></span>New test</span><span class="btn out h7" id="runall"><span id="runIc"></span><span id="runTx">Run all</span></span></div></div>
+          <ul id="list"></ul>
+        </aside>
+      </main>
     </div>
   </div>
 
   <div class="footer"><span>lleverage.ai</span><span>Live now</span></div>
 
   <div class="card-full" id="hook">
-    <div class="kicker">New in Lleverage</div>
-    <h1>Skills that<br><em>test themselves.</em></h1>
-    <p>The agent writes the tests, runs them and fixes the skill when one fails.</p>
+    <div class="kicker"><span id="hl"></span>New in Lleverage</div>
+    <h1>Skills that<br><em>prove themselves.</em></h1>
+    <p>Test a skill against real cases, and see exactly why one fails.</p>
     <div class="mark"><span data-logo></span>Lleverage</div>
   </div>
   <div class="card-full" id="end">
-    <div class="kicker">Live now</div>
+    <div class="kicker"><span id="el"></span>Live now</div>
     <h1>Build. Test.<br><em>Improve.</em></h1>
     <p>Skill tests are live for everyone, no feature flag.</p>
     <div class="mark"><span data-logo></span>Lleverage</div>
     <div class="url">lleverage.ai</div>
   </div>
 </div>
+<script src="fa-icons.js"></script>
+<script src="app.js"></script>
 <script src="clip.js"></script>
 <script>
   const D = 20;
-  const { $, p, io, out, show, type } = C;
-  const tests = [
-    ["PO with three order lines", 1.2], ["Scanned PO, slightly rotated", 2.4], ["No PO number on the document", 0],
-    ["Prices excluding VAT", 0.9], ["Order in Dutch", 1.1], ["Two delivery addresses", 0], ["Partial delivery requested", 1.6], ["Same PO sent twice", 0.8],
+  const { $, $$, p, io, out, show, type } = C;
+  $("#sb").outerHTML = APP.sidebar("Skills");
+  $("#hl").innerHTML = APP.loader(30); $("#el").innerHTML = APP.loader(30);
+
+  const T = [
+    ["Three order lines", "Standard PO, one delivery address", 1], ["Scanned PO", "Rotated scan, Dutch text", 1],
+    ["No PO number", "Order in the email body, PO missing", 0], ["Prices excluding VAT", "Totals must match the PO", 1],
+    ["Two delivery addresses", "One PO, two sites", 0], ["Same PO sent twice", "Second email is a reminder", 1],
   ];
-  $("#list").innerHTML = tests.map(([n]) => `<div class="t"><span class="st pend"></span><span>${n}</span><span class="ms"></span></div>`).join("");
-  const rows = [...document.querySelectorAll(".t")];
+  $("#list").innerHTML = T.map(([n, d], i) => `<li id="t${i}"><div class="row"><div class="nm"><span class="chev">${lu("chevronDown")}</span><b>${n}</b><span>${d}</span></div>
+    <span class="pill" id="s${i}"></span><span class="ib">${lu("play")}</span><span class="ib">${lu("trash2")}</span></div>
+    ${i === 2 ? `<div class="exp" id="exp">
+      <div class="modes"><span class="btn sec h7">Results</span><span class="btn ghost h7">Edit</span><span class="btn ghost h7">Transcript</span></div>
+      <div class="fail">${lu("triangleAlert")}<p style="margin:0">1 of 3 checks failed. The skill took PO 4500012877 from the email subject instead of handing the order to purchasing.</p></div>
+      <div class="ac"><div class="hd">Assertions (3)</div>
+        <div class="ai"><span class="ok">${fa("s:faCheck")}</span>Finds the customer in Exact</div>
+        <div class="ai"><span class="no">${fa("s:faXmark")}</span>Never invents a PO number; hands the order to purchasing</div>
+        <div class="rs"><div class="k">Reasoning</div><div class="v">The order has no PO number. The agent used the number in the email subject, which belongs to a previous order, and created a draft.</div>
+          <div class="d">Confidence Score <b>94%</b></div></div>
+        <div class="ai"><span class="ok">${fa("s:faCheck")}</span>Creates nothing in Exact before review</div>
+      </div></div>` : ""}</li>`).join("");
+  $$("[data-fa]").forEach((el) => (el.innerHTML = fa(el.dataset.fa)));
+  $$("[data-lu]").forEach((el) => (el.innerHTML = lu(el.dataset.lu)));
+
+  const app = $("#app");
+  const at = (el, fx = 0.5, fy = 0.5) => { const a = app.getBoundingClientRect(), r = el.getBoundingClientRect(), s = a.width / 1280;
+    return [(r.left - a.left + r.width * fx) / s, (r.top - a.top + r.height * fy) / s]; };
+  const P = { run: at($("#runall")), row2: at($("#t2 .row"), 0.3) };
+
+  const VW = 952, VH = 900;
+  const K = [[0, 640, 400, 0.74], [2.5, 640, 400, 0.74], [3.1, 988, 250, 1.6], [7.0, 988, 250, 1.6], [7.6, 988, 420, 1.6], [10.8, 988, 420, 1.6],
+    [11.4, 456, 270, 1.75], [14.6, 456, 270, 1.75], [15.2, 988, 250, 1.6]];
+  const cam = C.camera(app, VW, VH, K);
+  const F = (t, [x, y]) => { const m = cam(t).map(x, y); return [64 + m[0], 330 + m[1]]; };
+  const cur = C.cursor([[2.9, 700, 1320], [3.5, ...F(3.5, P.run), true], [4.3, 1120, 1420], [6.6, 1120, 1420], [7.3, ...F(7.3, P.row2), true], [8.0, 1120, 1420],
+    [14.6, 1120, 1420], [15.4, ...F(15.4, P.run), true], [16.2, 1120, 1420]]);
+  cam(0);
 
   const cap = C.captions([
-    [2.6, 6.8, "The agent writes the tests.<br><em>Then runs them.</em>"],
-    [7.0, 10.8, "It reads why<br><em>a test failed…</em>"],
-    [11.0, 14.4, "<em>…and fixes the skill,</em><br>not the test."],
-    [14.6, 17.4, "Run again.<br><em>8 out of 8.</em>"],
+    [2.6, 6.8, "Test a skill<br><em>against real cases.</em>"],
+    [7.0, 10.8, "See why one failed.<br><em>Check by check.</em>"],
+    [11.0, 14.6, "The agent fixes the skill,<br><em>not the test.</em>"],
+    [14.8, 17.6, "Run again.<br><em>All passing.</em>"],
   ]);
-  const cur = C.cursor([[6.4, 700, 1320], [7.2, 470, 725, true], [8.0, 1120, 1420]]);
+  const PILL = { ready: ["ready", "s:faVial", "Ready"], running: ["running", "s:faCircleNotch", "Running"], passed: ["passed", "s:faCheck", "Passed"], failed: ["failed", "s:faXmark", "Failed"] };
 
   C.run(D, (t) => {
     C.hook($("#hook"), t, 2.2);
-    C.endcard($("#end"), t, 17.6);
-    cap(t); cur(t);
+    C.endcard($("#end"), t, 17.8);
+    cap(t); cam(t); cur(t);
+    APP.drive($("#hook"), "ring", t); APP.drive($("#end"), "ring", t);
 
-    const second = t >= 14.8;
-    let pass = 0, fail = 0;
-    rows.forEach((r, i) => {
-      show(r, t, 2.5 + i * 0.18, Infinity, 16, 0.3);
-      const st = r.querySelector(".st"), ms = r.querySelector(".ms");
-      const start = second ? 14.9 + i * 0.12 : 4.3 + i * 0.28;
-      const end = start + (second ? 0.1 : 0.24);
-      const failed = tests[i][1] === 0 && !second;
-      let cls = "pend", mark = "";
-      if (t >= start && t < end) cls = "run";
-      if (t >= end) { cls = failed ? "fail" : "pass"; mark = failed ? "✕" : "✓"; failed ? fail++ : pass++; }
-      if (second && t < start) { cls = tests[i][1] === 0 ? "fail" : "pass"; mark = cls === "fail" ? "✕" : "✓"; cls === "fail" ? fail++ : pass++; }
-      st.className = "st " + cls; st.textContent = mark;
-      st.style.transform = cls === "run" ? `rotate(${t * 720}deg)` : "";
-      ms.textContent = t >= end || second ? (tests[i][1] || 1.4).toFixed(1) + "s" : "";
-      r.classList.toggle("sel", i === 2 && t >= 7.2 && t < 14.8);
+    // Two runs of the suite: 3.6–6.2 (two fail), 15.5–16.8 (all pass).
+    const second = t >= 15.5;
+    let anyRunning = false;
+    T.forEach((x, i) => {
+      const a = second ? 15.5 + i * 0.12 : 3.6 + i * 0.22, b = a + (second ? 0.5 : 0.9);
+      let st = "ready";
+      if (t >= a) st = t < b ? "running" : (x[2] || second ? "passed" : "failed");
+      if (!second && t >= 15.45) st = x[2] ? "passed" : "failed";
+      if (st === "running") anyRunning = true;
+      const [cls, ic, label] = PILL[st];
+      const el = $("#s" + i);
+      el.className = "pill " + cls;
+      el.innerHTML = `<span style="display:block${st === "running" ? `;transform:rotate(${t * 540}deg)` : ""}">${fa(ic)}</span>${label}`;
     });
-    $("#score").textContent = `${pass} / 8`;
-    $("#mp").style.width = (pass / 8) * 100 + "%";
-    $("#mf").style.width = (fail / 8) * 100 + "%";
-    const agent = $("#agent");
-    agent.textContent = t < 4.3 ? "Llev is writing tests" : t < 6.6 ? "Running" : t < 11 ? "Llev is reading the failures" : t < 14.8 ? "Llev is updating the skill" : t < 16 ? "Running again" : "All passing";
-    agent.style.color = t >= 16 ? "var(--success)" : "";
-    agent.style.background = t >= 16 ? "var(--success-tint)" : "";
-    agent.style.opacity = t < 2.6 ? 0 : 1;
+    $("#spin").innerHTML = anyRunning ? `<span style="display:block;transform:rotate(${t * 540}deg)">${fa("s:faCircleNotch")}</span>` : "";
+    $("#runIc").innerHTML = anyRunning ? `<span style="display:block;transform:rotate(${t * 540}deg)">${lu("loader2")}</span>` : lu("play");
+    $("#runTx").textContent = anyRunning ? "Running…" : "Run all";
 
-    const d = io(p(t, 7.4, 7.9)) * (1 - io(p(t, 10.8, 11.2)));
-    $("#detail").style.transform = `translateY(${(1 - d) * 440}px)`;
-    type($("#why"), "Llev: the skill never says what to do without a PO number, so the model filled one in. The test is right; the instructions are incomplete.", t, 8.2, 10.4);
-    const f = io(p(t, 11.0, 11.5)) * (1 - io(p(t, 14.5, 14.9)));
-    $("#fix").style.transform = `translateY(${(1 - f) * 440}px)`;
-    type($("#add1"), "+ No PO number on the order: never infer one. Hand it to purchasing.", t, 11.6, 12.9);
-    type($("#add2"), "+ Two delivery addresses: one draft order per address.", t, 13.0, 14.1);
+    // Expand the failed test (7.3–15.0).
+    const open = t >= 7.35 && t < 15.0;
+    $("#exp").style.display = open ? "" : "none";
+    $("#t2 .chev").style.transform = open ? "rotate(180deg)" : "";
+
+    // The agent edits the instructions: the field pulses, two lines arrive as a diff.
+    const pulse = t >= 11.2 && t < 14.4 ? 0.25 + 0.25 * Math.sin((t - 11.2) * Math.PI * 2 / 1.6) : 0;
+    $("#instr").style.setProperty("--pa", pulse.toFixed(3));
+    $("#add1").style.display = t >= 11.8 ? "" : "none"; type($("#add1t"), "If the order has no PO number, never infer one. Hand it to purchasing.", t, 11.8, 13.0);
+    $("#add2").style.display = t >= 13.1 ? "" : "none"; type($("#add2t"), "Two delivery addresses: one draft order per address.", t, 13.1, 14.1);
+    $("#chg").style.visibility = t >= 11.8 ? "visible" : "hidden";
   });
 </script>
 </body></html>

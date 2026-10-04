@@ -55,6 +55,20 @@ const C = (() => {
       return { x, y };
     };
   }
+  // Camera over a real-size app window: keys [[t, x, y, scale], ...], (x, y) = UI point centred in the viewport.
+  function camera(el, vw, vh, keys) {
+    el.style.transformOrigin = "0 0";
+    return (t) => {
+      let [, x, y, s] = keys[0];
+      for (let i = 0; i < keys.length - 1; i++) {
+        const [a, ax, ay, as] = keys[i], [b, bx, by, bs] = keys[i + 1];
+        if (t > b) { x = bx; y = by; s = bs; continue; }
+        if (t >= a) { const e = io(p(t, a, b)); x = lerp(ax, bx, e); y = lerp(ay, by, e); s = Math.exp(lerp(Math.log(as), Math.log(bs), e)); }
+      }
+      el.style.transform = `translate(${vw / 2 - x * s}px, ${vh / 2 - y * s}px) scale(${s})`;
+      return { x, y, s, map: (ux, uy) => [vw / 2 + (ux - x) * s, vh / 2 + (uy - y) * s] };
+    };
+  }
   // Hook card slides up and away; end card fades in.
   function hook(el, t, z) { const q = io(p(t, z, z + 0.6)); el.style.transform = `translateY(${-q * 1350}px)`; }
   function endcard(el, t, a) { const q = out(p(t, a, a + 0.6)); el.style.opacity = q; el.style.transform = `scale(${1.04 - 0.04 * q})`; }
@@ -71,5 +85,5 @@ const C = (() => {
     const loop = (now) => { render(((now - start) / 1000) % duration); requestAnimationFrame(loop); };
     document.fonts.ready.then(() => requestAnimationFrame(loop));
   }
-  return { clamp, p, io, out, back, lerp, $, $$, show, type, captions, cursor, hook, endcard, run };
+  return { clamp, p, io, out, back, lerp, $, $$, show, type, captions, cursor, camera, hook, endcard, run };
 })();
