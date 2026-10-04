@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<title>Talk to Llev</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Abhaya+Libre:wght@700&family=Public+Sans:wght@400;500;600;700&family=Roboto+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="clip.css">
+<style>
+  .stats { position: absolute; top: 108px; left: 28px; right: 28px; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .stat { border: 2px solid var(--border); border-radius: 16px; padding: 20px 24px; }
+  .stat small { display: block; font-size: 20px; color: var(--muted-fg); font-weight: 500; }
+  .stat b { display: block; font-size: 52px; font-weight: 700; margin-top: 4px; font-variant-numeric: tabular-nums; }
+  .slot { position: absolute; top: 268px; left: 28px; right: 28px; height: 300px; border: 3px dashed var(--border); border-radius: 16px; display: grid; place-items: center; color: var(--muted-fg); font-size: 22px; }
+  .chart { position: absolute; top: 268px; left: 28px; right: 28px; height: 300px; border: 2px solid var(--orange); box-shadow: 0 0 0 8px var(--orange-tint); border-radius: 16px; padding: 20px 24px; background: #fff; transform-origin: 50% 0; }
+  .chart h3 { margin: 0; font-size: 24px; font-weight: 600; }
+  .legend { display: flex; gap: 22px; font-size: 18px; color: var(--muted-fg); margin-top: 6px; }
+  .legend i { display: inline-block; width: 14px; height: 14px; border-radius: 4px; margin-right: 8px; vertical-align: -1px; }
+  .bars { position: absolute; left: 24px; right: 24px; bottom: 20px; height: 170px; display: flex; align-items: flex-end; gap: 6px; }
+  .bar { flex: 1; display: flex; flex-direction: column-reverse; border-radius: 4px 4px 0 0; overflow: hidden; }
+  .bar span { display: block; }
+  .reply { position: absolute; left: 28px; right: 120px; top: 590px; background: var(--muted); border-radius: 18px 18px 18px 6px; padding: 18px 22px; font-size: 24px; line-height: 1.35; }
+  .reply .who { font-weight: 700; margin-right: 6px; }
+  .steps { margin-top: 8px; display: grid; gap: 4px; font-size: 20px; color: var(--muted-fg); }
+  .steps .ok { color: var(--success); font-weight: 700; margin-right: 8px; }
+  .agentbar { position: absolute; left: 28px; right: 28px; bottom: 28px; height: 96px; border: 2px solid var(--border); border-radius: 48px; display: flex; align-items: center; padding: 0 16px 0 32px; gap: 18px; background: #fff; }
+  .agentbar .text { flex: 1; font-size: 26px; color: var(--muted-fg); white-space: nowrap; overflow: hidden; }
+  .agentbar .text.live { color: var(--fg); }
+  .wave { display: flex; align-items: center; gap: 5px; height: 60px; overflow: hidden; flex: none; }
+  .wave i { width: 6px; border-radius: 3px; background: var(--orange); }
+  .mic { width: 68px; height: 68px; border-radius: 50%; background: var(--navy); display: grid; place-items: center; color: #fff; flex: none; }
+  .mic svg { width: 32px; height: 32px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }
+  .mic.on { background: var(--orange); }
+</style></head>
+<body>
+<div class="frame">
+  <div class="dots"></div>
+  <div class="brandrow"><div class="logo"><span data-logo></span>Lleverage</div><div class="tag">Feature drop · Week 39</div></div>
+  <div class="captions"></div>
+
+  <div class="stage">
+    <div class="stage-bar"><span class="crumb">Order intake ›</span> Overview</div>
+    <div class="stats">
+      <div class="stat"><small>Orders today</small><b>184</b></div>
+      <div class="stat"><small>Straight through</small><b>91%</b></div>
+    </div>
+    <div class="slot">Room for one more widget</div>
+    <div class="chart" id="chart">
+      <h3>Runs last month, by outcome</h3>
+      <div class="legend"><span><i style="background:var(--navy)"></i>Completed</span><span><i style="background:var(--orange)"></i>Handed to a person</span><span><i style="background:var(--rose)"></i>Failed</span></div>
+      <div class="bars" id="bars"></div>
+    </div>
+    <div class="reply" id="reply1"><span class="who">Llev</span><span id="r1"></span>
+      <div class="steps"><div id="s1"><span class="ok">✓</span>Read 30 days of runs</div><div id="s2"><span class="ok">✓</span>Added the chart to Overview</div></div>
+    </div>
+    <div class="reply" id="reply2"><span class="who">Llev</span><span id="r2"></span></div>
+    <div class="agentbar">
+      <div class="wave" id="wave"></div>
+      <div class="text" id="said">Ask Llev anything</div>
+      <div class="mic" id="mic"><svg viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg></div>
+    </div>
+  </div>
+
+  <div class="footer"><span>lleverage.ai</span><span>Live now</span></div>
+
+  <div class="card-full" id="hook">
+    <div class="kicker">New in Lleverage</div>
+    <h1>Talk to <em>Llev.</em></h1>
+    <p>Say it out loud. The agent changes the platform for you.</p>
+    <div class="mark"><span data-logo></span>Lleverage</div>
+  </div>
+  <div class="card-full" id="end">
+    <div class="kicker">Live now</div>
+    <h1>Say it.<br><em>It's done.</em></h1>
+    <p>Voice in the agent. What you said lands in the chat transcript.</p>
+    <div class="mark"><span data-logo></span>Lleverage</div>
+    <div class="url">lleverage.ai</div>
+  </div>
+</div>
+<script src="clip.js"></script>
+<script>
+  const D = 20;
+  const { $, p, out, show, type, back } = C;
+  // 30 days of stacked runs, deterministic.
+  const days = Array.from({ length: 30 }, (_, i) => {
+    const total = 60 + 40 * Math.abs(Math.sin(i * 1.7)) + (i % 7 > 4 ? -35 : 0);
+    return [total * 0.86, total * 0.11, total * 0.03];
+  });
+  const max = Math.max(...days.map((d) => d[0] + d[1] + d[2]));
+  $("#bars").innerHTML = days.map((d) => `<div class="bar">${d.map((v, j) => `<span style="height:${(v / max) * 100}%;background:${["var(--navy)", "var(--orange)", "var(--rose)"][j]}"></span>`).join("")}</div>`).join("");
+  const bars = [...document.querySelectorAll(".bar")];
+  $("#wave").innerHTML = Array.from({ length: 14 }, () => "<i></i>").join("");
+  const waveBars = [...document.querySelectorAll("#wave i")];
+
+  const cap = C.captions([
+    [2.6, 7.6, "Press the mic.<br><em>Say what you want.</em>"],
+    [7.8, 13.4, "Llev makes the change.<br><em>Not a suggestion.</em>"],
+    [13.6, 17.2, "Ask about the work.<br><em>Get the answer.</em>"],
+  ]);
+  const cur = C.cursor([[2.4, 640, 1320], [3.3, 950, 1210, true], [4.3, 1120, 1420], [13.2, 1120, 1420], [14.0, 950, 1210, true], [14.8, 1120, 1420]]);
+
+  const ask1 = "Add a chart of last month's runs, split by outcome";
+  const ask2 = "When did the last run fail?";
+  C.run(D, (t) => {
+    C.hook($("#hook"), t, 2.2);
+    C.endcard($("#end"), t, 17.4);
+    cap(t); cur(t);
+
+    const listening = (t > 3.4 && t < 7.4) || (t > 14.1 && t < 15.8);
+    $("#mic").classList.toggle("on", listening);
+    $("#wave").style.width = listening ? "150px" : "0px";
+    waveBars.forEach((b, i) => { b.style.height = (listening ? 10 + 46 * Math.abs(Math.sin(t * 9 + i * 0.8) * Math.cos(t * 3.1 + i)) : 0) + "px"; });
+    const said = $("#said");
+    if (t < 3.6) { said.textContent = "Ask Llev anything"; said.classList.remove("live"); }
+    else if (t < 14.1) { type(said, ask1, t, 3.6, 6.9); said.classList.add("live"); }
+    else { type(said, ask2, t, 14.2, 15.5); }
+
+    show($("#reply1"), t, 7.6, 13.6);
+    type($("#r1"), "On it. Adding a stacked bar chart to Overview.", t, 7.6, 8.8);
+    show($("#s1"), t, 8.9, Infinity, 10);
+    show($("#s2"), t, 10.2, Infinity, 10);
+
+    const g = p(t, 9.2, 10.0);
+    $("#chart").style.opacity = g > 0 ? 1 : 0;
+    $("#chart").style.transform = `scale(${0.92 + 0.08 * back(g)})`;
+    bars.forEach((b, i) => { b.style.height = out(p(t, 9.6 + i * 0.03, 10.6 + i * 0.03)) * 100 + "%"; });
+    $("#chart").style.boxShadow = t > 12.5 ? `0 0 0 ${8 * (1 - p(t, 12.5, 13.2))}px var(--orange-tint)` : "";
+    $("#chart").style.borderColor = t > 13 ? "var(--border)" : "var(--orange)";
+
+    show($("#reply2"), t, 15.8, Infinity);
+    type($("#r2"), "Yesterday at 16:42. An order PDF without a PO number. It's waiting with purchasing.", t, 15.9, 17.0);
+  });
+</script>
+</body></html>
