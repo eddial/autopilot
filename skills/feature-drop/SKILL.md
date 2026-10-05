@@ -23,6 +23,17 @@ style, as the first drop: `marketing/feature-drops/2026-w39/` (open its
 
 Nothing is ever posted by this skill. A person reviews, picks and posts.
 
+## What it needs
+
+- **Read-only access to the Lleverage monorepo** (`lleverage-ai/lleverage`, on
+  GitHub and as a local checkout with dependencies installed). It is used to
+  check what shipped (merged PRs, descriptions, feature flags) and as the UI
+  source for the videos (every clip rebuilds the real screens from the code).
+  The skill never writes to it.
+- Read access to Slack #change-log.
+- Node, ffmpeg and Playwright (`references/build.md`), and the Artifact tool
+  to publish the drop page.
+
 ## Read first
 
 | File | When |
