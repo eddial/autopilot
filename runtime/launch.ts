@@ -48,6 +48,7 @@ export async function launch() {
   for (const [id, s] of Object.entries(readState().sessions)) {
     try { await relay(id, s, states); } catch (e) { log('launcher', id, 'relay failed:', (e as Error).message); }
   }
+  await startCommented(states);
 
   let running = (await issuesIn(inTeam('Working'))).length;
   const queue = (await issuesIn(inTeam('Start'))).sort((a: any, b: any) => a.createdAt.localeCompare(b.createdAt));
@@ -84,7 +85,7 @@ async function start(issue: any) {
   const prompt = [instructions(), section(ws.body, 'Work'), `Use the autopilot:work skill on Linear issue ${id}.`].filter(Boolean).join('\n\n---\n\n');
   tmux('new-window', '-d', '-t', `${TMUX}:`, '-n', id, '-c', worktree,
     '-e', `AUTOPILOT_ISSUE=${id}`, '-e', `AUTOPILOT_ISSUE_UUID=${issue.id}`, '-e', `AUTOPILOT_ROOT=${ROOT}`,
-    'claude', '--remote-control', id, '--no-chrome', '--permission-mode', 'bypassPermissions', '--settings', path.join(ROOT, '.claude', 'settings.json'), prompt);
+    'claude', '--remote-control', `${id} ${issue.title}`, '--no-chrome', '--permission-mode', 'bypassPermissions', '--settings', path.join(ROOT, '.claude', 'settings.json'), prompt);
 
   // Past step 3: the session runs. Failures from here on are reported but do not undo the claim.
   let link = '';
@@ -117,6 +118,22 @@ async function cleanup(id: string, s: Session) {
   if (lost) await comment(s.issue_id, `${MARK} kept the worktree \`${s.worktree}\`; removing it would lose:\n\n\`\`\`\n${lost.slice(0, 3000)}\n\`\`\``);
   withState(st => { delete st.sessions[id]; });
   log('launcher', id, lost ? 'cleaned up, worktree kept' : 'cleaned up');
+}
+
+// A comment from Badr on an issue that never had a session (Triage or Backlog) is enough to start one:
+// the issue goes to Start when its latest comment is his. A failed start ends on a MARK comment, so it
+// does not loop.
+async function startCommented(states: Record<string, string>) {
+  const tracked = new Set(Object.values(readState().sessions).map(s => s.issue_id));
+  const issues = (await gql(`query($f: IssueFilter) { issues(filter: $f, first: 100) { nodes { id identifier
+      comments(first: 1, orderBy: createdAt) { nodes { body createdAt } } } } }`,
+    { f: { team: { key: { eq: config.linear_team } }, state: { type: { in: ['triage', 'backlog'] } } } })).issues.nodes;
+  for (const i of issues) {
+    const last = i.comments.nodes[0];
+    if (tracked.has(i.id) || !last || last.body.trimStart().startsWith(MARK)) continue;
+    await move(i.id, states.Start);
+    log('launcher', i.identifier, 'comment on an issue without a session: moved to Start');
+  }
 }
 
 // The comments are the message board. Badr's new comments (no MARK) go into the live session as a

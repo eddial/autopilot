@@ -36,6 +36,17 @@ function tick() {
   for (const sig of readDir('signals')) {
     const key = `signal:${sig.name}`, j = s.jobs[key] ?? {};
     if (sig.meta.paused === true || !sig.meta.tools?.length || alive(j.pid)) continue;
+    // cron: a digest signal runs on its schedule over everything since its previous run; a failed run
+    // is retried every `every:` until it succeeds.
+    if (sig.meta.cron) {
+      const sameMinute = j.last_run && iso(now).slice(0, 16) === j.last_run.slice(0, 16);
+      const retry = j.failing_since && sig.meta.every && +now - +new Date(j.last_run) >= duration(sig.meta.every);
+      if (!sameMinute && (cronMatch(sig.meta.cron, now) || retry)) {
+        withState(st => { job(st, key).last_run = iso(now); });
+        detach(key, ['signal', sig.name]);
+      }
+      continue;
+    }
     if (!j.last_checked) { withState(st => { job(st, key).last_checked = iso(now); }); continue; } // first run: no backfill
     // last_checked is where the previous window ended, which is now − delay for a delayed signal.
     if (+now - lag(sig) - +new Date(j.last_checked) >= duration(sig.meta.every)) detach(key, ['signal', sig.name]);
@@ -73,8 +84,11 @@ function runSignal(name: string, dry?: number) {
   try {
     const sig = readMd(path.join(ROOT, 'signals', `${name}.md`));
     const end = new Date(+now - lag(sig));
-    const last = dry ? new Date(+end - dry * 6e4) : new Date(readState().jobs[key]?.last_checked ?? end);
-    const from = new Date(Math.max(+last - duration(config.window_overlap), +end - duration(config.window_cap)));
+    const cap = duration(sig.meta.window_cap ?? config.window_cap);
+    // A cron signal's first run covers its whole cap (a full digest); others start from now.
+    const first = sig.meta.cron ? new Date(+end - cap) : end;
+    const last = dry ? new Date(+end - dry * 6e4) : new Date(readState().jobs[key]?.last_checked ?? first);
+    const from = new Date(Math.max(+last - duration(config.window_overlap), +end - cap));
     const routing = readDir('workstreams').map(w => `## ${w.name}\n${section(w.body, 'Routing')}`).join('\n\n');
     const prompt = [
       instructions(),
@@ -94,7 +108,7 @@ function runSignal(name: string, dry?: number) {
     if (dry) return console.log(JSON.stringify({ window: [iso(from), iso(end)], seconds: (Date.now() - started) / 1e3, items }, null, 2));
     fs.appendFileSync(path.join(STATE_DIR, 'decisions.jsonl'),
       items.map(i => JSON.stringify({ ts: iso(Date.now()), signal: name, window: [iso(from), iso(end)], ...i }) + '\n').join(''));
-    const cut = +last < +end - duration(config.window_cap);
+    const cut = +last < +end - cap;
     withState(s => { if (cut) (job(s, key).gaps ??= []).push({ from: iso(last), to: iso(from) }); });
     succeeded(key, { last_checked: iso(end) });
     log(key, `${items.length} items`, items.map(i => `${i.action}${i.issue ? ' ' + i.issue : ''}`).join(', '));
