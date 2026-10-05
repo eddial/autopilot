@@ -28,6 +28,7 @@ you have?"; it is called `feature-drop`.
 | Playwright 1.57 + Chromium | Rendering frames; the skill installs it in a scratch folder on first run |
 | Claude's Artifact tool (claude.ai account in Claude Code) | Publishing the private drop page |
 | `delta:lleverage-content-voice` skill | Brand voice; the skill loads it before writing |
+| Read access to `lleverage-ai/lleverage-design-system` (optional) | To check the bundled design-system kit is current and update it (`references/design-system.md`); the kit itself is included |
 
 ## Run it
 
@@ -51,9 +52,10 @@ references/narrative.md  the autonomous back office framing, processes, differen
 references/copy.md       copy templates, limits, hooks, emoji rules, copy check
 references/formats.md    exact specs for every output
 references/build.md      setup, commands, how to write a clip timeline
+references/design-system.md  the brand layer: the bundled design-system kit, rules, updating
 references/app-ui.md     the real Lleverage UI, with source paths
 references/qa.md         definition of done
-toolkit/                 clip engine, renderers, icons, page/carousel/clip templates
+toolkit/                 clip engine, renderers, icons, design-system kit, page/carousel/clip templates
 examples/2026-w39/       the first drop
 ```
 

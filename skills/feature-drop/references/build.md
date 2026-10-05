@@ -15,11 +15,14 @@
 ```sh
 S=<path to this skill>                       # e.g. ~/.claude/skills/feature-drop
 W=marketing/feature-drops/2026-w41          # ISO week of the drop, in your working repo
-mkdir -p $W && cp $S/toolkit/*.* $W/
+mkdir -p $W && cp $S/toolkit/*.* $W/ && cp -R $S/toolkit/design-system $W/
 cp $S/toolkit/templates/*.html $W/
 ```
 `toolkit/` holds the engine (`clip.css`, `clip.js`, `app.css`, `app.js`,
-`fa-icons.js`) and the renderers (`render.mjs`, `carousel.mjs`, `weekly.sh`).
+`fa-icons.js`), the brand layer (`design-system/` and the generated
+`brand.css`, see `design-system.md`) and the renderers (`render.mjs`,
+`carousel.mjs`, `weekly.sh`, `stills.mjs`). Check the kit version first
+(`design-system.md`, "Updating to a newer kit").
 `toolkit/templates/` holds the page, carousel and card templates and three
 clip templates. Then update the week: replace "Week 39", "22 Sep – 3 Oct
 2026" and the week-39 feature names in `index.html`, `carousel.html`,

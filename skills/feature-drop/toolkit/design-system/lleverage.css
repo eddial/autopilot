@@ -1,0 +1,579 @@
+/* ============================================================
+   lleverage.css — GENERATED from brand.tokens.json v2.3.2
+   Do not hand-edit the token layer. Change brand.tokens.json and re-run
+   work/emit-css.js. Provenance for every value is in the token file;
+   open decisions are in docs/Outstanding.md.
+
+   Scopes:  .doc  A4 print/HTML documents      (type in px, print scale)
+            .deck 1280×720 slide units, 96 per inch (13.3333 × 7.5 in), so 1 unit = 0.75 pt
+   Retires: deck.css
+   ============================================================ */
+
+:root{
+/* ---- primitives · Notion Brand Guidelines ---- */
+  --ll-color-paper: #F9F7F0; /* page ground · Crisp --background */
+  --ll-color-white: #FFFFFF; /* Crisp --card */
+  --ll-color-sand-primary: #D2D2C2; /* Warm neutral — default marketing surface, card fills on marketing, calm sections, image holds */
+  --ll-color-sand-accent: #F0F0E0; /* Soft tint — subtle section breaks, large page backgrounds */
+  --ll-color-orange-primary: #EC7523; /* Daring accent — CTAs, highlights, bold hero moments, use sparingly */
+  --ll-color-orange-accent: #FF9626; /* Warmer tint — hover states, secondary highlights, illustrated accents */
+  --ll-color-orange-product: #F26B17; /* Crisp --highlight. Product UI only. */
+  --ll-color-midnight-primary: #141E28; /* Deep anchor — body text, premium dark surfaces, logo backgrounds */
+  --ll-color-midnight-accent: #2C353E; /* Softer dark — cards on dark surfaces, subtle separation within dark backgrounds */
+  --ll-color-grey-25: #FBFBFA; /* Near-white backgrounds */
+  --ll-color-grey-50: #F7F7F5; /* Light canvas */
+  --ll-color-grey-100: #F2F2F0; /* Card surfaces, skeletons */
+  --ll-color-grey-200: #EEEEEB; /* Quiet fills */
+  --ll-color-grey-300: #E7E7E3; /* Borders, quiet separators */
+  --ll-color-grey-400: #D8D8D3; /* Hairlines, structure strokes */
+  --ll-color-grey-500: #ABABA7; /* Secondary text on light */
+  --ll-color-grey-600: #91918D; /* Tertiary text */
+  --ll-color-grey-700: #656563; /* Captions, labels */
+  --ll-color-grey-800: #4F4F4C; /* Strong secondary text */
+  --ll-color-grey-900: #252820; /* Deepest contrast — its own token, NOT Midnight */
+  --ll-color-sage-200: #EDEDE5; /* Soft section backgrounds */
+  --ll-color-sage-400: #DCDCCC; /* Feature surfaces, logo ground, secondary illustration fills */
+  --ll-color-sage-600: #B9B9A9; /* Decorative accents, dividers */
+  --ll-color-sage-800: #868571; /* Mid warm-green */
+  --ll-color-sage-900: #696954; /* Contrast accent, iconography on light */
+  --ll-color-calloutInk: #4A3321; /* Bold --badge. Our callout text colour. */
+
+/* ---- semantic ---- */
+  --ll-surface-page: var(--ll-color-paper); /* Crisp --background. The one page ground. */
+  --ll-surface-card: var(--ll-color-white); /* Crisp --card. White cards on warm off-white — in EVERY venue: documents, decks, product. */
+  --ll-surface-cardDark: var(--ll-color-midnight-accent); /* Card on a dark surface */
+  --ll-surface-emphasis: var(--ll-color-midnight-primary); /* Emphasis panel · one or two per deliverable */
+  --ll-surface-callout: var(--ll-color-sand-primary);
+  --ll-surface-accent: var(--ll-color-orange-primary); /* Solid orange block · one per page */
+  --ll-surface-imageHold: var(--ll-color-sand-primary);
+  --ll-surface-hairline: var(--ll-color-grey-400); /* Hairlines and structure strokes — the deck/document default */
+  --ll-surface-hairlineDark: var(--ll-color-midnight-accent);
+  --ll-surface-bar: var(--ll-color-grey-400); /* Data bar fill. Grey 400 — sits directly on paper, where Grey 300 measured 1.16:1 and did not read. Orange marks only the one that matters. */
+  --ll-surface-gridline: var(--ll-color-grey-400); /* Chart gridlines. Grey 400 — directly on paper; Grey 300 was invisible. */
+  --ll-surface-emphasisFill: var(--ll-color-sand-accent);
+  --ll-surface-sectionBreak: var(--ll-color-sand-accent); /* Sand Accent — subtle section breaks and large page backgrounds. Its documented role; NOT card fills. */
+  --ll-surface-divider: var(--ll-color-sage-600); /* Decorative dividers and accents — a deliberate warm rule, not a default border */
+  --ll-surface-border: var(--ll-color-grey-300); /* Card borders, quiet separators. Stays Grey 300: it edges a white card, where the fill does the separating, not the rule. */
+  --ll-text-primary: var(--ll-color-midnight-primary);
+  --ll-text-secondary: var(--ll-color-midnight-accent); /* Body copy */
+  --ll-text-muted: var(--ll-color-grey-700); /* Captions, source notes, footer text */
+  --ll-text-faint: var(--ll-color-grey-500); /* Secondary text on light */
+  --ll-text-onDark: var(--ll-color-paper); /* Never pure white on midnight */
+  --ll-text-onDarkMuted: var(--ll-color-grey-500);
+  --ll-text-onAccent: var(--ll-color-paper);
+  --ll-text-onCallout: var(--ll-color-calloutInk);
+  --ll-text-accent: var(--ll-color-orange-primary);
+  --ll-text-kicker: var(--ll-color-grey-700); /* Kickers, labels and captions */
+  --ll-text-iconOnLight: var(--ll-color-sage-900); /* Iconography and contrast accents on light */
+
+/* ---- geometry ---- */
+  --ll-stroke-structure: 0.75pt; /* Grids, lifelines, table rules, borders — the default */
+  --ll-stroke-content: 1.5pt; /* Dividers, shape outlines, markers */
+  --ll-stroke-emphasis: 2pt; /* Axes, the one accent line, flow arrows */
+  --ll-stroke-isometric: 1.25pt; /* Line-graphics figures only */
+  --ll-stroke-dash: 6 4; /* The one dash pattern. Dashed means projected / not yet, or a secondary path (rule.dashedMeansProjected). */
+  --ll-radius-card: 12px;
+  --ll-radius-tile: 8px; /* 8px — Crisp --radius, the documented product default. */
+  --ll-radius-input: 4px;
+  --ll-radius-none: 0px;
+  --ll-radius-pill: 999px; /* Pill — capsule markers, tags */
+  --ll-space-1: 4px;
+  --ll-space-2: 8px;
+  --ll-space-3: 12px;
+  --ll-space-4: 16px;
+  --ll-space-5: 20px;
+  --ll-space-6: 24px;
+  --ll-space-8: 32px;
+  --ll-space-10: 40px;
+  --ll-space-12: 48px;
+  --ll-space-16: 64px;
+  --ll-space-ruleGap: 4px;
+  --ll-grid-margin: 64px;
+  --ll-grid-contentWidth: 1152px;
+  --ll-grid-titleTop: 40px; /* 1280-space units · 30 pt from the top edge — the skill’s 0.42 in */
+  --ll-grid-titleHeight: 92px; /* 1280-space units = 52.5 pt · holds two lines of 23 pt · header rule, kicker and content zone unchanged */
+  --ll-grid-headerRule: 142px;
+  --ll-grid-kickerTop: 149px;
+  --ll-grid-contentTop: 186px;
+  --ll-grid-contentBottom: 620px;
+  --ll-grid-footerRule: 642px;
+  --ll-grid-footerTop: 666px; /* Logo top. Footer rule 642 + one ident height (24) = 666; lockup bottom 690, leaving 30 to the slide edge. */
+  --ll-grid-gutter: 32px;
+  --ll-grid-columns: 1152 / 560+560 / 362.7×3 / 264×4;
+
+/* ---- type families ---- */
+  --ll-font-display: 'Abhaya Libre', Georgia, serif;
+  --ll-font-sans: 'Public Sans', 'Helvetica Neue', system-ui, sans-serif;
+  --ll-font-mono: 'Roboto Mono', ui-monospace, monospace;
+
+/* ---- floors · nothing may be set below these ---- */
+  --ll-floor-mono: 8pt;
+  --ll-floor-other: 10pt;
+  --ll-floor-body: 12pt;
+}
+
+/* ============ venue type scales ============ */
+.doc{
+  --ll-type-h1: 60px;
+  --ll-type-h2: 34px;
+  --ll-type-h3: 16px;
+  --ll-type-lead: 14px;
+  --ll-type-body: 12.5px;
+  --ll-type-bodySmall: 11.5px; /* card and table copy */
+  --ll-type-stat: 30px;
+  --ll-type-label: 9.5px;
+  --ll-type-micro: 9px; /* micro type: ticks, diagram tags, notes, pills. The document twin of type.deck.micro */
+}
+.deck{
+  --ll-type-display: 48pt; /* cover, close */
+  --ll-type-title: 32pt; /* every content slide */
+  --ll-type-divider: 43.5pt;
+  --ll-type-numeral: 128pt; /* the section divider's number */
+  --ll-type-quote: 28.5pt;
+  --ll-type-sectionHead: 20pt;
+  --ll-type-statBig: 55.5pt;
+  --ll-type-stat: 31.5pt;
+  --ll-type-value: 24pt;
+  --ll-type-cardHead: 14pt;
+  --ll-type-body: 12pt;
+  --ll-type-label: 10pt;
+  --ll-type-micro: 8pt;
+}
+
+/* ============ base ============ */
+.doc, .deck{
+  background: var(--ll-surface-page);
+  color: var(--ll-text-secondary);
+  font-family: var(--ll-font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+.doc *, .deck *{ box-sizing: border-box; margin: 0; }
+.dark{ background: var(--ll-color-midnight-primary); color: var(--ll-text-onDark); }
+
+/* ============ type roles ============ */
+.h1, .h2, .display, .divider-title, .quote-text{ font-family: var(--ll-font-display); color: var(--ll-text-primary); font-weight: 400; }
+.doc .h1{ font-size: var(--ll-type-h1); line-height: 1.04; }
+.doc .h2{ font-size: var(--ll-type-h2); line-height: 1.1; }
+.deck .h1{ font-size: var(--ll-type-display); line-height: 1.04; }
+.deck .h2{ font-size: var(--ll-type-title); line-height: 1.06; }
+.h3{ font-family: var(--ll-font-sans); font-weight: 600; color: var(--ll-text-primary); }
+.doc .h3{ font-size: var(--ll-type-h3); }
+.deck .h3{ font-size: var(--ll-type-cardHead); }
+.p{ font-size: var(--ll-type-body); line-height: 1.45; color: var(--ll-text-secondary); }
+.lead{ font-size: var(--ll-type-lead, var(--ll-type-body)); line-height: 1.5; }
+.k, .kick{ font-family: var(--ll-font-mono); text-transform: uppercase; color: var(--ll-text-kicker); }
+.doc .k, .doc .kick{ font-size: var(--ll-type-label); letter-spacing: .22em; }
+.deck .k, .deck .kick{ font-size: var(--ll-type-label); letter-spacing: .1em; }
+.kick > b{ color: var(--ll-text-accent); font-weight: 700; }
+.sub{ font-size: var(--ll-type-label); line-height: 1.4; color: var(--ll-text-muted); }
+.micro{ font-family: var(--ll-font-mono); font-size: var(--ll-type-micro); letter-spacing: .13em; text-transform: uppercase; color: var(--ll-text-muted); }
+.dark .p{ color: var(--ll-text-onDarkMuted); }
+.dark .h1, .dark .h2, .dark .h3{ color: var(--ll-text-onDark); }
+.dark .k, .dark .kick, .dark .sub, .dark .micro, .dark .caption{ color: var(--ll-text-onDarkMuted); }
+
+/* ============ surfaces ============ */
+.card{
+  background: var(--ll-surface-card);              /* Crisp --card · white on warm off-white */
+  border: 1px solid var(--ll-surface-border);
+  border-radius: var(--ll-radius-card);
+  padding: var(--ll-space-4);
+}
+.card.dark{ background: var(--ll-surface-cardDark); border-color: var(--ll-surface-hairlineDark); color: var(--ll-text-onDark); }
+.card.feature{ background: var(--ll-surface-sectionBreak); border-color: var(--ll-surface-sectionBreak); }
+.card.outline{ background: transparent; border-color: var(--ll-surface-hairline); }
+.tile{ border-radius: var(--ll-radius-tile); }
+.accent-block{ background: var(--ll-surface-accent); color: var(--ll-text-onAccent); }
+.section-break{ background: var(--ll-surface-sectionBreak); }
+.image-hold{ background: var(--ll-surface-imageHold); }
+
+/* ============ heads · section and card [PPT Type in use] ============
+   The rule IS the head's bottom border, so the gap cannot drift: space.ruleGap
+   sits above it and below it. Section head = card head + an index. */
+.head{ padding-bottom: var(--ll-space-ruleGap); border-bottom: var(--ll-stroke-structure) solid var(--ll-surface-hairline); }
+.head + *{ margin-top: var(--ll-space-1); }
+.head .row{ display: flex; align-items: baseline; gap: var(--ll-space-2); }
+.head .name{ font-family: var(--ll-font-sans); font-weight: 600; color: var(--ll-text-primary); }
+.deck .head .name{ font-size: var(--ll-type-cardHead); }
+.doc .head .name{ font-size: var(--ll-type-h3); }
+.head .idx{ font-family: var(--ll-font-sans); font-weight: 700; color: var(--ll-text-accent); letter-spacing: -.01em; }
+.deck .head .idx{ font-size: var(--ll-type-body); }
+.doc .head .idx{ font-size: var(--ll-type-body); }
+.head .k{ display: block; margin-bottom: var(--ll-space-1); }
+.dark .head{ border-bottom-color: var(--ll-surface-hairlineDark); }
+.dark .head .name{ color: var(--ll-text-onDark); }
+
+/* ============ rules & strokes ============ */
+.rule{ border: 0; border-top: var(--ll-stroke-structure) solid var(--ll-surface-hairline); }
+.rule.divider{ border-top-color: var(--ll-surface-divider); }   /* decorative warm rule */
+.rule.emphasis{ border-top-width: var(--ll-stroke-emphasis); border-top-color: var(--ll-text-primary); }
+.rule.projected{ border-top-style: dashed; }
+.dark .rule{ border-top-color: var(--ll-surface-hairlineDark); }
+
+/* ============ bullets · drawn square, survives PPT conversion ============ */
+/* One rule set, read from component.bullet. Until 23 Sep a second block
+   ([PPT Typography], below the footer) restated it at a 16 px indent and lost
+   to this one on every list; its bottom margin was the one thing it still
+   added, and is kept here so no list moves. */
+ul.bul{ list-style: none; padding: 0; margin: 0; }
+ul.bul li{ position: relative; padding-left: 15px; font-size: var(--ll-type-body); line-height: 1.45; margin-top: var(--ll-space-2); margin-bottom: 6px; }
+/* ink by default, orange allowed (component.bullet, decided 23 Sep): the marker was orange until then while the deck and the master drew ink */
+ul.bul li::before{ content: ""; position: absolute; left: 0; top: .55em; width: 5px; height: 5px; background: var(--ll-text-primary); }
+ul.bul.orange li::before{ background: var(--ll-color-orange-primary); }
+.dark ul.bul:not(.orange) li::before{ background: var(--ll-text-onDark); }   /* ink on midnight is invisible: the markers vanished on the dark Title + body slide */
+ul.bul li b, ul.bul li strong{ color: var(--ll-text-primary); font-weight: 700; }
+.dark ul.bul li b, .dark ul.bul li strong{ color: var(--ll-text-onDark); }
+
+/* ============ markers & figures ============ */
+.marker{ border: var(--ll-stroke-content) solid var(--ll-color-midnight-accent); border-radius: var(--ll-radius-none); background: none; }
+.marker.accent{ border-color: var(--ll-color-orange-primary); }
+.marker.sage{ border-color: var(--ll-color-sage-600); }
+.figure line, .figure path, .figure polygon, .figure rect, .figure circle{ vector-effect: non-scaling-stroke; }
+
+/* ============ stats ============ */
+.stat .v{ font-family: var(--ll-font-sans); font-weight: 700; color: var(--ll-text-primary); letter-spacing: -.02em; line-height: 1; }
+.doc .stat .v{ font-size: var(--ll-type-stat); }
+.deck .stat .v{ font-size: var(--ll-type-stat); }
+.deck .stat.hero .v{ font-size: var(--ll-type-statBig); }
+.deck .stat.incard .v{ font-size: var(--ll-type-value); }   /* in-card numbers · the 24 pt step, approved 9 Sep */
+.stat .l{ font-family: var(--ll-font-mono); font-size: var(--ll-type-label); letter-spacing: .1em; text-transform: uppercase; color: var(--ll-text-kicker); margin-top: var(--ll-space-2); }
+.stat.accent .v{ color: var(--ll-color-orange-primary); }
+
+/* ============ callout · midnight plate [PPT Callouts] ============
+   Three variants, approved 10 Sep. Off sand: the plate is Midnight at the card
+   radius, paper text, Public Sans bold, no border. A plate counts against the
+   30% midnight share — one per slide. Read from component.callout, so the
+   token and the class cannot describe two different callouts again: until
+   23 Sep the token still said sand with a dashed orange edge. */
+.callout{
+  background: var(--ll-surface-emphasis);
+  color: var(--ll-text-onDark);
+  border-radius: var(--ll-radius-card);
+  padding: var(--ll-space-5) 22px;
+  font-family: var(--ll-font-sans);
+  font-weight: 700;
+  line-height: 1.35;
+}
+.deck .callout{ font-size: var(--ll-type-cardHead); }
+.doc .callout{ font-size: var(--ll-type-h3); }
+.callout .claim{ color: var(--ll-text-accent); }        /* F · the claim first, in the accent */
+.callout.quiet{                                          /* E · no plate, for a slide that already has a dark surface */
+  background: none; color: var(--ll-text-primary); border-radius: 0;
+  padding: var(--ll-space-3) 0 0;
+  border-top: var(--ll-stroke-emphasis) solid var(--ll-surface-accent);
+}
+.dark .callout.quiet{ color: var(--ll-text-onDark); }
+
+/* ============ tags ============ */
+.tag{
+  display: inline-block; font-family: var(--ll-font-mono); font-size: var(--ll-type-micro);
+  letter-spacing: .1em; text-transform: uppercase; padding: 3px 8px;
+  border: var(--ll-stroke-content) solid var(--ll-color-midnight-accent);
+  border-radius: var(--ll-radius-input); color: var(--ll-text-primary);
+}
+.tag.accent{ border-color: var(--ll-color-orange-primary); color: var(--ll-color-orange-primary); }
+.tag.solid{ background: var(--ll-text-primary); border-color: var(--ll-text-primary); color: var(--ll-text-onDark); }
+
+/* ============ table ============ */
+/* Read from component.table: until 23 Sep this block was typed here, and the
+   rule it states lived nowhere a check or a skill could read it. */
+.doc table, .deck table{ width: 100%; border-collapse: collapse; }
+th{ font-family: var(--ll-font-sans); font-weight: 700; font-size: var(--ll-type-body); letter-spacing: -0.01em; text-align: left;
+  color: var(--ll-text-primary); background: transparent; }
+td, th{ border-bottom: var(--ll-stroke-structure) solid var(--ll-surface-hairline); padding: var(--ll-space-2) var(--ll-space-3); }
+th{ border-bottom: var(--ll-stroke-content) solid var(--ll-text-primary); }
+td{ font-size: var(--ll-type-body); color: var(--ll-text-secondary); }
+tr.total td{ font-family: var(--ll-font-sans); font-weight: 700; color: var(--ll-text-primary); background: transparent;
+  border-top: var(--ll-stroke-content) solid var(--ll-text-primary); border-bottom: 0; }
+/* zebra · for a long table, where the eye has to track across a row */
+table.zebra td{ border-bottom: 0; }
+table.zebra tbody tr:nth-child(odd):not(.total) td{ background: var(--ll-color-grey-300); }
+/* No highlight column: a table is marked by its head and its total, nothing else. */
+
+/* ============ data ============ */
+.bar-track{ background: var(--ll-surface-bar); height: 6px; }
+.bar-fill{ background: var(--ll-text-primary); height: 6px; }
+.bar-fill.accent{ background: var(--ll-color-orange-primary); }
+.gridline{ border-top: var(--ll-stroke-structure) solid var(--ll-surface-gridline); }
+.axis{ border-top: var(--ll-stroke-emphasis) solid var(--ll-text-primary); }
+
+/* ---- text on dark surfaces · every role flips to the on-dark tokens ---- */
+.card.dark, .band.dark, .total, .surface-dark{ color: var(--ll-text-onDark); }
+.card.dark .h1, .card.dark .h2, .card.dark .h3, .card.dark .ch, .card.dark .stat, .card.dark .p, .card.dark .lead,
+.band.dark .h1, .band.dark .h2, .band.dark .h3, .band.dark .ch, .band.dark .stat, .band.dark .p, .band.dark .lead,
+.total .stat, .total .ch,
+.card.dark .stat .v, .band.dark .stat .v, .total .stat .v, .card.dark .v, .total .v{ color: var(--ll-text-onDark); }
+.card.dark .k, .card.dark .kick, .card.dark .sub, .card.dark .spec, .card.dark .muted,
+.band.dark .k, .band.dark .kick, .band.dark .sub, .band.dark .spec, .band.dark .muted,
+.total .k, .total .kick, .total .sub,
+.card.dark .stat .l, .band.dark .stat .l, .total .stat .l, .card.dark .l, .total .l{ color: var(--ll-text-onDarkMuted); }
+
+/* ============ deck chrome · geometry from the token grid ============ */
+/* A slide carries its own ground. It sat on body.deck until 24 Sep, so a deck
+   built outside the template, with no .deck on <body>, printed on white: the
+   Q4 OKR deck did. */
+.deck .slide{ position: relative; width: 1280px; height: 720px; background: var(--ll-surface-page); }
+.deck .slide.dark{ background: var(--ll-color-midnight-primary); }  /* as .dark, at the slide rule's weight */
+.deck .hdr{ position: absolute; left: var(--ll-grid-margin); top: var(--ll-grid-titleTop); width: var(--ll-grid-contentWidth); height: var(--ll-grid-titleHeight); display: flex; align-items: center; }
+.deck .hdr > *{ flex: 1 1 100%; min-width: 0; }
+.deck .hdr-rule{ border: 0; position: absolute; left: var(--ll-grid-margin); top: var(--ll-grid-headerRule); width: var(--ll-grid-contentWidth); border-top: var(--ll-stroke-structure) solid var(--ll-surface-divider); }
+.deck .kick-row{ position: absolute; right: var(--ll-grid-margin); top: var(--ll-grid-kickerTop); }
+.deck .content{ position: absolute; left: var(--ll-grid-margin); top: var(--ll-grid-contentTop); width: var(--ll-grid-contentWidth); overflow: hidden; }
+.deck .ftr-rule{ border: 0; position: absolute; left: var(--ll-grid-margin); top: var(--ll-grid-footerRule); width: var(--ll-grid-contentWidth); border-top: var(--ll-stroke-structure) solid var(--ll-surface-divider); }
+.deck .ftr-logo{ position: absolute; left: var(--ll-grid-margin); top: var(--ll-grid-footerTop); width: 111px; height: 24px; }  /* 24px = 6.35mm · clears the 6mm minimum */
+.deck .ftr-num{ position: absolute; right: var(--ll-grid-margin); top: var(--ll-grid-footerTop); font-family: var(--ll-font-mono); font-size: var(--ll-type-label); letter-spacing: .13em; color: var(--ll-text-muted); white-space: nowrap; }
+.deck .slide.dark .ftr-num, .deck .dark .ftr-num{ color: var(--ll-text-onDarkMuted); }
+
+
+
+/* ============ change indicator [PPT Data display] ============ */
+.change{ font-family: var(--ll-font-sans); font-weight: 700; letter-spacing: -0.01em; white-space: nowrap; line-height: 1; }
+.deck .change{ font-size: var(--ll-type-value); }
+.doc .change{ font-size: var(--ll-type-h3); }
+.change.up{ color: var(--ll-text-accent); }
+.change.down{ color: var(--ll-text-primary); }
+.change.flat{ color: var(--ll-text-muted); }
+.dark .change.down, .dark .change.flat{ color: var(--ll-text-onDark); }
+
+/* ============ marker family [PPT Markers] · radius 0 · fixed sizes, repeat never resize ============ */
+.mk{ border: var(--ll-stroke-content) solid currentColor; border-radius: 0; background: var(--ll-surface-page); display: inline-flex; align-items: center; justify-content: center; color: var(--ll-color-midnight-accent); }
+.mk.sage{ color: var(--ll-color-sage-600); }
+.mk.accent{ color: var(--ll-surface-accent); }
+.mk.block{ width: 80px; height: 18px; }
+.mk.column{ width: 23px; height: 110px; }
+.mk.pin{ width: 20px; height: 20px; }
+.mk.screw{ width: 20px; height: 10px; border-radius: var(--ll-radius-pill); }   /* the one rounded marker (component.marker.screwRadius) */
+.mk.pin::before, .mk.screw::before{ content: ""; width: 2px; height: 2px; border-radius: 50%; background: currentColor; box-shadow: -5px 0 0 currentColor, 5px 0 0 currentColor; }
+.mk.node{ width: 10px; height: 10px; border: 0; background: currentColor; clip-path: polygon(50% 0, 58% 42%, 100% 50%, 58% 58%, 50% 100%, 42% 58%, 0 50%, 42% 42%); }
+.mk.hatched{ background-image: repeating-linear-gradient(45deg, currentColor 0 1px, transparent 1px 5px); }
+.dark .mk{ color: var(--ll-text-onDark); background: transparent; }
+.dark .mk.accent{ color: var(--ll-surface-accent); }
+.dark .mk.sage{ color: var(--ll-color-sage-400); }
+.dark .mk.node{ background: var(--ll-text-onDark); }
+
+/* ============ hatch [PPT Surfaces · the only orange fill] ============ */
+.hatch{ background-image: repeating-linear-gradient(45deg, var(--ll-surface-accent) 0 0.75px, transparent 0.75px 5px); border: var(--ll-stroke-content) solid var(--ll-surface-accent); border-radius: 0; }
+.hatch.ink{ background-image: repeating-linear-gradient(-45deg, var(--ll-text-primary) 0 0.75px, transparent 0.75px 5px); border-color: var(--ll-text-primary); }
+.hatch.sage{ background-image: repeating-linear-gradient(45deg, var(--ll-color-sage-600) 0 0.75px, transparent 0.75px 5px); border-color: var(--ll-color-sage-600); }
+
+/* ============ icon [PPT Icons · data in assets/icons/icons.json] ============ */
+.icon{ display: inline-block; flex: none; width: 32px; height: 32px; }
+.icon svg{ display: block; width: 100%; height: 100%; }
+.icon.s20{ width: 20px; height: 20px; }
+.icon.s24{ width: 24px; height: 24px; }
+.icon.s48{ width: 48px; height: 48px; }
+.icon.s64{ width: 64px; height: 64px; }
+
+/* ============ process [PPT Diagrams] ============ */
+.process{ display: flex; align-items: center; gap: 0; }
+.step{ border: var(--ll-stroke-content) solid var(--ll-color-midnight-accent); border-radius: var(--ll-radius-tile); background: var(--ll-surface-page); padding: 10px 14px; font-family: var(--ll-font-sans); font-size: var(--ll-type-body); color: var(--ll-text-primary); text-align: center; }
+.process .step{ flex: 1; }
+.step.active{ border-color: var(--ll-surface-accent); }
+.process .step.human{ background-image: repeating-linear-gradient(45deg, var(--ll-surface-accent) 0 1px, transparent 1px 5px); border-color: var(--ll-surface-accent); }
+.process .arrow{ flex: none; width: 32px; height: var(--ll-stroke-emphasis); background: var(--ll-text-primary); position: relative; }
+.process .arrow::after{ content: ""; position: absolute; right: 0; top: 50%; transform: translateY(-50%); border-left: 7px solid var(--ll-text-primary); border-top: 4px solid transparent; border-bottom: 4px solid transparent; }
+.dark .process .step{ background: var(--ll-surface-emphasis); border-color: var(--ll-text-onDark); color: var(--ll-text-onDark); }
+.dark .process .arrow{ background: var(--ll-text-onDark); }
+.dark .process .arrow::after{ border-left-color: var(--ll-text-onDark); }
+
+/* ============ phase flow [PPT Data display · timeline] ============ */
+.phase{ position: relative; display: flex; gap: var(--ll-space-8); padding-top: 22px; }
+.phase::before{ content: ""; position: absolute; left: 0; right: 0; top: 6px; height: var(--ll-stroke-emphasis); background: var(--ll-text-primary); }
+.phase > *{ flex: 1; position: relative; }
+.phase > *::before{ content: ""; position: absolute; left: 0; top: -22px; width: 9px; height: 9px; background: var(--ll-surface-page); border: var(--ll-stroke-emphasis) solid var(--ll-text-primary); }
+.phase > .now::before{ background: var(--ll-surface-accent); border-color: var(--ll-surface-accent); transform: rotate(45deg); }
+
+/* ============ sequence [PPT Sequence diagrams] ============ */
+.seq .actor{ border: var(--ll-stroke-content) solid var(--ll-color-midnight-accent); border-radius: var(--ll-radius-tile); padding: 8px 12px; text-align: center; font-family: var(--ll-font-sans); font-weight: 700; font-size: var(--ll-type-body); color: var(--ll-text-primary); background: var(--ll-surface-page); }
+.seq .life{ width: 0; border-left: var(--ll-stroke-structure) dashed var(--ll-color-sage-600); margin: 0 auto; }
+.msg{ height: var(--ll-stroke-content); background: var(--ll-text-primary); position: relative; }
+.msg::after{ content: ""; position: absolute; right: 0; top: 50%; transform: translateY(-50%); border-left: 7px solid var(--ll-text-primary); border-top: 4px solid transparent; border-bottom: 4px solid transparent; }
+.msg.reply{ background: none; border-top: var(--ll-stroke-content) dashed var(--ll-text-primary); }
+.msg-label{ font-family: var(--ll-font-mono); font-size: var(--ll-type-micro); letter-spacing: 0.13em; text-transform: uppercase; color: var(--ll-text-muted); }
+
+/* ============ line chart [PPT Charts II] ============ */
+.chart .plot{ position: relative; border-left: var(--ll-stroke-emphasis) solid var(--ll-text-primary); border-bottom: var(--ll-stroke-emphasis) solid var(--ll-text-primary); }
+.chart .grid-line{ position: absolute; left: 0; right: 0; height: 0; border-top: var(--ll-stroke-structure) solid var(--ll-surface-gridline); }
+.chart .series{ position: absolute; inset: 0; width: 100%; height: 100%; display: block; overflow: visible; }
+.chart .series path{ fill: none; stroke: var(--ll-text-primary); stroke-width: 1.5; }
+.chart .series.accent path{ stroke: var(--ll-surface-accent); }
+.chart .pt{ position: absolute; width: 9px; height: 9px; border-radius: 50%; background: var(--ll-surface-page); border: var(--ll-stroke-content) solid var(--ll-text-primary); transform: translate(-50%,-50%); }
+.chart .pt.accent{ border-color: var(--ll-surface-accent); background: var(--ll-surface-accent); }
+.chart .tick{ font-family: var(--ll-font-mono); font-size: var(--ll-type-micro); letter-spacing: 0.13em; text-transform: uppercase; color: var(--ll-text-muted); }
+.chart .legend{ display: flex; gap: var(--ll-space-6); align-items: center; font-family: var(--ll-font-sans); font-size: var(--ll-type-label); color: var(--ll-text-secondary); }
+.chart .legend i{ width: 12px; height: 12px; flex: none; border: var(--ll-stroke-content) solid var(--ll-text-primary); }
+
+/* ============ diagrams · decision + swimlanes [PPT Diagrams] ============
+   Spec: work/pages-2.js · page('Diagrams') · blocks '02 DECISION' and
+   '03 SWIMLANES'. Every box is 104x40, every lane row 52, the label column
+   104 wide with a sage rule on its right edge. Wires (arrows, elbow
+   connectors, the 80x60 diamond, ghost lane rules) live in one SVG layer
+   whose points work/diagrams-proof.js computes FROM the box positions.
+   Classes are unscoped and prefixed dgm- so nothing collides. */
+.dgm{ position: relative; font-family: var(--ll-font-sans); }
+.dgm-wires{ position: absolute; left: 0; top: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
+.dgm-line{ fill: none; stroke: var(--ll-text-primary); stroke-width: var(--ll-stroke-content); }
+.dgm-line.dgm-exception{ stroke-dasharray: var(--ll-stroke-dash); }   /* dashed = exception / system response */
+.dgm-head{ fill: var(--ll-text-primary); stroke: none; }
+.dgm-poly{ fill: var(--ll-surface-page); stroke: var(--ll-color-midnight-accent); stroke-width: var(--ll-stroke-content); }
+.dgm-ghost{ fill: none; stroke: var(--ll-surface-hairline); stroke-width: var(--ll-stroke-structure); }
+.dgm-rule{ fill: none; stroke: var(--ll-surface-divider); stroke-width: var(--ll-stroke-content); }
+.dgm-box{ position: absolute; width: 104px; height: 40px; display: grid; place-items: center; text-align: center; padding: 0 5px; border: var(--ll-stroke-content) solid var(--ll-color-midnight-accent); border-radius: var(--ll-radius-tile); background: var(--ll-surface-page); font-size: var(--ll-type-label); line-height: 1.15; color: var(--ll-text-primary); }
+.dgm-box.dgm-active{ border-color: var(--ll-surface-accent); }
+.dgm-box.dgm-human{ border-color: var(--ll-surface-accent); background-image: repeating-linear-gradient(45deg, var(--ll-surface-accent) 0 1px, transparent 1px 5px); }
+.dgm-choice{ position: absolute; width: 80px; height: 60px; display: grid; place-items: center; text-align: center; font-size: var(--ll-type-label); line-height: 1.15; color: var(--ll-text-primary); }
+.dgm-tag{ position: absolute; font-family: var(--ll-font-mono); font-size: var(--ll-type-micro); letter-spacing: 0.13em; text-transform: uppercase; color: var(--ll-text-kicker); white-space: nowrap; }
+.dgm-lane-label{ position: absolute; width: 100px; height: 52px; display: flex; align-items: center; font-family: var(--ll-font-mono); font-size: var(--ll-type-micro); letter-spacing: 0.13em; text-transform: uppercase; color: var(--ll-text-kicker); }
+.dgm-note{ font-family: var(--ll-font-mono); font-size: var(--ll-type-micro); letter-spacing: 0.13em; text-transform: uppercase; color: var(--ll-text-muted); }
+.dark .dgm-box{ background: var(--ll-surface-emphasis); border-color: var(--ll-text-onDark); color: var(--ll-text-onDark); }
+.dark .dgm-line{ stroke: var(--ll-text-onDark); }
+.dark .dgm-head{ fill: var(--ll-text-onDark); }
+.dark .dgm-poly{ fill: var(--ll-surface-emphasis); stroke: var(--ll-text-onDark); }
+.dark .dgm-choice{ color: var(--ll-text-onDark); }
+.dark .dgm-tag, .dark .dgm-lane-label, .dark .dgm-note{ color: var(--ll-text-onDarkMuted); }
+
+/* ============ annotation [PPT Callouts & annotation] ============ */
+.pin{ width: 16px; height: 16px; border-radius: 50%; background: var(--ll-text-primary); color: var(--ll-text-onDark); font-family: var(--ll-font-mono); font-weight: 700; font-size: var(--ll-type-micro); display: inline-grid; place-items: center; flex: none; }
+.leader{ height: 0; border-top: var(--ll-stroke-structure) solid var(--ll-color-sage-900); }
+.frame{ outline: var(--ll-stroke-content) solid var(--ll-surface-accent); outline-offset: 0; }
+.margin-note{ border-left: 3px solid var(--ll-surface-accent); padding-left: var(--ll-space-3); }
+
+/* ============ completion · waffle · segmented [PPT Data display] ============ */
+.harvey{ width: 32px; height: 32px; border-radius: 50%; border: var(--ll-stroke-content) solid currentColor; color: var(--ll-text-primary); position: relative; flex: none; background-image: linear-gradient(currentColor, currentColor); background-size: var(--ll-stroke-structure) 50%; background-position: top center; background-repeat: no-repeat; }
+.harvey::before{ content: ""; position: absolute; inset: 0; border-radius: 50%; background-image: repeating-linear-gradient(45deg, currentColor 0 1px, transparent 1px 4px); -webkit-mask-image: conic-gradient(#000 calc(var(--v,0) * 1%), transparent 0); mask-image: conic-gradient(#000 calc(var(--v,0) * 1%), transparent 0); }
+.harvey::after{ content: ""; position: absolute; left: 50%; top: 0; width: var(--ll-stroke-structure); height: 50%; background: currentColor; transform-origin: bottom center; transform: rotate(calc(var(--v,0) * 3.6deg)); }
+.harvey.empty, .harvey.full{ background-image: none; }
+.harvey.empty::after, .harvey.full::after{ display: none; }
+.harvey.full::before{ -webkit-mask-image: none; mask-image: none; }
+.waffle{ display: grid; grid-template-columns: repeat(10, 1fr); gap: 3px; }
+.waffle i{ aspect-ratio: 1; background: var(--ll-surface-bar); display: block; }
+.waffle i.on{ background: var(--ll-text-primary); }
+.waffle i.accent{ background: var(--ll-surface-accent); }
+.segbar{ display: flex; height: 24px; }
+.segbar i{ display: block; background: var(--ll-surface-bar); border-right: 2px solid var(--ll-surface-page); }
+.segbar i:last-child{ border-right: 0; }
+.segbar i.on{ background: var(--ll-text-primary); }
+.segbar i.accent{ background: var(--ll-surface-accent); }
+
+/* ============ plot frame · shared by bars, lines and waterfall [PPT Charts] ============
+   Spec: work/drawing-pages.js · yAxis() · ink axes, ghost gridlines every 25,
+   mono tick numbers outside the axis. */
+.plot-grid{ position: absolute; left: 0; right: 0; height: 0; border-top: var(--ll-stroke-structure) solid var(--ll-surface-gridline); }
+.plot-tick{ position: absolute; right: calc(100% + 6px); transform: translateY(50%); font-family: var(--ll-font-mono); font-size: var(--ll-type-micro); letter-spacing: 0.06em; color: var(--ll-text-muted); }
+
+/* ============ bar chart [PPT Charts I] ============
+   Stack reads bottom-up: hatch (manual re-keying) then the handling segment.
+   Hatch is the 'dn' diagonal, same angle as the waterfall's removed bars. */
+.bars{ position: relative; margin-bottom: var(--ll-space-10); display: flex; align-items: flex-end; gap: var(--ll-space-8); border-left: var(--ll-stroke-emphasis) solid var(--ll-text-primary); border-bottom: var(--ll-stroke-emphasis) solid var(--ll-text-primary); padding: 0 var(--ll-space-6); }
+.bars .bar{ display: flex; flex-direction: column; justify-content: flex-end; width: 72px; position: relative; }
+.bars .bar i{ display: block; border: var(--ll-stroke-content) solid var(--ll-text-primary); background: var(--ll-surface-bar); }
+.bars .bar i.accent{ background: var(--ll-surface-accent); border-color: var(--ll-surface-accent); }
+.bars .bar i.hatched{ background-color: var(--ll-surface-page); background-image: repeating-linear-gradient(-45deg, var(--ll-text-primary) 0 1px, transparent 1px 5px); }
+.bars .bar-v{ font-family: var(--ll-font-sans); font-weight: 700; font-size: var(--ll-type-label); text-align: center; padding-bottom: var(--ll-space-1); color: var(--ll-text-primary); }
+.bars .bar-cat{ position: absolute; top: 100%; left: 0; right: 0; font-family: var(--ll-font-sans); font-weight: 700; font-size: var(--ll-type-label); text-align: center; padding-top: var(--ll-space-2); }
+
+/* ============ waterfall [PPT Charts III] ============
+   Ink = totals · hatch = removed · orange = added · dashed sage carries the
+   running level into the next column. */
+.waterfall{ position: relative; margin-bottom: var(--ll-space-10); display: flex; align-items: flex-end; gap: var(--ll-space-6); border-left: var(--ll-stroke-emphasis) solid var(--ll-text-primary); border-bottom: var(--ll-stroke-emphasis) solid var(--ll-text-primary); padding: 0 var(--ll-space-6); }
+.wf-col{ display: flex; flex-direction: column; justify-content: flex-end; width: 84px; position: relative; }
+.wf-base{ background: none; }
+.wf-bar{ display: block; border: var(--ll-stroke-content) solid var(--ll-text-primary); background: var(--ll-text-primary); }
+.wf-bar.removed{ background-color: var(--ll-surface-page); background-image: repeating-linear-gradient(-45deg, var(--ll-text-primary) 0 1px, transparent 1px 5px); }
+.wf-bar.added{ background: var(--ll-surface-accent); border-color: var(--ll-surface-accent); }
+.wf-v{ position: absolute; left: -8px; right: -8px; text-align: center; font-family: var(--ll-font-sans); font-weight: 700; font-size: var(--ll-type-label); color: var(--ll-text-primary); }
+.wf-v.added{ color: var(--ll-text-accent); }
+.wf-cat{ position: absolute; top: 100%; left: -8px; right: -8px; font-family: var(--ll-font-sans); font-weight: 700; font-size: var(--ll-type-label); text-align: center; padding-top: var(--ll-space-2); color: var(--ll-text-primary); }
+.wf-link{ position: absolute; right: calc(var(--ll-space-6) * -1); height: 0; border-top: var(--ll-stroke-structure) dashed var(--ll-color-sage-600); width: var(--ll-space-6); }
+
+/* ============ imagery [PPT Imagery] ============ */
+.photo{ background: var(--ll-surface-imageHold); border-radius: var(--ll-radius-card); position: relative; overflow: hidden; display: grid; place-items: center; }
+.photo.r16-9{ aspect-ratio: 16 / 9; }
+.photo.r4-3{ aspect-ratio: 4 / 3; }
+.photo.r1-1{ aspect-ratio: 1 / 1; }
+.photo .overlay{ position: absolute; inset: 0; background: var(--ll-color-midnight-primary); opacity: 0.12; }
+.photo .plate{ position: absolute; left: var(--ll-space-6); bottom: var(--ll-space-6); background: var(--ll-color-midnight-primary); color: var(--ll-text-onDark); font-family: var(--ll-font-display); padding: var(--ll-space-3) var(--ll-space-6); }
+.photo > .photo-label{ position: absolute; top: var(--ll-space-4); left: var(--ll-space-4); }
+.photo-label{ font-family: var(--ll-font-mono); font-size: var(--ll-type-micro); letter-spacing: 0.13em; text-transform: uppercase; color: var(--ll-color-sage-900); }
+.caption{ font-family: var(--ll-font-mono); font-size: var(--ll-type-micro); letter-spacing: 0.13em; text-transform: uppercase; color: var(--ll-text-muted); padding-top: var(--ll-space-2); }
+
+/* ============ logo [PPT Logo] · clear space = one ident height ============ */
+.logo{ display: block; height: 24px; width: auto; }
+.logo.lg{ height: 32px; }
+.logo-clear{ outline: var(--ll-stroke-structure) dashed var(--ll-surface-hairline); padding: 24px; display: inline-block; }
+.logo-app{ display: grid; place-items: center; padding: var(--ll-space-8); border-radius: var(--ll-radius-card); }
+.logo-app.paper{ background: var(--ll-surface-page); border: var(--ll-stroke-structure) solid var(--ll-surface-border); }
+.logo-app.midnight{ background: var(--ll-color-midnight-primary); }
+.logo-app.sage{ background: var(--ll-color-sage-400); }
+.logo-app.accent{ background: var(--ll-surface-accent); }
+
+/* ============ figure sizing [PPT Line graphics] ============ */
+.figure{ display: block; }
+.figure.s96{ width: 96px; }
+.figure.s160{ width: 160px; }
+.figure.s240{ width: 240px; }
+.chart .legend i.accent{ border-color: var(--ll-surface-accent); background: var(--ll-surface-accent); }
+
+/* ============ document chrome [.doc · A4 sheets] ============
+   The page shell and running furniture the document template needs. Geometry
+   is the doc skill's (210×297mm, 17/18/15mm margins, footer 11mm up); every
+   colour and stroke is a token. Names are doc- prefixed so nothing collides
+   with the shared component classes. */
+.doc{ background: var(--ll-color-grey-700); color: var(--ll-text-onDark); } /* desk behind the sheets · screen only */
+/* Anything sitting ON the desk rather than on a sheet is on a dark ground, so
+   it takes the on-dark tokens. The inherited colour above covers loose text;
+   this rule carries enough specificity to beat an element-level declaration
+   that was authored for paper -- which is how the section headings on
+   Tokens proof.html came to be Grey 700 on a Grey 700 desk, at 1.00:1.
+   .doc .sheet re-states colour for page content, so paper is unaffected. */
+.doc > h1, .doc > h2, .doc > h3, .doc > h4, .doc > p, .doc > .h1, .doc > .h2, .doc > .h3{ color: var(--ll-text-onDark); }
+.doc > .k, .doc > .kick, .doc > .micro, .doc > .spec, .doc > .sub{ color: var(--ll-text-onDarkMuted); }
+.doc .sheet{ width: 210mm; min-height: 297mm; background: var(--ll-surface-page); color: var(--ll-text-secondary); margin: 14px auto; padding: 17mm 18mm 15mm; position: relative; overflow: hidden; }
+.doc .sheet.dark{ background: var(--ll-color-midnight-primary); color: var(--ll-text-onDark); }
+.doc-runhead{ display: flex; justify-content: space-between; align-items: flex-start; gap: var(--ll-space-4); border-bottom: var(--ll-stroke-structure) solid var(--ll-surface-hairline); padding-bottom: 9px; margin-bottom: 22px; }
+.dark .doc-runhead{ border-bottom-color: var(--ll-surface-hairlineDark); }
+.doc-foot{ position: absolute; left: 18mm; right: 18mm; bottom: 11mm; display: flex; justify-content: space-between; align-items: flex-end; gap: var(--ll-space-4); border-top: var(--ll-stroke-structure) solid var(--ll-surface-hairline); padding-top: 8px; }
+.dark .doc-foot{ border-top-color: var(--ll-surface-hairlineDark); }
+.doc-sechead{ margin-bottom: 18px; display: flex; flex-direction: column; gap: 7px; }
+.doc-grid2{ display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: var(--ll-space-4); }
+.doc-grid3{ display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: var(--ll-space-3); }
+.doc-accent-bar{ width: 54px; height: 13px; background: var(--ll-surface-accent); }
+.doc-dots{ display: grid; grid-template-columns: repeat(3, 9px); gap: 6px; }
+.doc-dots i{ width: 9px; height: 9px; background: var(--ll-surface-accent); display: block; }
+.doc-dots i.off{ background: var(--ll-surface-bar); }
+.doc-meta{ display: flex; flex-wrap: wrap; gap: 46px; }
+.doc-meta .v{ font-weight: 700; font-size: 13.5px; color: var(--ll-text-primary); }
+.doc-toc{ display: flex; flex-direction: column; }
+.doc-toc-row{ display: grid; grid-template-columns: 34px minmax(0,1fr) auto; gap: var(--ll-space-4); align-items: baseline; padding: 13px 0; border-bottom: var(--ll-stroke-structure) solid var(--ll-surface-border); }
+.doc-toc-num{ font-family: var(--ll-font-mono); font-size: 13px; font-weight: 600; color: var(--ll-text-accent); }
+.doc-toc-title{ font-weight: 700; font-size: 14.5px; color: var(--ll-text-primary); }
+.doc-toc-title span{ display: block; font-weight: 400; font-size: var(--ll-type-bodySmall); color: var(--ll-text-muted); margin-top: 2px; }
+.doc-pills{ display: flex; flex-wrap: wrap; gap: var(--ll-space-2); }
+.doc-pill{ border: var(--ll-stroke-structure) solid var(--ll-surface-border); font-family: var(--ll-font-mono); font-size: var(--ll-type-micro); letter-spacing: .04em; padding: 4px 8px; color: var(--ll-text-muted); }
+.doc-quote{ border-left: var(--ll-stroke-emphasis) solid var(--ll-surface-accent); padding: 6px 0 6px 14px; font-size: 13px; font-style: italic; color: var(--ll-text-primary); }
+.doc-quote cite{ display: block; font-style: normal; font-family: var(--ll-font-mono); font-size: var(--ll-type-label); letter-spacing: .04em; color: var(--ll-text-muted); margin-top: 5px; }
+.doc-note{ border-left: var(--ll-stroke-emphasis) solid var(--ll-surface-accent); background: var(--ll-surface-callout); color: var(--ll-text-onCallout); padding: 10px 14px; font-size: var(--ll-type-bodySmall); }
+.doc-contacts{ display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: var(--ll-space-5); }
+.doc-contacts .nm{ font-weight: 700; font-size: 13px; color: var(--ll-text-primary); }
+.dark .doc-contacts .nm{ color: var(--ll-text-onDark); }
+.doc-contacts .ro{ font-size: var(--ll-type-bodySmall); color: var(--ll-text-muted); margin: 1px 0 3px; }
+.dark .doc-contacts .ro{ color: var(--ll-text-onDarkMuted); }
+.doc-contacts .em{ font-family: var(--ll-font-mono); font-size: 10.5px; color: var(--ll-text-accent); }
+@media print{
+  .doc{ background: none; }
+  /* the browser's own body margin made the sheet wider than A4, so Chrome
+     shrank every page about 1% and the smallest labels went under the doc
+     floor (delta-agent#134) */
+  body.doc{ margin: 0; padding: 0; }
+  .doc .sheet{ margin: 0; page-break-after: always; }
+  @page{ size: A4; margin: 0; }
+}
+
+/* ============ conformance · Notion's own rules ============
+   · always a semantic token — never a raw hex in a component
+   · never a palette scale variable where a semantic one exists
+   · no opacity modifiers on tokens (status-badge tints excepted)
+   · 60 sand/neutral · 30 midnight · 10 orange — never more
+   · one accent element per surface
+   · dashed means projected / not yet
+   · if no token fits: STOP AND ASK, don't invent one
+   ============================================================ */
