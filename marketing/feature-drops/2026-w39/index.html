@@ -76,18 +76,22 @@ button.copy:focus-visible { outline: 2px solid var(--accent); outline-offset: 2p
   </header>
 
   <section class="weekly" aria-labelledby="wk">
-    <div class="kicker">Weekly post · one per drop</div>
-    <h2 id="wk">One LinkedIn post with a 5-page carousel</h2>
-    <p class="why">LinkedIn can't put several videos in one post, so the weekly post is a PDF document carousel: a cover, one page per feature tied to its process, and a closing page. The clips live on this page, linked from the first comment, and stay available for a single-feature or personal post when one is strong enough.</p>
-    <div class="strip">
-      <img src="carousel-1.png" alt="Cover: three steps toward an autonomous back office">
-      <img src="carousel-2.png" alt="Talk to Llev page">
-      <img src="carousel-3.png" alt="Board view page">
-      <img src="carousel-4.png" alt="Skill tests page">
-      <img src="carousel-5.png" alt="Closing page">
-    </div>
+    <div class="kicker">Option 1 · one weekly post</div>
+    <h2 id="wk">One post with all three features</h2>
+    <p class="why">Use the combined video (about 58 seconds: a cover, each feature as a chapter marked "1 / 3 · Quote &amp; Sell", one end card), or the 5-page carousel PDF for people who swipe instead of watch. The post copy works for both.</p>
+    <div class="drop">
+      <video src="weekly.mp4" poster="weekly-cover.png" muted loop playsinline controls></video>
+      <div class="meta">
+        <div class="facts"><span>Combined video · 58s · 4:5</span><span>Carousel · carousel.pdf · 5 pages</span></div>
+        <div class="strip">
+          <img src="carousel-1.png" alt="Carousel cover: three steps toward an autonomous back office">
+          <img src="carousel-2.png" alt="Carousel page: Talk to Llev">
+          <img src="carousel-3.png" alt="Carousel page: board view">
+          <img src="carousel-4.png" alt="Carousel page: skill tests">
+          <img src="carousel-5.png" alt="Carousel closing page">
+        </div>
     <div class="post">
-      <div class="post-head">Weekly company post · attach carousel.pdf<button class="copy" type="button">Copy</button></div>
+      <div class="post-head">Weekly company post · attach weekly.mp4 or carousel.pdf<button class="copy" type="button">Copy</button></div>
       <p>The back office doesn't need more dashboards. It needs fewer things to chase.
 
 What shipped in Lleverage over the last two weeks:
@@ -102,7 +106,11 @@ Each one moves a core process a step closer to running on its own, with a person
 
 Clips of all three in the first comment. 📦</p>
     </div>
+      </div>
+    </div>
   </section>
+
+  <div class="kicker" style="margin-bottom:-32px">Option 2 · one post per feature</div>
 
   <section class="drop" aria-labelledby="f1">
     <video src="talk-to-llev.mp4" poster="talk-to-llev.png" autoplay muted loop playsinline controls></video>
