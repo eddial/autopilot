@@ -5,7 +5,7 @@ max_parallel_sessions: 3
 window_cap: 72h              # a weekend with the laptop closed still gets read in full
 window_overlap: 2m
 repos_dir: ~/repos           # where workstreams' repos are cloned
-worktrees_dir: ~/work        # where sessions work: a folder per workstream, a git worktree per issue with a repo
+worktrees_dir: ~/work        # issue files per workstream (<workstream>/<ID>/), a git worktree per issue with a repo
 autopilot_workstream: autopilot   # where health issues and dream proposals go
 
 # Linear connector tools every signal and health call may use to file. Names as in your Claude account's

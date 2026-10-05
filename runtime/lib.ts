@@ -4,7 +4,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 
-const home = (p: string) => p.replace(/^~(?=\/|$)/, os.homedir());
+export const home = (p: string) => p.replace(/^~(?=\/|$)/, os.homedir());
 // ROOT is the engine (this repo, the plugin). HOME is one person's Autopilot: autopilot.yaml, instructions.md,
 // workstreams/, signals/, schedules/, dreams/, .env and .state/. By default home/ in the engine, which git ignores.
 export const ROOT = path.resolve(import.meta.dirname, '..');

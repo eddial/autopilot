@@ -212,8 +212,9 @@ new examples without touching your own files. Examples to start from:
 | `workstreams/_autopilot.md` | Autopilot's own project: health issues and dream proposals |
 | `_instructions.md` | personal rules added to every run |
 
-Workstreams without a repo work in a plain folder, `worktrees_dir/<workstream>`, shared by their
-sessions and kept. Give a workstream `repo:` (a directory in `repos_dir`, a path, or `autopilot` for
+Workstreams without a repo run in the Autopilot folder, so their sessions sit together in the
+Claude app, and keep each issue's files in `worktrees_dir/<workstream>/<ID>/`. Give a workstream
+`folder:` (a path) to run its sessions in that folder instead, files in `<folder>/<ID>/`. Give a workstream `repo:` (a directory in `repos_dir`, a path, or `autopilot` for
 this engine) only when its work changes code; each issue then gets a worktree and a `claude/<id>`
 branch.
 
@@ -260,8 +261,9 @@ branch.
 - **Launcher.** Every tick: issues in Done/Canceled with a session are cleaned up (tmux window killed,
   worktree removed unless it has uncommitted or unpushed work); issues in Triage or Backlog without a
   session whose latest comment is the owner's move to Start; then issues in Start, oldest first, are
-  claimed (→ Working) while fewer than `max_parallel_sessions` are Working. Each works in its workstream's
-  folder (`worktrees_dir/<workstream>`), or, for a workstream with a repo, a worktree at
+  claimed (→ Working) while fewer than `max_parallel_sessions` are Working. Each runs in the Autopilot
+  folder (files in `worktrees_dir/<workstream>/<ID>/`), in the workstream's `folder:` when it sets one,
+  or, for a workstream with a repo, a worktree at
   `worktrees_dir/<ID>` on `claude/<id>`; and gets a tmux window in session `autopilot` running
   `claude --remote-control <ID> --permission-mode bypassPermissions`: no permission prompts, with the engine's
   `.claude/settings.json` (no deny rules by default). The session gets an ID the launcher chooses, so the issue gets a
