@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<title>Week 39 Video Cards</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@100..900&display=swap">
+<link rel="stylesheet" href="clip.css">
+<link rel="stylesheet" href="app.css">
+<style>
+  /* Cover and end card for the combined weekly video; same styles as the carousel. */
+  @page { size: 1080px 1350px; margin: 0; }
+  html, body { background: #fff; }
+  .frame { page-break-after: always; break-after: page; }
+  .kick { position: absolute; top: 150px; left: 64px; font-size: 22px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--orange); }
+  .ttl { position: absolute; top: 196px; left: 64px; right: 64px; margin: 0; font-size: 62px; line-height: 1.08; font-weight: 600; letter-spacing: -.03em; text-wrap: balance; }
+  .sub { position: absolute; top: 352px; left: 64px; right: 64px; margin: 0; font-size: 27px; line-height: 1.4; color: var(--muted-fg); }
+  .shot { position: absolute; top: 520px; left: 148px; width: 784px; height: 741px; border-radius: 22px; border: 2px solid var(--border); box-shadow: 0 20px 60px hsl(30 20% 20% / .12); overflow: hidden; }
+  .shot img { width: 100%; height: 100%; display: block; }
+  .pn { position: absolute; bottom: 52px; right: 64px; font-size: 20px; font-weight: 500; color: var(--muted-fg); }
+  .card-full .list { margin: 56px 0 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 22px; }
+  .card-full .list li { display: flex; gap: 20px; align-items: baseline; font-size: 32px; font-weight: 500; }
+  .card-full .list li span { flex: none; width: 260px; font-size: 20px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--orange); }
+  .card-full h1.sm { font-size: 92px; }
+</style></head>
+<body>
+  <!-- 1. Cover -->
+  <div class="frame"><div class="card-full" style="position:absolute">
+    <div class="kicker"><span data-loader></span>Feature drop · Week 39</div>
+    <h1 class="sm">New in <em>Lleverage.</em></h1>
+    <ul class="list">
+      <li><span>1 / 3</span>Talk to your ERP</li>
+      <li><span>2 / 3</span>Board view for data tables</li>
+      <li><span>3 / 3</span>Skill tests</li>
+    </ul>
+    <div class="mark"><span data-logo></span>Lleverage</div><div class="url">22 Sep – 3 Oct 2026</div>
+  </div></div>
+
+  <!-- End card -->
+  <div class="frame"><div class="card-full" style="position:absolute">
+    <div class="kicker"><span data-loader></span>Live now</div>
+    <h1 class="sm">Live now in <em>Lleverage.</em></h1>
+    <p>Talk to your ERP · Board view for data tables · Skill tests</p>
+    <div class="mark"><span data-logo></span>Lleverage</div><div class="url">lleverage.ai</div>
+  </div></div>
+
+<script src="fa-icons.js"></script>
+<script src="app.js"></script>
+<script src="clip.js"></script>
+<script>
+  document.querySelectorAll("[data-loader]").forEach((el) => (el.innerHTML = APP.loader(30)));
+  C.run(1, () => {});
+</script>
+</body></html>
