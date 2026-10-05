@@ -1,0 +1,13 @@
+owner: Your Name             # who Autopilot works for; sessions address you by this
+linear_team:                 # key of a Linear team for Autopilot alone, e.g. AP; /autopilot:init sets it up
+model: haiku                 # signals and classification
+max_parallel_sessions: 3
+window_cap: 72h              # a weekend with the laptop closed still gets read in full
+window_overlap: 2m
+repos_dir: ~/repos           # where workstreams' repos are cloned
+worktrees_dir: ~/work        # where sessions work: a folder per workstream, a git worktree per issue with a repo
+autopilot_workstream: autopilot   # where health issues and dream proposals go
+
+# Linear connector tools every signal and health call may use to file. Names as in your Claude account's
+# connectors (claude.ai Linear); check them with /mcp.
+filing_tools: [mcp__claude_ai_Linear__list_issues, mcp__claude_ai_Linear__get_issue, mcp__claude_ai_Linear__save_issue, mcp__claude_ai_Linear__save_comment, mcp__claude_ai_Linear__list_comments, mcp__claude_ai_Linear__list_projects, mcp__claude_ai_Linear__list_issue_labels, mcp__claude_ai_Linear__list_users]

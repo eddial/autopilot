@@ -1,0 +1,6 @@
+{
+  "name": "autopilot",
+  "version": "0.3.0",
+  "description": "Autopilot: files what needs your attention as Linear issues, one workstream each, and works them in prepared Claude Code sessions. Commands /autopilot:init, :add, :why, :status; skill autopilot:work.",
+  "author": { "name": "Badr Eddial", "url": "https://github.com/eddial" }
+}

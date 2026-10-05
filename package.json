@@ -1,0 +1,17 @@
+{
+  "name": "autopilot",
+  "version": "0.3.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=24"
+  },
+  "bin": {
+    "autopilot": "bin/autopilot"
+  },
+  "scripts": {
+    "tick": "node runtime/tick.ts",
+    "check": "tsc --noEmit --allowImportingTsExtensions --module nodenext --target es2024 --strict --types node runtime/*.ts",
+    "setup": "node runtime/tick.ts setup"
+  }
+}

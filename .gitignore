@@ -1,0 +1,17 @@
+.env
+.state/
+node_modules/
+.DS_Store
+.claude/worktrees/
+.claude/settings.local.json
+
+# home/ is a person's Autopilot: config, workstreams, signals, journals, .env and state, never committed.
+# Only its folders and the examples (files starting with _, which Autopilot skips) are in the repo.
+/home/*
+!/home/_*
+!/home/.env.example
+!/home/*/
+/home/.state/
+/home/*/*
+!/home/*/_*
+!/home/*/.gitkeep

@@ -1,0 +1,9 @@
+#!/bin/sh
+# Entry point for the scheduler: `autopilot tick` every minute. Other commands print to the terminal.
+DIR="$(cd "$(dirname "$(readlink -f "$0")")/.." && pwd)"
+export PATH="$HOME/.local/bin:/usr/local/bin:/opt/homebrew/bin:$PATH"
+STATE="${AUTOPILOT_HOME:-$DIR/home}/.state"
+case "${1:-tick}" in
+  tick) mkdir -p "$STATE"; exec node "$DIR/runtime/tick.ts" "$@" >>"$STATE/tick.log" 2>&1 ;;
+  *) exec node "$DIR/runtime/tick.ts" "$@" ;;
+esac
