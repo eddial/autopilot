@@ -67,6 +67,7 @@ Rules that follow from it:
 - **Features are generic.** Do not label a card or chapter with a process or
   domain ("Quote & Sell", "Pay & Collect"). Let the example speak to the
   process; name the feature instead ("1 / 3 · Talk to your ERP").
+- Say **"voice call"**, never "phone call" or just "call" for the agent's voice feature.
 - **Name features for the buyer, not the codebase.** The marketing name can
   differ from the in-app name: the voice feature ships as "Talk to Llev" but
   is announced as **"Talk to your ERP"**. Ask Badr when a name is unclear;
@@ -97,7 +98,7 @@ Visuals may be flashy; **text is plain and grounded**. Follow
   characters a line. One caption per beat, 3–4 beats per clip.
 - **LinkedIn posts open with a catchy, concrete first line**: a statement or a
   mild provocation, not a question, no emoji. Examples that worked:
-  "The fastest report on your order backlog is now a phone call." ·
+  "The fastest report on your order backlog is now a voice call." ·
   "Finance should only ever see the invoices that don't match." ·
   "An AI that guesses a PO number is worse than no AI at all."
 - Body: problem first, then what shipped, then the role it gives people. Short

@@ -113,7 +113,7 @@
   <div class="card-full" id="hook">
     <div class="kicker"><span id="hl"></span>New in Lleverage</div>
     <h1>Talk to<br><em>your ERP.</em></h1>
-    <p>Call the agent and ask about the orders and invoices in your ERP.</p>
+    <p>Start a voice call with the agent and ask about the orders and invoices in your ERP.</p>
     <div class="mark"><span data-logo></span>Lleverage</div>
   </div>
   <div class="card-full" id="end">
@@ -151,15 +151,15 @@
   $("#widget").style.top = $("#slot").offsetTop + "px";
 
   const cap = C.captions([
-    [2.6, 7.4, "Call the agent<br><em>from the chat.</em>"],
+    [2.6, 7.4, "Start a voice call<br><em>from the chat.</em>"],
     [7.6, 12.6, "Ask for a chart.<br><em>It lands on the Overview.</em>"],
-    [12.8, 17.4, "Ask a question.<br><em>It answers on the call.</em>"],
+    [12.8, 17.4, "Ask a question.<br><em>It answers in the voice call.</em>"],
   ]);
   // Camera: whole app, then the agent sidebar, the new chart, and back.
   const VW = 952, VH = 900;
   const cam = C.camera($("#app"), VW, VH, [[0, 640, 400, 0.74], [2.5, 640, 400, 0.74], [3.1, 1060, 600, 2.0], [8.4, 1060, 600, 2.0], [9.0, 560, 450, 1.55], [10.6, 560, 450, 1.55], [11.2, 1060, 600, 2.0]]);
   const F = (ux, uy, fx = 1060, fy = 600, s = 2.0) => [64 + VW / 2 + (ux - fx) * s, 330 + VH / 2 + (uy - fy) * s];
-  const callAt = F(1244, 772);
+  const callAt = F(1243, 764);
   const cur = C.cursor([[2.9, 700, 1320], [3.5, callAt[0], callAt[1], true], [4.3, 1120, 1420]]);
 
   const ask1 = "Add a chart of last month's orders: booked in Exact or handed to a person.";
