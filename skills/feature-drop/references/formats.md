@@ -64,7 +64,7 @@ Sections, in order:
 1. Header: "Feature drop · Week NN · <date range>", a headline, one-line lede,
    a note that nothing is posted and data is illustrative.
 2. The story: the autonomous back office in three short paragraphs (from
-   `narrative.md`, never the slogan). Marked as guidance for the team.
+   the framing in `narrative.md`, in plain words). Marked as guidance for the team.
 3. **Option 1 · one weekly post**: combined video, carousel page strip, the
    weekly post with a Copy button.
 4. **Option 2 · one post per feature**: per feature the clip, the "why"

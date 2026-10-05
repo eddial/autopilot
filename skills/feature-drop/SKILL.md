@@ -106,8 +106,9 @@ status: the message above is the briefing, and the issue goes to Review.
   operates the work around it, and autonomy is earned per step (by hand →
   assisted → supervised → autonomous) on evidence. People get asked only for
   the decisions that need them. Never claim "AI runs everything".
-- The guiding principle about where people belong guides the angle and is
-  never quoted as a slogan.
+- One framing everywhere (`narrative.md`): people off the repetitive data work
+  and onto the hard cases and the process, steering the AI; check copy against
+  its five principles. Say it in plain sentences, never as a tagline.
 - Real product UI from the codebase; never a lookalike.
 - ERP examples (orders, invoices, POs, a named ERP); features stay generic, so
   no process or domain labels on cards.

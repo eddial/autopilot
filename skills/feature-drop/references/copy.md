@@ -61,7 +61,7 @@ Overview." · "Open Columns. / Switch from List to Board." · "Drag a card to
 another lane. / The record updates." · "Open a failed test. / See each check
 and why." · "Run again. / All six pass."
 Not allowed: slogans ("It's done.", "Not a suggestion."), value claims, the
-guiding principle, questions.
+framing (that belongs in the posts), questions.
 
 ### End card
 
@@ -85,7 +85,7 @@ Cover: kicker "Feature drop · Week <NN>", title "New in Lleverage.", list
 <Hook: one line, catchy and concrete, no emoji, not a question>
 
 <2–3 sentences: the back-office problem these features chip away at. Use the
-narrative's angle, never its slogan.>
+framing (`narrative.md`) in your own words, not as a tagline.>
 
 <One line leading into the list, e.g. "Three things we shipped toward that in the last two weeks:">
 
@@ -121,7 +121,7 @@ as a small piece of evidence. The spokesperson edits and posts it.
 ### Carousel pages
 
 - Cover: kicker "Feature drop · Week <NN>"; a headline that frames the week in
-  the narrative without the slogan; the features as a numbered list.
+  the framing in plain words; the features as a numbered list.
 - Feature page: label "n / 3 · <Feature>", headline (feature + what it does,
   max 2 lines), one sentence that connects it to the role it gives people,
   then the still.
@@ -158,6 +158,6 @@ invoice) and makes a claim the post then backs up.
 - [ ] Marketing names used consistently in video, posts, carousel and page.
 - [ ] Video text is functional only; no value claims, no slogan.
 - [ ] Each post opens with a hook from the pattern above; no emoji in it.
-- [ ] Each feature's post says which role it gives people.
+- [ ] Each feature's post says which role it gives people, and passes the five principles in `narrative.md`.
 - [ ] No "coworker", "phone call", "leverage" (verb), hype words, invented numbers.
 - [ ] ERP examples (orders, invoices, POs, a named ERP) rather than generic records.

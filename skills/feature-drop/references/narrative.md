@@ -1,34 +1,73 @@
 # The autonomous back office
 
-The story behind every feature drop. Posts, the carousel and the drop page
-must fit inside it. The video does not tell the story; it shows the feature
-(see `copy.md`).
+The one framing behind every feature drop. Posts, the carousel and the drop
+page must fit inside it. The video does not tell the story; it shows the
+feature (see `copy.md`).
 
-Sources, in this order. Re-read them for every drop:
-1. **Internal product vision** ("vision-context", product team, October 2026):
-   what the autonomous back office is, how autonomy is earned, how the ERP
-   fits. Summarised below; it shapes angles and claims. Quote only the lines
-   marked quotable here.
-2. **`delta:lleverage-content-voice`** and its `references/brand-context.md`
-   (brand workshop, March 2026): voice, message house, audience narratives,
-   proof points, banned phrases.
-3. **lleverage.ai**: the public wording, the six solution areas, customer
-   results.
+It combines three sources, which say the same thing from different angles.
+Re-read them when in doubt:
+- the **leadership view on people and the product**: where people belong in
+  the back office, and the product differentiators (below);
+- the **internal product vision** ("vision-context", product team, October
+  2026): how the ERP fits, how autonomy is earned, what the product must feel
+  like;
+- the **brand and the site**: `delta:lleverage-content-voice` (with its
+  `references/brand-context.md`) for voice and message house, lleverage.ai for
+  public wording, processes and customer results.
 
-## The core frame
+## The framing
 
-**Lleverage is building the autonomous back office for manufacturers,
-distributors, wholesalers and other physical-goods companies.**
+**Lleverage is building the autonomous back office for companies that make,
+move, buy and sell physical goods.**
 
-That does not mean replacing the ERP, removing every person, or turning every
-process into an agent. It means taking the recurring operational work that
-lives across the ERP, inboxes, spreadsheets, documents, approvals and people's
-heads, making that work visible, and then **progressively taking
-responsibility for more of it**.
+**The problem.** These companies already have an ERP. But the ERP captures
+only part of how they run. Around every transaction sits work the ERP never
+sees: reading the email, interpreting the attachment, finding the customer,
+order or invoice, checking what is allowed, chasing missing information,
+handling the exception, retyping the result into the ERP, replying. Much of
+that is repetitive: people pumping data from one system into the next, all
+day. And the knowledge of how to do it lives in a few people's heads.
 
-Quotable: "The ERP remains the system of record. Lleverage operates the work
-around it." · "More of the back office, operated with less human effort,
-deployed faster each time."
+**What we believe.** People should not be trapped in that repetitive work.
+They belong on the complex and interesting cases (the exception, the
+customer with an unusual request, the price that does not add up) and on the
+process itself: setting the rules, checking the work, and steering the AI
+towards the best decisions. In an autonomous back office people work **on**
+the process and its hard cases, with AI, rather than **in** it.
+
+**How it works.** The ERP stays the system of record; Lleverage operates the
+work around it. Work arrives, Lleverage reads the context and the ERP, does
+what it is allowed to do, asks a person only for the decisions that need
+them, updates the ERP and carries the process on. Responsibility is handed
+over **step by step and on evidence**: a step moves from by hand to assisted,
+supervised and autonomous as it proves itself, while people keep the
+decisions that need judgement or authority. Every correction and every rule
+people approve makes the next case, and the next process, easier.
+
+**What it is not.** Not "AI runs everything", not a back office without
+people, and not a replacement for the ERP. It is more of the back office,
+operated with less human effort, deployed faster each time.
+
+### The short version (for a closing line or an intro)
+
+> The routine runs on its own, inside your ERP. People take the cases that
+> need judgement and steer the agents. Every step earns its autonomy.
+
+Express the framing in plain sentences that fit the post. Do not turn it into
+a tagline, repeat a fixed slogan in every post, or put it in the video.
+
+### The five principles (check every piece of copy against them)
+
+1. **People on the hard cases and on the process, not on data entry.** Show
+   what people stop doing and what they now decide.
+2. **The ERP is the system of record; we work on it and around it.** Never
+   "replace your ERP".
+3. **Autonomy is earned per step, on evidence.** By hand → assisted →
+   supervised → autonomous; never "AI runs everything".
+4. **People are asked only for what needs them**, with the context ready
+   (Requests: approve, choose, correct, confirm, fill in).
+5. **Every correction compounds.** Rules, tests and corrections make the next
+   case and the next process easier; the knowledge stays with the company.
 
 ## Who it is for
 
@@ -38,17 +77,9 @@ ERP-centric (Exact, Business Central, SAP, AFAS, Sage, Dynamics 365,
 Navision), lots of email and documents, high transaction volume, many
 exceptions, knowledge sitting with specific people.
 
-They already have an ERP; that is not the problem. **The ERP captures only
-part of how the company runs.** Much of the work happens before, around and
-after the ERP transaction: reading the email, interpreting the attachment,
-finding the customer, order, SKU or invoice, checking whether something is
-allowed, comparing it with ERP state, asking for missing information,
-handling the exception, updating the ERP, replying, keeping the evidence,
-checking the case actually completed. That is where the manual work sits.
-
 Readers of the posts: operators (order desk, purchasing, finance, customer
-service, planning), managers and controllers, the builders who set processes
-up, and IT.
+service, planning), managers and controllers, the builders and champions who
+set processes up, and IT.
 
 ## How work changes
 
@@ -65,15 +96,13 @@ What it should feel like (use these to pick the audience and angle of a post):
   that actually requires me."
 - **Manager**: "I can see where the operation is slow, manual or error-prone,
   what we have automated, whether it actually improved, and where to go next."
-- **Builder**: starts from prior knowledge; the agent gathers, builds and tests
-  much of the implementation; people solve the genuinely new parts.
+- **Builder / champion**: starts from prior knowledge; the agent gathers,
+  builds and tests much of the implementation; they solve the genuinely new
+  parts and push what works to the rest of the team.
 - **IT**: "I can see what the agent can access, what it is allowed to do, who
   owns it, what changed and why."
 
 ## Autonomy is earned, step by step
-
-The autonomous back office is not "AI runs everything". It is a controlled
-progression in responsibility, **per step of a process**, not per process:
 
 | Level | Meaning |
 | --- | --- |
@@ -85,38 +114,20 @@ progression in responsibility, **per step of a process**, not per process:
 Example, order intake: receive order and read the attachment are autonomous;
 matching customer and SKU are supervised; checking commercial terms is
 assisted; approving an exception is by hand; creating the ERP order and
-sending the confirmation are autonomous. That is an autonomous back office:
-most of the work is done by software, and people stay where they add value
-or hold authority.
+sending the confirmation are autonomous. Most of the work is done by
+software, and people stay where they add value or hold authority.
 
 The question is always **"which parts of this process have earned more
 responsibility?"**, answered with evidence: success rate, intervention and
 correction rates, exceptions, test and replay results, confidence, and the
 business impact of a mistake. A good system "optimises for doing only what
-it has earned the right to do" (quotable).
+it has earned the right to do".
 
 Underneath: **the process is stable, the step is the unit of improvement,
 the executor is interchangeable** (a person, an agent, a workflow, a skill,
-an integration, or a mix). A step can move from by hand to autonomous while
-the process stays recognisable.
-
-## Where people belong (guiding principle; never quote it as a slogan)
-
-People should not be trapped in repetitive work, pumping data from one system
-into the next. In the autonomous back office they:
-1. **take the decisions that need them**: exceptions, judgement, authority
-   ("approve, choose, correct, confirm, provide missing information");
-2. **steer the agents**: set and approve the business rules, check the work,
-   correct mistakes, decide which steps have earned more responsibility;
-3. **improve the process**: every correction and every rule they approve
-   makes the next case, and the next process, easier.
-
-The product hands work to people through **Requests**: when a step reaches
-uncertainty or an authority boundary, it asks the right person, waits, and
-continues with their answer. Show this in examples (an order without a PO
-going to the order desk, an invoice outside tolerance going to finance)
-rather than stating the principle. Never write "work on the process, not in
-it" or similar slogans.
+an integration, or a mix). When a step needs a person it raises a
+**Request** (approve, choose, correct, confirm, provide missing
+information), waits, and continues with the answer.
 
 ## What makes it trustworthy
 
@@ -158,11 +169,13 @@ example from one.
 
 ## Product differentiators
 
-Use them to choose angles; name the one a feature shows on the drop page.
+Why Lleverage can deliver the framing where other tools cannot. Use them to
+choose angles; name the one a feature shows on the drop page.
 
-1. **Built for champions.** Most AI tools depend on every person adopting
-   them. Lleverage expects a few champions per team and lets them push working
-   skills and workflows to everyone else.
+1. **Built for champions, not for everyone becoming an AI enthusiast.** AI
+   adoption lags because most AI tools depend on personal adoption. Lleverage
+   expects a few champions per team and gives them the means to push working
+   skills and workflows down to everyone else.
 2. **A workspace for teams.** Memory, skills and workflows belong to the team,
    not to one person's chat.
 3. **Agents and workflows in one process.** Agents for interpretation and
