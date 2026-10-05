@@ -45,6 +45,20 @@ function trust(dir: string) {
   fs.writeFileSync(file + '.autopilot.tmp', JSON.stringify(c, null, 2));
   fs.renameSync(file + '.autopilot.tmp', file);
 }
+// The worktree that has the branch checked out, if any.
+function worktreeOf(repo: string, branch: string) {
+  const blocks = run('git', ['-C', repo, 'worktree', 'list', '--porcelain']).split('\n\n');
+  const hit = blocks.find(b => b.split('\n').includes(`branch refs/heads/${branch}`));
+  const dir = hit?.match(/^worktree (.+)$/m)?.[1] ?? '';
+  return dir && fs.existsSync(dir) ? dir : '';
+}
+// Worktrees inside a repo would show in its git status; keep them out locally when the repo does not already.
+function ignoreWorktrees(repo: string) {
+  try { run('git', ['-C', repo, 'check-ignore', '-q', '.claude/worktrees/x']); return; } catch {}
+  const exclude = path.join(path.resolve(repo, run('git', ['-C', repo, 'rev-parse', '--git-common-dir'])), 'info', 'exclude');
+  fs.mkdirSync(path.dirname(exclude), { recursive: true });
+  fs.appendFileSync(exclude, '\n.claude/worktrees/\n');
+}
 const hasWindow = (name: string) => { try { return tmux('list-windows', '-t', TMUX, '-F', '#W').split('\n').includes(name); } catch { return false; } };
 
 // Status name → id.
@@ -116,22 +130,29 @@ async function start(issue: any) {
   const project = issue.project?.name ?? await route(issue);
   const ws = readDir('workstreams').find(w => w.name === project);
   if (!ws) throw new Error(`project "${project}" has no workstreams/*.md file`);
-  // Structural work (a workstream with a repo) gets a worktree and branch per issue. A workstream with a
-  // folder works in that folder. Everything else runs in the Autopilot folder, so its sessions sit together
-  // in the Claude app, and keeps its files in worktrees_dir/<workstream>/<ID>/.
+  // Structural work (a workstream with a repo) gets a worktree and branch per issue, inside the repo at
+  // .claude/worktrees/<ID> where the Claude app keeps its own, so the app lists the session under the repo.
+  // A workstream with a folder works in that folder. Everything else runs in the Autopilot folder, so its
+  // sessions sit together in the app, and keeps its files in worktrees_dir/<workstream>/<ID>/.
   const repo = ws.meta.repo ? repoDir(ws.meta.repo) : '';
   const folder = !repo && ws.meta.folder ? path.resolve(home(ws.meta.folder)) : '';
   const files = repo ? '' : path.join(folder || path.join(config.worktrees_dir, ws.name), id);
-  const worktree = repo ? path.join(config.worktrees_dir, id) : folder || ROOT, branch = repo ? `claude/${id.toLowerCase()}` : '';
-  fs.mkdirSync(config.worktrees_dir, { recursive: true });
+  const branch = repo ? `claude/${id.toLowerCase()}` : '';
+  // A follow-up after Review reuses the branch's worktree, wherever it was made.
+  const existing = repo ? worktreeOf(repo, branch) : '';
+  const worktree = repo ? existing || path.join(repo, '.claude', 'worktrees', id) : folder || ROOT;
   if (!repo) fs.mkdirSync(files, { recursive: true });
-  // A follow-up after Review reuses the worktree and branch.
-  else if (!fs.existsSync(worktree)) {
-    // A local-only repo (the home, before it gets a remote) branches from its checked-out branch.
-    const remote = run('git', ['-C', repo, 'remote']).split('\n').includes('origin');
-    if (remote) run('git', ['-C', repo, 'fetch', '--prune', 'origin']);
-    const base = remote ? run('git', ['-C', repo, 'symbolic-ref', '--short', 'refs/remotes/origin/HEAD']) : run('git', ['-C', repo, 'rev-parse', '--abbrev-ref', 'HEAD']);
-    run('git', ['-C', repo, 'worktree', 'add', '-b', branch, worktree, base]);
+  else if (!existing) {
+    ignoreWorktrees(repo);
+    const known = run('git', ['-C', repo, 'branch', '--list', branch]);
+    if (known) run('git', ['-C', repo, 'worktree', 'add', worktree, branch]);
+    else {
+      // A local-only repo (the home, before it gets a remote) branches from its checked-out branch.
+      const remote = run('git', ['-C', repo, 'remote']).split('\n').includes('origin');
+      if (remote) run('git', ['-C', repo, 'fetch', '--prune', 'origin']);
+      const base = remote ? run('git', ['-C', repo, 'symbolic-ref', '--short', 'refs/remotes/origin/HEAD']) : run('git', ['-C', repo, 'rev-parse', '--abbrev-ref', 'HEAD']);
+      run('git', ['-C', repo, 'worktree', 'add', '-b', branch, worktree, base]);
+    }
   }
   trust(worktree);
   try { tmux('has-session', '-t', TMUX); } catch { tmux('new-session', '-d', '-s', TMUX, '-n', 'home'); }

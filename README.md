@@ -215,7 +215,7 @@ new examples without touching your own files. Examples to start from:
 Workstreams without a repo run in the Autopilot folder, so their sessions sit together in the
 Claude app, and keep each issue's files in `worktrees_dir/<workstream>/<ID>/`. Give a workstream
 `folder:` (a path) to run its sessions in that folder instead, files in `<folder>/<ID>/`. Give a workstream `repo:` (a directory in `repos_dir`, a path, or `autopilot` for
-this engine) only when its work changes code; each issue then gets a worktree and a `claude/<id>`
+this engine) only when its work changes code; each issue then gets a worktree in `<repo>/.claude/worktrees/<ID>` and a `claude/<id>`
 branch.
 
 ## Safety
@@ -264,7 +264,7 @@ branch.
   claimed (→ Working) while fewer than `max_parallel_sessions` are Working. Each runs in the Autopilot
   folder (files in `worktrees_dir/<workstream>/<ID>/`), in the workstream's `folder:` when it sets one,
   or, for a workstream with a repo, a worktree at
-  `worktrees_dir/<ID>` on `claude/<id>`; and gets a tmux window in session `autopilot` running
+  `<repo>/.claude/worktrees/<ID>` on `claude/<id>` (where the Claude app keeps its own, so it lists the session under the repo); and gets a tmux window in session `autopilot` running
   `claude --remote-control <ID> --permission-mode bypassPermissions`: no permission prompts, with the engine's
   `.claude/settings.json` (no deny rules by default). The session gets an ID the launcher chooses, so the issue gets a
   `claude://resume?session=<id>` link that opens it in the Claude app on that Mac; that link and the Remote Control
