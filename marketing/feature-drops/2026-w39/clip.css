@@ -1,0 +1,58 @@
+/* Shared frame for 4:5 LinkedIn feature clips (1080x1350). Lleverage Crisp tokens. */
+:root {
+  --bg: hsl(48 33% 97%);
+  --fg: hsl(83 11% 14.1%);
+  --card: #fff;
+  --muted: hsl(50 18% 93%);
+  --muted-fg: hsl(60 7% 43.9%);
+  --border: hsl(48 22% 87%);
+  --navy: hsl(230 35% 15%);
+  --orange: hsl(24 84% 53.1%);
+  --orange-tint: hsl(24 84% 53.1% / 0.12);
+  --success: hsl(145 35% 35%);
+  --success-tint: hsl(145 35% 35% / 0.12);
+  --danger: hsl(0 55% 48%);
+  --danger-tint: hsl(0 55% 48% / 0.1);
+  --plum: hsl(280 30% 42%); --olive: hsl(85 30% 38%); --coral: hsl(15 45% 45%);
+  --teal: hsl(170 35% 35%); --sky: hsl(200 35% 42%); --slate: hsl(220 15% 42%);
+  --mauve: hsl(320 22% 45%); --rose: hsl(350 40% 42%);
+  --sans: "Public Sans", system-ui, sans-serif;
+  --serif: "Abhaya Libre", Georgia, serif;
+  --mono: "Roboto Mono", ui-monospace, monospace;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; background: #222; }
+body { font-family: var(--sans); color: var(--fg); -webkit-font-smoothing: antialiased; }
+.frame { position: relative; width: 1080px; height: 1350px; overflow: hidden; background: var(--bg); margin: 0 auto; }
+.frame .dots { position: absolute; inset: 0; background-image: radial-gradient(var(--border) 1.6px, transparent 1.8px); background-size: 28px 28px; opacity: .7; }
+
+.brandrow { position: absolute; top: 56px; left: 64px; right: 64px; display: flex; align-items: center; justify-content: space-between; font-size: 26px; font-weight: 600; }
+.brandrow .logo { display: flex; align-items: center; gap: 14px; }
+.brandrow svg { width: 40px; height: 40px; fill: currentColor; }
+.brandrow .tag { font-size: 20px; font-weight: 600; color: var(--orange); letter-spacing: .1em; text-transform: uppercase; }
+
+.captions { position: absolute; top: 136px; left: 64px; right: 64px; height: 170px; }
+.caption { position: absolute; inset: 0; display: flex; align-items: center; font-family: var(--sans); font-size: 58px; line-height: 1.08; font-weight: 600; letter-spacing: -.03em; opacity: 0; text-wrap: balance; }
+.caption em { font-style: normal; color: var(--orange); }
+
+.stage { position: absolute; top: 330px; left: 64px; width: 952px; height: 900px; background: hsl(50 18% 93%); border: 2px solid var(--border); border-radius: 24px; box-shadow: 0 20px 60px hsl(30 20% 20% / .12); overflow: hidden; }
+.stage-bar { height: 76px; border-bottom: 2px solid var(--border); display: flex; align-items: center; gap: 16px; padding: 0 28px; font-size: 24px; font-weight: 600; }
+.stage-bar .crumb { color: var(--muted-fg); font-weight: 500; }
+.ic { display: grid; place-items: center; color: #fff; border-radius: 10px; flex: none; }
+.ic svg { width: 60%; height: 60%; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+.footer { position: absolute; bottom: 52px; left: 64px; right: 64px; display: flex; justify-content: space-between; font-size: 20px; font-weight: 500; color: var(--muted-fg); }
+
+.cursor { position: absolute; left: 0; top: 0; width: 44px; height: 44px; z-index: 50; pointer-events: none; filter: drop-shadow(0 4px 6px rgb(0 0 0 / .25)); }
+.cursor .ring { position: absolute; left: -22px; top: -22px; width: 44px; height: 44px; border-radius: 50%; border: 4px solid var(--orange); opacity: 0; }
+
+/* Hook and end cards */
+.card-full { position: absolute; inset: 0; background: var(--navy); color: #fff; display: flex; flex-direction: column; justify-content: center; padding: 0 96px; z-index: 80; }
+.card-full .kicker { display: flex; align-items: center; gap: 18px; font-size: 24px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--orange); margin-bottom: 36px; }
+.card-full .kicker .loader { --border: 230 25% 26%; }
+.card-full h1 { font-family: var(--sans); font-size: 112px; line-height: 1; margin: 0; font-weight: 600; letter-spacing: -.04em; }
+.card-full h1 em { font-style: normal; color: var(--orange); }
+.card-full p { font-size: 34px; line-height: 1.35; color: hsl(0 0% 100% / .72); margin: 40px 0 0; max-width: 24ch; }
+.card-full .mark { position: absolute; left: 96px; bottom: 88px; display: flex; align-items: center; gap: 16px; font-size: 30px; font-weight: 600; }
+.card-full .mark svg { width: 48px; height: 48px; fill: currentColor; }
+.card-full .url { position: absolute; right: 96px; bottom: 96px; font-size: 24px; color: hsl(0 0% 100% / .6); }

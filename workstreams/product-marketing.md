@@ -15,7 +15,9 @@ Start with a shortlist, not drafts: rank last week's changes by
 marketing value (customer-visible, differentiating, easy to show), one
 line each on why it matters and the angle and channel it suits, with
 the #change-log permalink or PR as evidence. Write nothing further
-until Badr picks from the shortlist in a comment.
+until Badr picks from the shortlist in a comment. Once he has picked,
+build the drop with the autopilot:feature-drop skill: clips, combined
+video, carousel, posts and the drop page.
 
 Sources of truth are the #change-log posts and the PR descriptions.
 Never present a feature-flagged or internal change as generally

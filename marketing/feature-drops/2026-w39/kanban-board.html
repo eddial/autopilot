@@ -1,0 +1,248 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<title>Board View</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@100..900&family=Roboto+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="clip.css">
+<link rel="stylesheet" href="app.css">
+<style>
+  /* data-tables/[tableId]: table-header, table-toolbar, data-table, kanban-board, manage-columns-dialog, board-settings */
+  .th-title { display: flex; align-items: center; gap: 6px; }
+  .th-title h1 { font-size: 20px; line-height: 20px; }
+  .vtabs { display: flex; gap: 16px; margin-left: 16px; }
+  .body { padding: 4px 32px 24px; flex: 1; min-height: 0; display: flex; }
+  .tcard { position: relative; flex: 1; border: 1px solid hsl(var(--border)); border-radius: 8px; background: hsl(var(--card)); overflow: hidden; }
+  .tb { display: flex; align-items: center; gap: 8px; min-height: 52px; padding: 10px 16px; border-bottom: 1px solid hsl(var(--border)); }
+  .tb .search { width: 240px; position: relative; padding-left: 32px; }
+  .tb .search svg { position: absolute; left: 11px; width: 13px; height: 13px; }
+  .tb .rt { margin-left: auto; display: flex; gap: 8px; }
+  .tb .btn.ico svg { width: 13px; height: 13px; color: hsl(var(--foreground)); }
+  table { border-collapse: collapse; width: 100%; table-layout: fixed; }
+  th { position: relative; height: 48px; padding: 0 8px; text-align: left; font-weight: 600; border-right: 1px solid hsl(var(--border)); border-bottom: 1px solid hsl(var(--border)); }
+  td { height: 48px; padding: 0 14px; border-right: 1px solid hsl(var(--border)); border-bottom: 1px solid hsl(var(--border)); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  td.n, th.n { width: 56px; text-align: center; font-size: 12px; color: hsl(var(--muted-foreground)); font-weight: 400; }
+  .chip { display: inline-flex; border-radius: 999px; border: 1px solid; padding: 2px 10px; font-size: 12px; line-height: 16px; }
+  .who { display: inline-flex; align-items: center; gap: 6px; }
+  .uav { width: 20px; height: 20px; border-radius: 999px; display: grid; place-items: center; color: #fff; font-size: 10px; font-weight: 600; flex: none; }
+  .board { position: absolute; left: 0; right: 0; top: 52px; bottom: 0; display: flex; align-items: flex-start; gap: 16px; padding: 16px; }
+  .lane { width: 256px; flex: none; display: flex; flex-direction: column; }
+  .lh { display: flex; align-items: center; gap: 8px; padding: 0 4px 8px; }
+  .lh .grip { color: hsl(var(--muted-foreground)); }
+  .lh .grip svg { width: 14px; height: 14px; }
+  .lh .dot { width: 10px; height: 10px; border-radius: 999px; }
+  .lh .lbl { font-weight: 500; }
+  .lb { min-height: 96px; display: flex; flex-direction: column; gap: 8px; border-radius: 8px; background: hsl(var(--muted)); padding: 8px; }
+  .lb.over { background: hsl(var(--accent)); }
+  .kc { border: 1px solid hsl(var(--border)); border-radius: 6px; background: hsl(var(--card)); padding: 10px; box-shadow: 0 1px 2px rgb(0 0 0 / .05); }
+  .kc p { margin: 0; font-weight: 500; }
+  .kc dl { margin: 6px 0 0; display: flex; flex-direction: column; gap: 4px; }
+  .kc dl div { display: flex; align-items: center; gap: 8px; font-size: 12px; line-height: 16px; }
+  .kc dt { width: 80px; color: hsl(var(--muted-foreground)); }
+  .kc dd { margin: 0; }
+  .kc.ghost { opacity: .4; }
+  .drag { position: absolute; width: 256px; z-index: 30; box-shadow: 0 4px 6px -1px rgb(0 0 0 / .1), 0 2px 4px -2px rgb(0 0 0 / .1); }
+  .backdrop { position: absolute; inset: 0; background: hsl(48 20% 97% / .8); z-index: 40; }
+  .dialog { position: absolute; left: 400px; top: 110px; width: 480px; z-index: 41; background: hsl(var(--background)); border: 1px solid hsl(var(--border)); border-radius: 8px; padding: 24px; box-shadow: 0 10px 15px -3px rgb(0 0 0 / .1), 0 4px 6px -4px rgb(0 0 0 / .1); display: flex; flex-direction: column; gap: 16px; }
+  .dialog h2 { margin: 0; font-size: 18px; line-height: 28px; font-weight: 600; }
+  .dialog .x { position: absolute; right: 16px; top: 16px; color: hsl(var(--muted-foreground)); }
+  .dialog .x svg { width: 14px; height: 14px; }
+  .lab { font-weight: 500; margin-bottom: 8px; }
+  .tgl { display: inline-flex; border-radius: 8px; padding: 4px; background: hsl(var(--muted)); }
+  .tgl span { display: flex; align-items: center; gap: 6px; border-radius: 6px; padding: 6px 12px; font-size: 12px; line-height: 16px; font-weight: 500; color: hsl(var(--muted-foreground)); }
+  .tgl span svg { width: 12px; height: 12px; }
+  .tgl span.on { background: hsl(var(--border)); color: hsl(var(--foreground)); }
+  .fields { display: flex; flex-direction: column; gap: 12px; }
+  .sel { width: 224px; height: 32px; display: flex; align-items: center; justify-content: space-between; border: 1px solid hsl(var(--input)); border-radius: 6px; padding: 0 12px; background: hsl(var(--background)); }
+  .sel svg { width: 10px; height: 10px; color: hsl(var(--muted-foreground)); }
+  .sel .ph { padding: 0; color: hsl(var(--muted-foreground)); }
+  .sw { width: 28px; height: 16px; border-radius: 999px; background: hsl(var(--input)); position: relative; }
+  .sw::after { content: ""; position: absolute; left: 2px; top: 2px; width: 12px; height: 12px; border-radius: 999px; background: #fff; }
+  .menu { position: absolute; z-index: 42; width: 224px; background: hsl(var(--card)); border: 1px solid hsl(var(--border)); border-radius: 6px; padding: 4px; box-shadow: 0 4px 6px -1px rgb(0 0 0 / .1); }
+  .menu div { display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-radius: 4px; }
+  .menu div svg { width: 12px; height: 12px; color: hsl(var(--muted-foreground)); }
+  .menu .hl { background: hsl(var(--accent)); }
+  .menu .dis { opacity: .5; }
+  .tip { position: absolute; z-index: 43; background: hsl(var(--primary)); color: #fff; font-size: 12px; line-height: 16px; border-radius: 6px; padding: 6px 12px; white-space: nowrap; }
+</style></head>
+<body>
+<div class="frame">
+  <div class="dots"></div>
+  <div class="brandrow"><div class="logo"><span data-logo></span>Lleverage</div><div class="tag">Feature drop · Week 39</div></div>
+  <div class="captions"></div>
+
+  <div class="stage">
+    <div class="app" id="app">
+      <div id="sb"></div>
+      <main class="panel">
+        <div class="ph">
+          <div class="th-title"><h1>Supplier invoices</h1><span data-fa="faChevronDown" data-s="width:12px;height:12px;color:hsl(var(--muted-foreground))"></span></div>
+          <div class="vtabs"><span class="tab on">All</span><span class="tab">Overdue</span></div>
+          <div class="right"><span class="btn pri"><span data-fa="faPlus"></span>New Record</span></div>
+        </div>
+        <div class="body" style="margin-top:12px">
+          <div class="tcard" id="tcard">
+            <div class="tb">
+              <span class="btn out"><span data-fa="faFilter"></span>Filter</span>
+              <span class="input search"><span data-fa="faMagnifyingGlass"></span>Search records...</span>
+              <div class="rt"><span class="btn out ico" data-fa="faEye"></span><span class="btn out ico" data-fa="faLayerPlus"></span><span class="btn out ico" data-fa="faFileImport"></span><span class="btn out ico" data-fa="faDownload"></span><span class="btn out ico" id="sliders" data-fa="faSliders"></span></div>
+            </div>
+            <table id="grid"></table>
+            <div class="board" id="boardS"></div>
+            <div class="board" id="boardO"></div>
+          </div>
+        </div>
+      </main>
+      <div class="backdrop" id="backdrop"></div>
+      <div class="dialog" id="dialog">
+        <h2>Columns</h2><span class="x" data-fa="faXmark" id="dx"></span>
+        <div><div class="lab">View</div><div class="tgl"><span class="on" id="vList"><span data-fa="faTableList"></span>List</span><span id="vBoard"><span data-fa="faSquareKanban"></span>Board</span></div></div>
+        <div class="fields" id="bset">
+          <div><div class="lab">Group by</div><div class="sel" id="gb"><span id="gbv" class="ph">Choose a column</span><span data-fa="faChevronDown"></span></div></div>
+          <div><div class="lab">Card title</div><div class="sel"><span>Supplier</span><span data-fa="faChevronDown"></span></div></div>
+          <div style="display:flex;align-items:center;gap:10px"><span class="sw"></span><span class="lab" style="margin:0">Hide empty lanes</span></div>
+        </div>
+      </div>
+      <div class="menu" id="menu">
+        <div id="mS"><span data-fa="faCaretDown"></span>Match</div>
+        <div id="mO"><span data-fa="faUser"></span>Owner</div>
+        <div id="mT"><span data-fa="faFont"></span>Supplier</div>
+        <div><span data-fa="faToggleOn"></span>Paid</div>
+        <div class="dis" id="mA"><span data-fa="faHashtag"></span>Amount</div>
+      </div>
+      <div class="tip" id="tip">Numbers need ranges before they can make lanes.</div>
+    </div>
+  </div>
+
+  <div class="footer"><span>lleverage.ai</span><span>Live now</span></div>
+
+  <div class="card-full" id="hook">
+    <div class="kicker"><span id="hl"></span>New in Lleverage</div>
+    <h1>Board view<br><em>for data tables.</em></h1>
+    <p>Show any data table as a Kanban board and drag records between lanes.</p>
+    <div class="mark"><span data-logo></span>Lleverage</div>
+  </div>
+  <div class="card-full" id="end">
+    <div class="kicker"><span id="el"></span>Live now</div>
+    <h1>Board view<br><em>for data tables.</em></h1>
+    <p>Live for every data table.</p>
+    <div class="mark"><span data-logo></span>Lleverage</div>
+    <div class="url">lleverage.ai</div>
+  </div>
+</div>
+<script src="fa-icons.js"></script>
+<script src="app.js"></script>
+<script src="clip.js"></script>
+<script>
+  const D = 19;
+  const { $, $$, p, io, out } = C;
+  $("#sb").outerHTML = APP.sidebar("Data tables");
+  $("#hl").innerHTML = APP.loader(30); $("#el").innerHTML = APP.loader(30);
+
+  // Choice colours (lib/data-tables/choice-colours.ts) and select badges (cell-formatters.tsx).
+  const COL = { "To match": "#3b82f6", "Price difference": "#f59e0b", "Ready to book": "#10b981" };
+  const PEOPLE = { Sanne: "hsl(280 30% 42%)", Joris: "hsl(170 35% 35%)", Mila: "hsl(15 45% 45%)" };
+  const chip = (s) => `<span class="chip" style="background:color-mix(in srgb, ${COL[s]} 12%, transparent);border-color:color-mix(in srgb, ${COL[s]} 30%, transparent);color:color-mix(in srgb, ${COL[s]} 75%, hsl(var(--foreground)))">${s}</span>`;
+  const who = (n) => `<span class="who"><span class="uav" style="background:${PEOPLE[n]}">${n[0]}</span>${n}</span>`;
+  const R = [
+    ["Van Dijk Metaal", "€4,820", "Price difference", "Sanne", "4500012877"], ["Brouwer Verpakking", "€1,265", "To match", "Joris", "4500012902"],
+    ["Rijnstaal", "€12,940", "Ready to book", "Sanne", "4500012851"], ["De Graaf Transport", "€860", "To match", "Mila", "4500012915"],
+    ["Kuipers Hout", "€3,410", "Price difference", "Joris", "4500012888"], ["Noord Coatings", "€7,150", "Ready to book", "Mila", "4500012860"],
+    ["Smit Elektro", "€2,290", "To match", "Sanne", "4500012921"], ["Hendriks Logistiek", "€5,075", "To match", "Joris", "4500012930"],
+  ];
+  $("#grid").innerHTML = `<colgroup><col style="width:56px"><col style="width:200px"><col style="width:130px"><col style="width:120px"><col style="width:170px"><col></colgroup>
+    <tr><th class="n"></th><th>Supplier</th><th>PO number</th><th>Amount</th><th>Match</th><th>Owner</th></tr>`
+    + R.map((r, i) => `<tr><td class="n">${i + 1}</td><td>${r[0]}</td><td class="tnum">${r[4]}</td><td class="tnum">${r[1]}</td><td>${chip(r[2])}</td><td>${who(r[3])}</td></tr>`).join("");
+
+  const card = (r, fields, id = "") => `<div class="kc" ${id}><p>${r[0]}</p><dl>${fields.map(([k, v]) => `<div><dt>${k}</dt><dd>${v}</dd></div>`).join("")}</dl></div>`;
+  const lane = (label, dot, cards, id) => `<div class="lane"><div class="lh"><span class="grip" data-fa="faGripDotsVertical"></span>${dot}<span class="lbl">${label}</span><span class="xs mf tnum" id="${id}n">${cards.length}</span></div><div class="lb" id="${id}">${cards.join("")}</div></div>`;
+  const sFields = (r) => [["PO number", r[4]], ["Amount", r[1]], ["Owner", who(r[3])]];
+  const byS = (s) => R.filter((r) => r[2] === s && r[0] !== "Van Dijk Metaal").map((r) => card(r, sFields(r)));
+  const vd = R[0];
+  $("#boardS").innerHTML =
+    lane("To match", `<span class="dot" style="background:${COL["To match"]}"></span>`, byS("To match"), "lM")
+    + lane("Price difference", `<span class="dot" style="background:${COL["Price difference"]}"></span>`, [card(vd, sFields(vd), 'id="vdA"'), ...byS("Price difference")], "lP")
+    + lane("Ready to book", `<span class="dot" style="background:${COL["Ready to book"]}"></span>`, [...byS("Ready to book"), card(vd, sFields(vd), 'id="vdB"')], "lA");
+  const oFields = (r) => [["Amount", r[1]], ["Match", chip(r[0] === "Van Dijk Metaal" ? "Ready to book" : r[2])]];
+  $("#boardO").innerHTML = Object.keys(PEOPLE).map((n, i) => lane(n, `<span class="uav" style="background:${PEOPLE[n]};width:16px;height:16px;font-size:9px">${n[0]}</span>`, R.filter((r) => r[3] === n).map((r) => card(r, oFields(r))), "o" + i)).join("");
+  $("#tcard").insertAdjacentHTML("beforeend", `<div class="kc drag" id="drag">${$("#vdA").innerHTML}</div>`);
+  $$("[data-fa]").forEach((el) => (el.innerHTML = fa(el.dataset.fa, "", el.dataset.s || "")));
+
+  // Measure where things are in app pixels (for the cursor and the drag).
+  const app = $("#app");
+  const at = (el, fx = 0.5, fy = 0.5) => { const a = app.getBoundingClientRect(), r = el.getBoundingClientRect(), s = a.width / 1280;
+    return [(r.left - a.left + r.width * fx) / s, (r.top - a.top + r.height * fy) / s]; };
+  const place = () => { const [x, y] = at($("#gb"), 0, 1); $("#menu").style.left = x + "px"; $("#menu").style.top = y + 4 + "px"; };
+  place();
+  const [ax, ay] = at($("#mA"), 1, 0.5); Object.assign($("#tip").style, { left: ax + 10 + "px", top: ay - 14 + "px" });
+  const P = { sliders: at($("#sliders")), board: at($("#vBoard")), gb: at($("#gb")), mS: at($("#mS")), mO: at($("#mO")), mA: at($("#mA")), x: at($("#dx")),
+    vdA: at($("#vdA")), lA: at($("#lA"), 0.5, 0.2) };
+  const tcard = at($("#tcard"), 0, 0);
+
+  // Camera keys and frame mapping.
+  const VW = 952, VH = 900;
+  const K = [[0, 640, 400, 0.74], [2.6, 640, 400, 0.74], [3.2, 960, 300, 1.45], [3.7, 640, 300, 1.45], [6.0, 640, 300, 1.45], [6.6, 690, 330, 1.18],
+    [7.2, 700, 330, 1.7], [11.4, 700, 330, 1.7], [12.0, 640, 300, 1.45], [14.6, 640, 300, 1.45], [15.2, 690, 330, 1.18]];
+  const cam = C.camera(app, VW, VH, K);
+  const F = (t, [x, y]) => { const m = cam(t).map(x, y); return [64 + m[0], 330 + m[1]]; };
+  const cur = C.cursor([
+    [2.7, 700, 1320], [3.4, ...F(3.4, P.sliders), true], [4.1, ...F(4.1, P.board), true], [4.7, ...F(4.7, P.gb), true], [5.3, ...F(5.3, P.mS), true],
+    [5.8, ...F(5.8, P.x), true], [6.6, 1120, 1420], [7.4, 1120, 1300], [8.1, ...F(8.1, P.vdA), true], [9.6, ...F(9.6, P.lA)], [10.2, 1120, 1420],
+    [11.8, 1120, 1420], [12.3, ...F(12.3, P.sliders), true], [12.9, ...F(12.9, P.gb), true], [13.5, ...F(13.5, P.mA)], [14.0, ...F(14.0, P.mO), true],
+    [14.5, ...F(14.5, P.x), true], [15.2, 1120, 1420]]);
+  cam(0);
+
+  const cap = C.captions([
+    [2.6, 6.8, "Open Columns.<br><em>Switch from List to Board.</em>"],
+    [7.0, 11.6, "Drag a card to another lane.<br><em>The record updates.</em>"],
+    [11.8, 16.0, "Group by any status,<br><em>person or yes/no column.</em>"],
+  ]);
+
+  C.run(D, (t) => {
+    C.hook($("#hook"), t, 2.2);
+    C.endcard($("#end"), t, 16.2);
+    cap(t); cam(t); const c = cur(t);
+    APP.drive($("#hook"), "ring", t); APP.drive($("#end"), "ring", t);
+
+    // Columns dialog, twice: switch to board (3.4–5.8), regroup by owner (12.3–14.5).
+    const dlg = (t >= 3.45 && t < 5.85) || (t >= 12.35 && t < 14.55);
+    const dIn = t < 9 ? out(p(t, 3.45, 3.65)) : out(p(t, 12.35, 12.55));
+    $("#dialog").style.display = $("#backdrop").style.display = dlg ? "" : "none";
+    $("#dialog").style.opacity = $("#backdrop").style.opacity = dIn;
+    $("#dialog").style.transform = `scale(${0.96 + 0.04 * dIn})`;
+    const isBoard = t >= 4.15;
+    $("#vList").className = isBoard ? "" : "on"; $("#vBoard").className = isBoard ? "on" : "";
+    $("#bset").style.display = isBoard ? "" : "none";
+    const gb = t >= 14.05 ? "Owner" : t >= 5.35 ? "Match" : "";
+    $("#gbv").textContent = gb || "Choose a column"; $("#gbv").className = gb ? "" : "ph";
+    const menu = (t >= 4.75 && t < 5.35) || (t >= 12.95 && t < 14.05);
+    $("#menu").style.display = menu ? "" : "none";
+    if (menu) place();
+    $("#mS").className = t < 9 && t >= 5.0 ? "hl" : "";
+    $("#mO").className = t >= 13.8 && t < 14.05 ? "hl" : "";
+    $("#tip").style.display = t >= 13.45 && t < 13.85 ? "" : "none";
+
+    // Grid → board by status → board by owner.
+    const toS = io(p(t, 5.9, 6.4)), toO = io(p(t, 14.6, 15.1));
+    $("#grid").style.opacity = 1 - toS;
+    $("#boardS").style.opacity = toS * (1 - toO);
+    $("#boardS").style.transform = `translateY(${(1 - toS) * 10}px)`;
+    $("#boardO").style.opacity = toO;
+    $("#boardO").style.transform = `translateY(${(1 - toO) * 10}px)`;
+
+    // Drag Van Dijk Metaal from Price difference to Ready to book (ghost at opacity-40, overlay shadow-md, target lane bg-accent).
+    const dragging = t >= 8.15 && t < 9.65, dropped = t >= 9.65;
+    $("#vdA").style.display = dropped ? "none" : "";
+    $("#vdA").className = "kc" + (dragging ? " ghost" : "");
+    $("#vdB").style.display = dropped ? "" : "none";
+    $("#lPn").textContent = dropped ? 1 : 2; $("#lAn").textContent = dropped ? 3 : 2;
+    $("#lA").className = "lb" + (t >= 9.0 && dragging ? " over" : "");
+    const d = $("#drag");
+    d.style.display = dragging ? "" : "none";
+    if (dragging) {
+      const m = cam(t), lift = out(p(t, 8.15, 8.35));
+      const ux = (c.x - 64 - VW / 2) / m.s + m.x, uy = (c.y - 330 - VH / 2) / m.s + m.y;
+      d.style.left = ux - tcard[0] - 128 + "px"; d.style.top = uy - tcard[1] - 30 + "px";
+      d.style.transform = `rotate(${lift * 2}deg)`;
+    }
+  });
+</script>
+</body></html>

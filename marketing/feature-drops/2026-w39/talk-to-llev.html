@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<title>Talk to your ERP</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@100..900&family=Roboto+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="clip.css">
+<link rel="stylesheet" href="app.css">
+<style>
+  /* Overview widgets: greeting-widget, stat-tile-widget, widget-shell, chart-display */
+  .ov { padding: 24px 32px 0; display: flex; flex-direction: column; gap: 28px; }
+  .greet .eyebrow { display: flex; align-items: center; gap: 8px; font-size: 12px; line-height: 16px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: hsl(var(--highlight)); }
+  .greet h2 { margin: 10px 0 0; font-size: 36px; line-height: 1; font-weight: 600; letter-spacing: -.025em; }
+  .greet h2 em { font-weight: 500; opacity: .8; }
+  .tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+  .tile { display: flex; align-items: center; gap: 16px; }
+  .tile .ic { width: 44px; height: 44px; border-radius: 8px; background: hsl(var(--muted)); color: hsl(var(--muted-foreground)); display: grid; place-items: center; }
+  .tile .ic svg { width: 16px; height: 16px; }
+  .tile b { display: block; font-size: 30px; line-height: 1; font-weight: 500; }
+  .tile small { display: block; margin-top: 6px; font-size: 12px; line-height: 16px; text-transform: uppercase; letter-spacing: .05em; color: hsl(var(--muted-foreground)); }
+  .slot { height: 268px; border: 1px dashed hsl(var(--border)); border-radius: 12px; }
+  .widget { position: absolute; left: 32px; right: 32px; height: 268px; padding: 20px; }
+  .wh { display: flex; align-items: baseline; gap: 8px; margin-bottom: 20px; min-height: 28px; }
+  .wh h3 { margin: 0; font-size: 16px; line-height: 24px; font-weight: 600; }
+  .plot { position: relative; height: 150px; margin-left: 28px; }
+  .grid-line { position: absolute; left: 0; right: 0; border-top: 1px dashed hsl(var(--border)); }
+  .ytick { position: absolute; left: -28px; width: 22px; text-align: right; font-size: 11px; line-height: 12px; color: hsl(var(--muted-foreground)); transform: translateY(-6px); }
+  .bars { position: absolute; inset: 0; display: flex; align-items: flex-end; justify-content: space-between; padding: 0 4px; }
+  .bar { width: 11px; display: flex; flex-direction: column-reverse; transform-origin: 50% 100%; }
+  .bar i { display: block; }
+  .bar i:last-child { border-radius: 4px 4px 0 0; }
+  .xt { display: flex; justify-content: space-between; margin: 6px 0 0 28px; font-size: 11px; line-height: 14px; color: hsl(var(--muted-foreground)); }
+  .lg { display: flex; justify-content: center; gap: 16px; font-size: 12px; line-height: 16px; margin-top: 6px; }
+  .lg span { display: flex; align-items: center; gap: 6px; }
+  .lg i { width: 8px; height: 8px; border-radius: 2px; }
+
+  /* Agent sidebar: agent-sidebar, agent-chat, chat-composer-shell, agent-status-indicator */
+  .as { width: 400px; flex: none; display: flex; flex-direction: column; padding: 8px 12px 12px; }
+  .as-head { display: flex; align-items: center; gap: 4px; height: 32px; font-weight: 500; padding: 0 8px; }
+  .msgs { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; gap: 16px; padding: 8px 4px 12px; overflow: hidden; }
+  .msg { display: flex; gap: 8px; }
+  .msg.user { flex-direction: row-reverse; }
+  .av { width: 20px; height: 20px; border-radius: 999px; margin-top: 2px; flex: none; display: grid; place-items: center; font-size: 10px; font-weight: 600; color: #fff; background: hsl(280 30% 42%); }
+  .bubble { max-width: 80%; border-radius: 12px; background: hsl(var(--card)); padding: 6px 8px; }
+  .prose { flex: 1; min-width: 0; }
+  .cot-head { display: flex; align-items: center; gap: 6px; padding: 4px 0; font-size: 12px; line-height: 16px; color: hsl(var(--muted-foreground)); }
+  .step { display: flex; gap: 8px; font-size: 12px; line-height: 16px; color: hsl(var(--muted-foreground)); }
+  .step .dot { width: 16px; height: 16px; border-radius: 999px; background: hsl(var(--border)); display: grid; place-items: center; flex: none; }
+  .step .dot svg { width: 10px; height: 10px; }
+  .step .txt { padding-bottom: 10px; }
+  .status { display: flex; align-items: center; gap: 8px; padding: 0 8px 10px; color: hsl(var(--highlight)); }
+  .status .stop { font-size: 12px; color: hsl(var(--muted-foreground)); }
+  .status .stop u { text-underline-offset: 2px; }
+  .composer { border: 1px solid hsl(var(--border)); border-radius: 16px; background: hsl(var(--card)); }
+  .composer .ta { padding: 12px 8px 4px; }
+  .composer .ta div { padding: 6px; color: hsl(var(--muted-foreground)); }
+  .composer .row { display: flex; align-items: center; justify-content: space-between; padding: 0 8px 8px; }
+  .composer .r { display: flex; align-items: center; gap: 8px; }
+  .composer .model { font-size: 12px; color: hsl(var(--muted-foreground)); display: flex; align-items: center; gap: 4px; padding: 0 6px; }
+  .rb { width: 32px; height: 32px; border-radius: 999px; display: grid; place-items: center; color: hsl(var(--muted-foreground)); }
+  .rb svg { width: 14px; height: 14px; }
+  .rb.call-on { background: hsl(var(--destructive) / .1); color: hsl(var(--destructive)); }
+</style></head>
+<body>
+<div class="frame">
+  <div class="dots"></div>
+  <div class="brandrow"><div class="logo"><span data-logo></span>Lleverage</div><div class="tag">Feature drop · Week 39</div></div>
+  <div class="captions"></div>
+
+  <div class="stage">
+    <div class="app" id="app">
+      <div id="sb"></div>
+      <main class="panel both">
+        <div class="ph"><h1>Overview</h1><div class="right"><span class="btn out ico" id="agentBtn"></span></div></div>
+        <div class="ov">
+          <div class="greet"><div class="eyebrow">Saturday 4 October</div><h2>Good morning, <em>Sanne</em></h2></div>
+          <div class="tiles">
+            <div class="tile"><span class="ic" id="i1"></span><div><b class="tnum">184</b><small>Orders today</small></div></div>
+            <div class="tile"><span class="ic" id="i2"></span><div><b class="tnum">167</b><small>Booked</small></div></div>
+            <div class="tile"><span class="ic" id="i3"></span><div><b class="tnum">3</b><small>Need a PO</small></div></div>
+          </div>
+          <div class="slot" id="slot"></div>
+        </div>
+        <div class="card widget" id="widget">
+          <div class="wh"><h3>Orders last month</h3><span class="xs mf">by outcome</span></div>
+          <div class="plot" id="plot"></div>
+          <div class="xt"><span>1 Sep</span><span>15 Sep</span><span>30 Sep</span></div>
+          <div class="lg"><span><i style="background:var(--ok)"></i>Booked in Exact</span><span><i style="background:hsl(var(--chart-3))"></i>Handed to a person</span></div>
+        </div>
+      </main>
+      <aside class="as">
+        <div class="as-head">Agent <span id="chev"></span></div>
+        <div class="msgs" id="msgs">
+          <div class="msg user" id="u1"><span class="av">S</span><div class="bubble" id="u1t"></div></div>
+          <div class="msg" id="a1"><span id="a1av"></span><div class="prose">
+            <div class="cot-head" id="cot1">Working…</div>
+            <div class="step" id="st1"><span class="dot" data-fa="faChartLine"></span><span class="txt">Read orders for the last 30 days (0.8s)</span></div>
+            <div class="step" id="st2"><span class="dot" data-fa="faPlus"></span><span class="txt">Added "Orders last month" to Overview (1.1s)</span></div>
+            <div id="a1t"></div></div></div>
+          <div class="msg user" id="u2"><span class="av">S</span><div class="bubble" id="u2t"></div></div>
+          <div class="msg" id="a2"><span id="a2av"></span><div class="prose"><div id="a2t"></div></div></div>
+        </div>
+        <div class="status" id="status"><span id="sl"></span><span id="stxt">Listening</span><span class="stop">· <u>Stop</u></span></div>
+        <div class="composer">
+          <div class="ta"><div>Ask the agent anything…</div></div>
+          <div class="row"><span class="rb" id="plus"></span>
+            <div class="r"><span class="model">Opus 5.5 <span id="mchev"></span></span><span class="rb" id="mic"></span><span class="rb" id="call"></span></div></div>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <div class="footer"><span>lleverage.ai</span><span>Live now</span></div>
+
+  <div class="card-full" id="hook">
+    <div class="kicker"><span id="hl"></span>New in Lleverage</div>
+    <h1>Talk to<br><em>your ERP.</em></h1>
+    <p>Start a voice call with the agent and ask about the orders and invoices in your ERP.</p>
+    <div class="mark"><span data-logo></span>Lleverage</div>
+  </div>
+  <div class="card-full" id="end">
+    <div class="kicker"><span id="el"></span>Live now</div>
+    <h1>Talk to<br><em>your ERP.</em></h1>
+    <p>Live in the Lleverage agent.</p>
+    <div class="mark"><span data-logo></span>Lleverage</div>
+    <div class="url">lleverage.ai</div>
+  </div>
+</div>
+<script src="fa-icons.js"></script>
+<script src="app.js"></script>
+<script src="clip.js"></script>
+<script>
+  const D = 20;
+  const { $, p, out, show, type } = C;
+  $("#sb").outerHTML = APP.sidebar("Overview");
+  $("#agentBtn").innerHTML = APP.loader(18);
+  $("#i1").innerHTML = fa("faInbox"); $("#i2").innerHTML = fa("faCheck"); $("#i3").innerHTML = fa("faClock");
+  $("#chev").innerHTML = fa("faChevronDown", "", "width:10px;height:10px;color:hsl(var(--muted-foreground))");
+  $("#mchev").innerHTML = fa("faChevronDown", "", "width:9px;height:9px");
+  $("#plus").innerHTML = lu("plus", "", "width:16px;height:16px");
+  $("#mic").innerHTML = fa("faMicrophone");
+  $("#sl").innerHTML = APP.loader(20); $("#hl").innerHTML = APP.loader(30); $("#el").innerHTML = APP.loader(30);
+  ["#a1av", "#a2av"].forEach((s) => ($(s).innerHTML = `<span style="display:block;margin-top:2px;color:hsl(var(--foreground))">${APP.loader(20)}</span>`));
+  document.querySelectorAll("[data-fa]").forEach((el) => (el.innerHTML = fa(el.dataset.fa)));
+  $("#app").style.setProperty("--ok", "color-mix(in srgb, hsl(170 35% 35%) 55%, white)");
+
+  // Stacked bars: completed + failed per day, Recharts-style axes (dashed horizontal grid, 11px ticks).
+  const days = Array.from({ length: 30 }, (_, i) => { const tot = 95 + 70 * Math.abs(Math.sin(i * 1.7)) - (i % 7 > 4 ? 60 : 0); return [tot * 0.93, tot * 0.07]; });
+  $("#plot").innerHTML = [0, 100, 200].map((v) => `<div class="grid-line" style="top:${150 - v * 0.7}px"></div><div class="ytick" style="top:${150 - v * 0.7}px">${v}</div>`).join("")
+    + `<div class="bars">${days.map(([c, f]) => `<div class="bar"><i style="height:${c * 0.7}px;background:var(--ok)"></i><i style="height:${f * 0.7}px;background:hsl(var(--chart-3))"></i></div>`).join("")}</div>`;
+  const bars = [...document.querySelectorAll(".bar")];
+  // Place the widget over the dashed slot (layout is static, so once is enough).
+  $("#widget").style.top = $("#slot").offsetTop + "px";
+
+  const cap = C.captions([
+    [2.6, 7.4, "Start a voice call<br><em>from the chat.</em>"],
+    [7.6, 12.6, "Ask for a chart.<br><em>It lands on the Overview.</em>"],
+    [12.8, 17.4, "Ask a question.<br><em>It answers in the voice call.</em>"],
+  ]);
+  // Camera: whole app, then the agent sidebar, the new chart, and back.
+  const VW = 952, VH = 900;
+  const cam = C.camera($("#app"), VW, VH, [[0, 640, 400, 0.74], [2.5, 640, 400, 0.74], [3.1, 1060, 600, 2.0], [8.4, 1060, 600, 2.0], [9.0, 560, 450, 1.55], [10.6, 560, 450, 1.55], [11.2, 1060, 600, 2.0]]);
+  const F = (ux, uy, fx = 1060, fy = 600, s = 2.0) => [64 + VW / 2 + (ux - fx) * s, 330 + VH / 2 + (uy - fy) * s];
+  const callAt = F(1243, 764);
+  const cur = C.cursor([[2.9, 700, 1320], [3.5, callAt[0], callAt[1], true], [4.3, 1120, 1420]]);
+
+  const ask1 = "Add a chart of last month's orders: booked in Exact or handed to a person.";
+  const ask2 = "Which orders are waiting for a PO number?";
+  C.run(D, (t) => {
+    C.hook($("#hook"), t, 2.2);
+    C.endcard($("#end"), t, 17.6);
+    cap(t); cam(t); cur(t);
+    APP.drive($("#hook"), "ring", t); APP.drive($("#end"), "ring", t);
+
+    const inCall = t >= 3.55;
+    $("#call").className = "rb" + (inCall ? " call-on" : "");
+    $("#call").innerHTML = fa(inCall ? "s:faPhoneHangup" : "s:faPhoneFlip");
+    // Voice state (agent-status-indicator): connecting, you speaking, working, agent speaking.
+    let mode = "agent", label = "Speaking";
+    if (t < 4.0) { mode = "connecting"; label = "Connecting…"; }
+    else if (t < 6.8 || (t >= 12.8 && t < 14.4)) { mode = "user"; label = "Listening"; }
+    else if (t < 10.4 || (t >= 14.4 && t < 15.3)) { mode = "working"; label = "Working on it"; }
+    show($("#status"), t, 3.55, Infinity, 8, 0.3);
+    $("#stxt").textContent = label;
+    APP.drive($("#status"), mode, t);
+    APP.drive($("#a1av"), t >= 6.8 && t < 10.4 ? "working" : "static", t);
+    APP.drive($("#a2av"), t >= 14.4 && t < 15.3 ? "working" : "static", t);
+
+    // Transcript: what you say lands in the chat.
+    $("#u1").style.display = t >= 4.1 ? "" : "none"; type($("#u1t"), ask1, t, 4.1, 6.6);
+    $("#a1").style.display = t >= 6.9 ? "" : "none";
+    $("#cot1").textContent = t < 10.4 ? "Working…" : "Worked for 3s";
+    show($("#st1"), t, 7.2, Infinity, -8, 0.25); show($("#st2"), t, 8.4, Infinity, -8, 0.25);
+    type($("#a1t"), "Done. Orders last month is on your Overview: 3,425 booked straight into Exact, 258 handed to a person.", t, 10.6, 12.0);
+    $("#u2").style.display = t >= 12.9 ? "" : "none"; type($("#u2t"), ask2, t, 12.9, 14.2);
+    $("#a2").style.display = t >= 14.4 ? "" : "none";
+    type($("#a2t"), "Three: Van Dijk Metaal, Kuipers Hout and Smit Elektro. The oldest came in on Thursday. All three are in Requests, waiting for the customer's PO.", t, 15.3, 17.2);
+
+    // The widget lands in the empty slot.
+    const g = p(t, 9.0, 9.6);
+    $("#widget").style.opacity = g;
+    $("#widget").style.transform = `translateY(${(1 - out(g)) * 12}px)`;
+    bars.forEach((b, i) => { b.style.transform = `scaleY(${out(p(t, 9.3 + i * 0.025, 10.1 + i * 0.025))})`; });
+  });
+</script>
+</body></html>
