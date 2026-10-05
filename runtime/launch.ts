@@ -22,6 +22,9 @@ const issuesIn = async (filter: object) =>
   (await gql(`query($f: IssueFilter) { issues(filter: $f, first: 100) { nodes { ${ISSUE} } } }`, { f: filter })).issues.nodes;
 export const comment = (issueId: string, body: string) =>
   gql('mutation($i: CommentCreateInput!) { commentCreate(input: $i) { success } }', { i: { issueId, body } });
+// A link attachment shows under the issue's Resources; the same URL again updates it instead of adding one.
+const attach = (issueId: string, url: string, title: string, subtitle: string) =>
+  gql('mutation($i: AttachmentCreateInput!) { attachmentCreate(input: $i) { success } }', { i: { issueId, url, title, subtitle } });
 const move = (id: string, stateId: string) =>
   gql('mutation($id: String!, $s: String!) { issueUpdate(id: $id, input: { stateId: $s }) { success } }', { id, s: stateId });
 
@@ -97,7 +100,9 @@ async function start(issue: any) {
   const started = new Date().toISOString();
   const session: Session = { issue_id: issue.id, repo, worktree, branch, window: `${TMUX}:${id}`, link, started, seen: started };
   withState(s => { s.sessions[id] = session; });
-  // The session runs whatever happens here; a lost comment must not send the issue back.
+  // The session runs whatever happens here; a lost comment or attachment must not send the issue back.
+  if (link) await attach(issue.id, link, 'Claude Code session', `Remote Control · ${branch} · started ${started.slice(0, 16).replace('T', ' ')} UTC`)
+    .catch(e => log('launcher', id, 'session attachment failed:', (e as Error).message));
   await comment(issue.id, [`${MARK} · session started on branch \`${branch}\`.`,
     link ? `Remote Control: ${link}` : 'Remote Control link not found yet; open it from the Claude app session list.',
     `On the server: \`tmux attach -t ${TMUX} \\; select-window -t ${id}\``].join('\n\n'))
