@@ -28,10 +28,44 @@ function cronMatch(expr: string, d: Date) {
   }));
 }
 
+// The latest minute in the last 24 hours that matches, so a run missed while the laptop slept runs on wake.
+function lastMatch(expr: string, d: Date) {
+  const minute = Math.floor(+d / 6e4) * 6e4;
+  for (let i = 0; i < 1440; i++) { const t = new Date(minute - i * 6e4); if (cronMatch(expr, t)) return t; }
+  return null;
+}
+
+// The laptop sleeps and changes networks. A tick that finds a gap since the previous one (sleep) or no
+// network does nothing, and that time does not count towards a job's failing time.
+const WAKE_GAP = 5 * 6e4;
+async function online() {
+  const ok = (url: string) => fetch(url, { method: 'HEAD', signal: AbortSignal.timeout(5000) }).then(() => true, () => false);
+  return (await Promise.all(['https://api.linear.app', 'https://api.anthropic.com'].map(ok))).every(Boolean);
+}
+const restartFailingClocks = () => withState(st => {
+  for (const j of Object.values(st.jobs)) if (j.failing_since) j.failing_since = iso(now);
+});
+
 // delay: leaves the newest messages out of the window, so Badr can answer them himself first.
 const lag = (sig: { meta: any }) => sig.meta.delay ? duration(sig.meta.delay) : 0;
 
-function tick() {
+async function tick() {
+  const prev = readState().last_tick;
+  withState(st => { st.last_tick = iso(now); });
+  if (prev && +now - +new Date(prev) > WAKE_GAP) {
+    restartFailingClocks();
+    return log('tick', `woke after ${Math.round((+now - +new Date(prev)) / 6e4)}m; resuming next tick`); // network and connectors need a moment
+  }
+  if (!await online()) {
+    if (!readState().offline_since) { withState(st => { st.offline_since = iso(now); }); log('tick', 'offline; pausing'); }
+    return;
+  }
+  const offline = readState().offline_since;
+  if (offline) {
+    withState(st => { st.offline_since = null; });
+    restartFailingClocks();
+    log('tick', `online again after ${Math.round((+now - +new Date(offline)) / 6e4)}m`);
+  }
   const s = readState();
   for (const sig of readDir('signals')) {
     const key = `signal:${sig.name}`, j = s.jobs[key] ?? {};
@@ -53,17 +87,19 @@ function tick() {
   }
   for (const sch of readDir('schedules')) {
     const key = `schedule:${sch.name}`, j = s.jobs[key] ?? {};
-    const sameMinute = j.last_run && iso(now).slice(0, 16) === j.last_run.slice(0, 16);
-    if (!alive(j.pid) && !sameMinute && cronMatch(sch.meta.cron, now)) {
+    if (!j.last_run) { withState(st => { job(st, key).last_run = iso(now); }); continue; } // first sight: no backfill
+    const due = lastMatch(sch.meta.cron, now);
+    if (!alive(j.pid) && due && +due > +new Date(j.last_run)) {
       withState(st => { job(st, key).last_run = iso(now); });
       detach(key, ['schedule', sch.name]);
     }
   }
   if (!alive(s.jobs.launcher?.pid)) detach('launcher', ['launch']);
-  // Health: report after 60 minutes of failure or on a capped window; close once runs succeed.
+  // Health: report after 60 minutes and 3 runs of failure, or on a capped window; close once runs succeed.
+  // The run count keeps a single failure followed by sleep (a laptop's dark wake) from counting as an hour.
   for (const [key, j] of Object.entries(s.jobs)) {
     if (key.startsWith('health:') || alive(s.jobs[`health:${key}`]?.pid)) continue;
-    const failing = !!j.failing_since && +now - +new Date(j.failing_since) >= 60 * 6e4;
+    const failing = !!j.failing_since && (j.failures ?? 0) >= 3 && +now - +new Date(j.failing_since) >= 60 * 6e4;
     if ((failing && !j.health_reported) || j.gaps?.length) detach(`health:${key}`, ['health', key, 'open']);
     else if (!j.failing_since && j.health_reported) detach(`health:${key}`, ['health', key, 'close']);
   }
@@ -142,7 +178,8 @@ function runHealth(target: string, mode: string) {
     withState(s => {
       const t = job(s, target);
       if (mode === 'close') t.health_reported = false;
-      else { t.health_reported = !!t.failing_since; t.gaps = (t.gaps ?? []).slice(j.gaps?.length ?? 0); }
+      // What was reported, not the state now: the job may have recovered meanwhile, and the next tick closes the issue.
+      else { t.health_reported = !!j.failing_since; t.gaps = (t.gaps ?? []).slice(j.gaps?.length ?? 0); }
     });
     succeeded(key);
   } catch (e) { failed(key, e); }
@@ -173,5 +210,5 @@ else if (cmd === 'launch') {
   const { launch } = await import('./launch.ts');
   try { await launch(); succeeded('launcher'); } catch (e) { failed('launcher', e); }
 } else if (cmd === 'install') install();
-else if (!cmd || cmd === 'tick') tick();
+else if (!cmd || cmd === 'tick') await tick();
 else { console.error('usage: autopilot [tick|signal <name> [--dry=<minutes>]|schedule <name>|launch|install]'); process.exit(1); }

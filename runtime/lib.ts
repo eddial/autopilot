@@ -58,7 +58,7 @@ export type Job = {
   failures?: number; failing_since?: string | null; gaps?: { from: string; to: string }[]; health_reported?: boolean;
 };
 export type Session = { issue_id: string; repo: string; worktree: string; branch: string; window: string; link?: string; started: string; seen?: string };
-export type State = { jobs: Record<string, Job>; sessions: Record<string, Session> };
+export type State = { jobs: Record<string, Job>; sessions: Record<string, Session>; last_tick?: string; offline_since?: string | null };
 const STATE = path.join(STATE_DIR, 'state.json');
 export const readState = (): State => {
   try { return { jobs: {}, sessions: {}, ...JSON.parse(fs.readFileSync(STATE, 'utf8')) }; } catch { return { jobs: {}, sessions: {} }; }
@@ -92,6 +92,11 @@ export function failed(key: string, err: unknown) {
     Object.assign(j, { pid: null, last_error: msg, failures: (j.failures ?? 0) + 1, failing_since: j.failing_since ?? new Date().toISOString() });
   });
 }
+
+// Errors from a dropped network or connectors that are not up yet (after wake, on bad Wi-Fi): retry, never report as broken.
+export const transient = (e: unknown) =>
+  /fetch failed|ENOTFOUND|EAI_AGAIN|ECONNRESET|ECONNREFUSED|ENETUNREACH|EHOSTUNREACH|ETIMEDOUT|UND_ERR|socket hang up|tools not available/i
+    .test(String((e as Error)?.message ?? e));
 
 export const alive = (pid?: number | null) => { try { return !!pid && process.kill(pid, 0); } catch { return false; } };
 export const log = (...a: unknown[]) => console.log(new Date().toISOString(), ...a);
