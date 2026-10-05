@@ -45,11 +45,21 @@ Rules that follow from it:
 
 ## 2. Copy
 
+**The video shows the feature; the post sells it.** In clips, title cards,
+captions and end cards stay strictly functional: name the feature, say what
+it does and what is happening on screen. The narrative and value proposition
+(section 1) go in the posts, the drop page and the carousel, never in the
+video.
+
 Visuals may be flashy; **text is plain and grounded**. Follow
 `delta:lleverage-content-voice` (load it), plus:
 
-- Captions and cards say what happens: "Move it to Ready to book.", "See which
-  check failed and why." No slogans ("It's done.", "Not a suggestion.").
+- Title card: "New in Lleverage", the feature's name, one plain line on what
+  it does ("Show any data table as a Kanban board and drag records between
+  lanes."). End card: "Live now", the name, where it is available.
+- Captions describe the action: "Open Columns. Switch from List to Board.",
+  "Open a failed test. See each check and why." No slogans ("It's done.",
+  "Not a suggestion.") and no value claims ("Work on the process…").
 - Two lines per caption, second line in orange (`<em>`), at most ~32
   characters a line. One caption per beat, 3–4 beats per clip.
 - **LinkedIn posts open with a catchy, concrete first line**: a statement or a
@@ -95,8 +105,8 @@ far, with file paths; extend it when you read new ones.
 
 | Output | Spec |
 | --- | --- |
-| One clip per feature | 1080×1350 (4:5), 18–20s, 30 fps, silent, captions burned in, loops. Hook card 0–2.2s → camera/UI → end card from ~17s. |
-| Combined weekly video | **~30s**: 2s cover card, the **key moment** of each clip (~7–8s: the action and its payoff, e.g. the call and the chart landing; no per-clip hook/end cards) with chapter label "n / 3 · Feature", 2s end card. Built by `weekly.sh`. |
+| One clip per feature | 1080×1350 (4:5), 30 fps, silent, captions burned in, loops. Timeline ~20s, rendered at **0.85 speed** (~23s): title card 0–2.2s → camera/UI → end card from ~17s. |
+| Combined weekly video | ~65s: 2.5s cover ("New in Lleverage" + the features), then **each clip in full from its title card** (which announces the feature) up to its end card, chapter label "n / 3 · Feature" in the top bar, 3s end card ("Live now in Lleverage" + the features). Same 0.85 speed. Built by `weekly.sh`. |
 | Carousel PDF | 5 pages 1080×1350: cover (narrative headline + list), one page per feature (feature label, plain line, still from the clip), closing page. LinkedIn carousels are documents only; videos cannot go inside one. |
 | Posts | One weekly post (works with the combined video or the carousel), one post per feature, one personal post for Badr. |
 | Drop page | `index.html` published as an Artifact (private): narrative, Option 1 weekly post (video + carousel + copy), Option 2 per-feature clips + posts, personal post, how it is made. |
@@ -122,9 +132,10 @@ far, with file paths; extend it when you read new ones.
    two lines, camera shows the target, nothing overlaps, text matches the UI.
 5. Render: `node render.mjs <clip>.html <posterSecond>` (one at a time, in the
    background; it retries stalled frames). Then `node carousel.mjs`, then
-   `./weekly.sh` (edit its `seg` lines: clip, chapter label, from, until).
+   `./weekly.sh` (edit its `seg` lines: clip, chapter label, from 0, until the
+   clip's end card). `CLIP_SPEED` sets playback speed (default 0.85).
    Extract carousel stills with ffmpeg `crop=952:900:64:330` from the clips.
-6. Verify: `ffprobe` durations (20/19/20, ~30 for weekly); check the first and last frame of every chapter (no empty slots mid-pan, results finished), and pull a frame or
+6. Verify: `ffprobe` durations (~23 per clip, ~65 for weekly); check the first and last frame of every chapter (no empty slots mid-pan, results finished), and pull a frame or
    two from every MP4. Fix and re-render rather than explain.
 7. Publish `index.html` with the Artifact tool, passing the MP4s, posters and
    carousel PNGs as `files`. Commit the folder (HTML, MP4, PNG, PDF) on the
@@ -143,7 +154,11 @@ the issue to Review. Never post anything yourself.
   from the codebase.
 - Generic demo data ("runs", "workflows") was rejected: use orders and invoices.
 - Slogans were rejected: keep text down to earth, keep the visuals lively.
-- Combined video length: 58s was too long, 13s too short; ~30s is the target. Show Badr each length before changing it again.
+- Combined video: cutting it down to key moments (29s, 13s) made it too fast
+  and unclear; what works is full chapters, each announced by its title card,
+  played a bit slower (0.85). Show Badr each version before changing it again.
+- Value-prop titles in the video were too sloppy: keep the video functional,
+  put the message in the posts.
 - Domain labels on cards were wrong because features are generic.
 - Order intake: an order without the customer's PO goes to the order desk,
   not to purchasing. Check who really owns an exception before writing it.

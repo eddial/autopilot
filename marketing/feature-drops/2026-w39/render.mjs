@@ -1,6 +1,7 @@
 // Render a clip HTML to a 4:5 MP4 (1080x1350, 30 fps) and a poster PNG.
 // Usage: node render.mjs <clip.html> [posterSecond]
-// Optional env: CLIP_QUERY (extra query string, e.g. "chapter=1 / 3"), CLIP_FROM and CLIP_UNTIL (seconds), CLIP_OUT (output .mp4 path).
+// Optional env: CLIP_QUERY (extra query string, e.g. "chapter=1 / 3"), CLIP_FROM and CLIP_UNTIL (clip seconds), CLIP_OUT (output .mp4 path),
+// CLIP_SPEED (playback speed, default 0.85: everything a little slower than the timeline).
 // Needs playwright (NODE_PATH or local node_modules) and ffmpeg on PATH.
 import { spawn } from "node:child_process";
 import { createRequire } from "node:module";
@@ -44,7 +45,8 @@ async function frameAt(t) {
   throw new Error("frame failed: " + t);
 }
 const from = Number(process.env.CLIP_FROM) || 0;
-for (let i = Math.round(from * FPS); i < duration * FPS; i++) ff.stdin.write(await frameAt(i / FPS));
+const speed = Number(process.env.CLIP_SPEED) || 0.85;
+for (let i = Math.round((from / speed) * FPS); i < (duration / speed) * FPS; i++) ff.stdin.write(await frameAt((i / FPS) * speed));
 ff.stdin.end();
 await new Promise((r) => ff.on("close", r));
 

@@ -89,11 +89,11 @@ button.copy:focus-visible { outline: 2px solid var(--accent); outline-offset: 2p
   <section class="weekly" aria-labelledby="wk">
     <div class="kicker">Option 1 · one weekly post</div>
     <h2 id="wk">One post with all three features</h2>
-    <p class="why">Use the combined video (about 29 seconds: a cover, the key moment of each feature as a chapter marked "1 / 3 · Talk to Llev", one end card), or the 5-page carousel PDF for people who swipe instead of watch. The post copy works for both.</p>
+    <p class="why">Use the combined video (about a minute: a cover, each feature as a chapter that opens on its own title card and is marked "1 / 3 · Talk to Llev", one end card), or the 5-page carousel PDF for people who swipe instead of watch. The post copy works for both.</p>
     <div class="drop">
       <video src="weekly.mp4" poster="weekly-cover.png" muted loop playsinline controls></video>
       <div class="meta">
-        <div class="facts"><span>Combined video · 29s · 4:5</span><span>Carousel · carousel.pdf · 5 pages</span></div>
+        <div class="facts"><span>Combined video · 66s · 4:5</span><span>Carousel · carousel.pdf · 5 pages</span></div>
         <div class="strip">
           <img src="carousel-1.png" alt="Carousel cover: three steps toward an autonomous back office">
           <img src="carousel-2.png" alt="Carousel page: Talk to Llev">
@@ -128,7 +128,7 @@ Clips of all three in the first comment. 📦</p>
     <div class="meta">
       <h2 id="f1">Talk to Llev</h2>
       <p class="why">Clean orders post into the ERP on their own; the order desk keeps an eye on the rest. On a call with the agent they ask for a chart of last month's orders and which orders wait for a PO number, and get both without building a report. People check on the process and steer it without opening a report. The same works for invoices, returns or any other process in a project.</p>
-      <div class="facts"><span>20s · 4:5</span><a href="https://lleverage.slack.com/archives/C09PS3956F5/p1790343555673919" target="_blank" rel="noopener">#change-log 25 Sep</a></div>
+      <div class="facts"><span>24s · 4:5</span><a href="https://lleverage.slack.com/archives/C09PS3956F5/p1790343555673919" target="_blank" rel="noopener">#change-log 25 Sep</a></div>
       <div class="post">
         <div class="post-head">Company post<button class="copy" type="button">Copy</button></div>
         <p>The fastest report on your order backlog is now a phone call.
@@ -149,7 +149,7 @@ Talk to Llev is live in the Lleverage agent.</p>
     <div class="meta">
       <h2 id="f2">Board view for data tables</h2>
       <p class="why">Any data table can be shown as a board. In the clip: supplier invoices grouped by match status. Invoices inside tolerance book themselves; the board is where people take the ones that need judgement. The same works for orders, returns or quotes.</p>
-      <div class="facts"><span>19s · 4:5</span><a href="https://lleverage.slack.com/archives/C09PS3956F5/p1790153229252049" target="_blank" rel="noopener">#change-log 23 Sep</a></div>
+      <div class="facts"><span>22s · 4:5</span><a href="https://lleverage.slack.com/archives/C09PS3956F5/p1790153229252049" target="_blank" rel="noopener">#change-log 23 Sep</a></div>
       <div class="post">
         <div class="post-head">Company post<button class="copy" type="button">Copy</button></div>
         <p>Finance should only ever see the invoices that don't match.
@@ -170,7 +170,7 @@ People spend their time on the invoices that need judgement, not on the ones tha
     <div class="meta">
       <h2 id="f3">Skill tests</h2>
       <p class="why">Before a skill acts in the ERP without a person, you want proof it handles the awkward cases. Tests run it against saved cases and show which check failed and why. People set the rules and decide when the skill runs on its own. In the clip: an order intake skill.</p>
-      <div class="facts"><span>20s · 4:5</span><a href="https://lleverage.slack.com/archives/C09PS3956F5/p1790343555673919" target="_blank" rel="noopener">#change-log 25 Sep</a></div>
+      <div class="facts"><span>24s · 4:5</span><a href="https://lleverage.slack.com/archives/C09PS3956F5/p1790343555673919" target="_blank" rel="noopener">#change-log 25 Sep</a></div>
       <div class="post">
         <div class="post-head">Company post<button class="copy" type="button">Copy</button></div>
         <p>An AI that guesses a PO number is worse than no AI at all.
@@ -206,7 +206,7 @@ This week's skill tests are a small piece of that: the person who knows the rule
 
   <section class="how">
     <b>How these are made</b>
-    <span>Each clip rebuilds the real app UI (tokens, components and icons taken from the lleverage codebase) as an HTML page where every frame is a function of time. A Playwright script steps through it at 30 fps and ffmpeg encodes a 1080×1350 H.264 MP4. A new clip is a new HTML file: write the timeline, render, review a few stills. The carousel is <code>carousel.html</code>, rendered to a PDF with <code>carousel.mjs</code>.</span>
+    <span>Each clip rebuilds the real app UI (tokens, components and icons taken from the lleverage codebase) as an HTML page where every frame is a function of time. A Playwright script steps through it at 30 fps and ffmpeg encodes a 1080×1350 H.264 MP4. The video stays functional (feature name, what it does, what happens on screen); the message lives in the posts. Clips play at 0.85 speed. A new clip is a new HTML file: write the timeline, render, review a few stills. The carousel is <code>carousel.html</code>, rendered to a PDF with <code>carousel.mjs</code>.</span>
     <span>Source: <code>marketing/feature-drops/2026-w39/</code> on branch <code>claude/ap-10</code>.</span>
   </section>
 </main>
