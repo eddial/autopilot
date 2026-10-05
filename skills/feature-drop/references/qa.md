@@ -11,12 +11,13 @@ fix and re-render rather than explain a problem away.
 
 ## Video (every clip and the combined video)
 - [ ] Looks like the real product: shell, tokens, components, labels and icons taken from the Lleverage repo.
+- [ ] Everything around the product follows the design system (`design-system.md`): kit version current, brand fonts loaded (no fallback serif), logos from the kit, orange used sparingly.
 - [ ] Title card announces the feature; end card says where it is live.
 - [ ] Captions are functional (what happens on screen), two lines, fit the width.
 - [ ] No value claims, slogans or "coworker" anywhere in the video.
 - [ ] Camera shows each target when it is clicked; nothing overlaps; no empty or half-moved frames at the start of a chapter.
 - [ ] Results are finished when a beat or chapter ends (chart landed, card dropped, tests passed).
-- [ ] Durations: clips ~22–24s, combined ~65s; 1080 × 1350, 30 fps.
+- [ ] Durations: clips ~22–24s, combined ~65s; 1080 × 1350, 60 fps.
 
 ## Carousel
 - [ ] N + 2 pages, 1080 × 1350; text does not overlap the still; stills show the result.

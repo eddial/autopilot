@@ -1,4 +1,4 @@
-// Render a clip HTML to a 4:5 MP4 (1080x1350, 30 fps) and a poster PNG.
+// Render a clip HTML to a 4:5 MP4 (1080x1350, 60 fps) and a poster PNG.
 // Usage: node render.mjs <clip.html> [posterSecond]
 // Optional env: CLIP_QUERY (extra query string, e.g. "chapter=1 / 3"), CLIP_FROM and CLIP_UNTIL (clip seconds), CLIP_OUT (output .mp4 path),
 // CLIP_SPEED (playback speed, default 0.85: everything a little slower than the timeline).
@@ -9,7 +9,7 @@ import path from "node:path";
 
 const require = createRequire(import.meta.url);
 const { chromium } = require("playwright");
-const FPS = 30;
+const FPS = 60;
 const [file, posterAt = "12"] = process.argv.slice(2);
 const base = path.resolve(file).replace(/\.html$/, "");
 const out = process.env.CLIP_OUT ? path.resolve(process.env.CLIP_OUT) : base + ".mp4";

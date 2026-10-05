@@ -1,0 +1,1653 @@
+{
+  "$schema": "https://tr.designtokens.org/format/",
+  "$description": "Lleverage design tokens — the single hand-authored source. Everything else (lleverage.css, PPT theme, web, product) is generated from this file. Provenance is recorded on every primitive: fig = read from Lleverage – Brand & Style Guide.fig; ds = the attached Lleverage Design System stylesheet; doc = the lleverage-presentations document skill (shipping practice); policy = a decision recorded in 'Canonical source of truth - plan.md'. Values marked derived are computed and must be approved before use.",
+  "$extensions": {
+    "org.lleverage.version": "2.3.2",
+    "org.lleverage.generated": "2026-09-08",
+    "org.lleverage.sources": {
+      "fig": "Lleverage – Brand & Style Guide (Copy).fig · /Visual-Style-Guide/04 (colour page)",
+      "ds": "/projects/…/colors_and_type.css (117 custom properties)",
+      "doc": "lleverage-presentations · assets/lleverage.css",
+      "policy": "Canonical source of truth - plan.md §4, §4a",
+      "notion": "Notion Brand Guidelines Reference (exported 8 Sep 2026) — CANONICAL, now read directly. uploads/Notion_design/. Extracted text: work/notion-brand.txt",
+      "skill": "lleverage-presentations · SKILL.md §Palette + §Colour discipline (standing assignments, Midnight override 11 Jun 2026, orange disambiguation)"
+    },
+    "org.lleverage.figmaVariables": "NOT a source. The file's 38 Figma Variables are a generic Untitled-UI starter set (purple brand-600, blue/pink/fuchsia utilities, cool greys) with no Lleverage value in them, and the file defines 0 text styles and 0 dimension variables. fig-tokens.css is therefore deliberately NOT imported. The brand primitives live in the Visual Style Guide frames.",
+    "org.lleverage.openConflicts": "See conflicts.md — 5 items needing a decision before this file goes to 1.0.",
+    "org.lleverage.authority": "Notion (read directly) > SKILL.md > .fig colour page > design-system stylesheet > lleverage.css. Every primitive below marked provenance:notion is quoted from the Notion tables.",
+    "org.lleverage.oliveStatus": "Notion palette: corrected (#141E28 / #2C353E). Remaining upstream: (a) the grey table still calls Grey 900 \"same as Midnight\"; (b) the official logo artwork carries #252820 (verified in Lleverage_Ident_Dark.svg, Lleverage_Logo_Full_Dark.svg, Lleverage-whitebars.svg) and is never recoloured. #363C38 is absent from Notion entirely.",
+    "org.lleverage.pptPalette": {
+      "$note": "The PPT drawing palette: the names work/drawing-pages.js uses for its colours, bound to the tokens they are. Until 22 Sep these were seventeen hand-typed hex literals on line 2 of that file -- the largest remaining second source in the repo, and exactly what emit-css.js fails the build for on the CSS side. Sixteen matched a token exactly. This map is the ONE place the binding is stated: work/build-templates.js resolves it into ppt/theme.json and verifyTheme re-resolves it from here, so neither restates the other. The names say what they are since 23 Sep: CARD was renamed SANDACC (sand.accent, an emphasis fill for a column or a caption band, NEVER a card, which is WHITE since 8 Sep) and SAGE4 SAGE2 (it was always sage.200). KICK was bound to sage.900 until 23 Sep, so every kicker and label in the master was Sage 900, which text.kicker says is not label text; it is Grey 700 now. G9 is grey.900: the icon ghost, typed as 232724 with no token until the owner adopted Grey 900 (7 apart) on 23 Sep, which removed the last exception to the raw-hex guard.",
+      "GHOST": "color.grey.400",
+      "SAGE": "color.sage.600",
+      "DKG": "color.midnight.accent",
+      "INK": "color.midnight.primary",
+      "INK2": "color.midnight.accent",
+      "OR": "color.orange.primary",
+      "LBL": "color.grey.700",
+      "KICK": "color.grey.700",
+      "WHITE": "color.white",
+      "PAPER": "color.paper",
+      "SANDACC": "color.sand.accent",
+      "SAND": "color.sand.primary",
+      "GHOST2": "color.grey.500",
+      "G3": "color.grey.300",
+      "SAGE9": "color.sage.900",
+      "SAGE8": "color.sage.800",
+      "SAGE2": "color.sage.200",
+      "G9": "color.grey.900"
+    }
+  },
+  "color": {
+    "$type": "color",
+    "sand": {
+      "primary": {
+        "$value": "#D2D2C2",
+        "$description": "Warm neutral — default marketing surface, card fills on marketing, calm sections, image holds",
+        "$extensions": {
+          "provenance": "notion",
+          "upstream": "SETTLED — #D2D2C2. Corrected in Notion by the user on 8 Sep, AFTER the 8 Sep export was taken, and re-confirmed 10 Sep. The Figma agrees. DO NOT change this to #DCDCCC: work/notion-brand.txt still reads #DCDCCC because the export predates the correction. Reopened in error on 10 Sep and reverted the same day.",
+          "figAgrees": true,
+          "exportStale": true
+        }
+      },
+      "accent": {
+        "$value": "#F0F0E0",
+        "$description": "Soft tint — subtle section breaks, large page backgrounds",
+        "$extensions": {
+          "provenance": "notion"
+        }
+      }
+    },
+    "orange": {
+      "primary": {
+        "$value": "#EC7523",
+        "$description": "Daring accent — CTAs, highlights, bold hero moments, use sparingly",
+        "$extensions": {
+          "provenance": "notion",
+          "note": "deliberately softened; never substitute #FF5500 or similar high-saturation oranges"
+        }
+      },
+      "accent": {
+        "$value": "#FF9626",
+        "$description": "Warmer tint — hover states, secondary highlights, illustrated accents",
+        "$extensions": {
+          "provenance": "notion"
+        }
+      },
+      "product": {
+        "$value": "#F26B17",
+        "$description": "Crisp --highlight. Product UI only.",
+        "$extensions": {
+          "provenance": "notion",
+          "sibling": "#F47D33 (Bold --highlight)"
+        }
+      },
+      "$description": "Notion documents two brand oranges (#EC7523 primary, #FF9626 accent) plus product --highlight tokens (#F26B17 light, #F47D33 dark). Nothing else."
+    },
+    "midnight": {
+      "primary": {
+        "$value": "#141E28",
+        "$description": "Deep anchor — body text, premium dark surfaces, logo backgrounds",
+        "$extensions": {
+          "provenance": "notion",
+          "resolved": "The Midnight correction HAS landed upstream: Notion now lists #141E28/#2C353E. The olive #252820/#363C38 are gone from the palette table."
+        }
+      },
+      "accent": {
+        "$value": "#2C353E",
+        "$description": "Softer dark — cards on dark surfaces, subtle separation within dark backgrounds",
+        "$extensions": {
+          "provenance": "notion"
+        }
+      }
+    },
+    "sage": {
+      "200": {
+        "$value": "#EDEDE5",
+        "$description": "Soft section backgrounds",
+        "$extensions": {
+          "provenance": "notion"
+        }
+      },
+      "400": {
+        "$value": "#DCDCCC",
+        "$description": "Feature surfaces, logo ground, secondary illustration fills",
+        "$extensions": {
+          "provenance": "notion"
+        }
+      },
+      "600": {
+        "$value": "#B9B9A9",
+        "$description": "Decorative accents, dividers",
+        "$extensions": {
+          "provenance": "notion"
+        }
+      },
+      "800": {
+        "$value": "#868571",
+        "$description": "Mid warm-green",
+        "$extensions": {
+          "provenance": "notion"
+        }
+      },
+      "900": {
+        "$value": "#696954",
+        "$description": "Contrast accent, iconography on light",
+        "$extensions": {
+          "provenance": "notion"
+        }
+      },
+      "$description": "Five documented steps (Notion palette page, confirmed 8 Sep 2026). \"Use sage when grey feels cold.\"",
+      "$type": "color"
+    },
+    "grey": {
+      "25": {
+        "$value": "#FBFBFA",
+        "$description": "Near-white backgrounds",
+        "$extensions": {
+          "provenance": "notion"
+        }
+      },
+      "50": {
+        "$value": "#F7F7F5",
+        "$description": "Light canvas",
+        "$extensions": {
+          "provenance": "notion"
+        }
+      },
+      "100": {
+        "$value": "#F2F2F0",
+        "$description": "Card surfaces, skeletons",
+        "$extensions": {
+          "provenance": "notion"
+        }
+      },
+      "200": {
+        "$value": "#EEEEEB",
+        "$description": "Quiet fills",
+        "$extensions": {
+          "provenance": "notion"
+        }
+      },
+      "300": {
+        "$value": "#E7E7E3",
+        "$description": "Borders, quiet separators",
+        "$extensions": {
+          "provenance": "notion"
+        }
+      },
+      "400": {
+        "$value": "#D8D8D3",
+        "$description": "Hairlines, structure strokes",
+        "$extensions": {
+          "provenance": "notion"
+        }
+      },
+      "500": {
+        "$value": "#ABABA7",
+        "$description": "Secondary text on light",
+        "$extensions": {
+          "provenance": "notion"
+        }
+      },
+      "600": {
+        "$value": "#91918D",
+        "$description": "Tertiary text",
+        "$extensions": {
+          "provenance": "notion"
+        }
+      },
+      "700": {
+        "$value": "#656563",
+        "$description": "Captions, labels",
+        "$extensions": {
+          "provenance": "notion"
+        }
+      },
+      "800": {
+        "$value": "#4F4F4C",
+        "$description": "Strong secondary text",
+        "$extensions": {
+          "provenance": "notion"
+        }
+      },
+      "900": {
+        "$value": "#252820",
+        "$description": "Deepest contrast — its own token, NOT Midnight",
+        "$extensions": {
+          "provenance": "notion",
+          "upstream": "Notion’s grey table still describes this as \"same as Midnight\" — false since the Midnight correction. Description needs fixing."
+        }
+      },
+      "$description": "Eleven documented steps (Notion palette page, confirmed 8 Sep 2026). Warm, biased green, never cool.",
+      "$type": "color"
+    },
+    "paper": {
+      "$value": "#F9F7F0",
+      "$description": "Crisp --background (HSL 48 33% 97%) — \"page background, warm off-white\"",
+      "$extensions": {
+        "provenance": "notion",
+        "resolved": "Confirmed. #F7F7F5 appears nowhere in Notion; it was the .fig artboard fill."
+      }
+    },
+    "white": {
+      "$value": "#FFFFFF",
+      "$description": "Crisp --card — card surfaces in the light theme",
+      "$extensions": {
+        "provenance": "notion"
+      }
+    },
+    "calloutInk": {
+      "$value": "#4A3321",
+      "$description": "Bold --badge. Our callout text colour.",
+      "$extensions": {
+        "provenance": "notion"
+      }
+    }
+  },
+  "surface": {
+    "$type": "color",
+    "$description": "Semantic tier · the approved colour policy (plan §4, verified §4a).",
+    "page": {
+      "$value": "{color.paper}",
+      "$description": "Crisp --background. The one page ground."
+    },
+    "card": {
+      "$value": "{color.white}",
+      "$description": "Crisp --card. White cards on warm off-white — in EVERY venue: documents, decks, product.",
+      "$extensions": {
+        "provenance": "notion+decision",
+        "decided": "8 Sep 2026 — user: follow Crisp",
+        "supersedes": "the sand-card treatment in the presentations skill prose, and our own sand cards in deck.css and the PPT template"
+      }
+    },
+    "cardDark": {
+      "$value": "{color.midnight.accent}",
+      "$description": "Card on a dark surface"
+    },
+    "emphasis": {
+      "$value": "{color.midnight.primary}",
+      "$description": "Emphasis panel · one or two per deliverable"
+    },
+    "callout": {
+      "$value": "{color.sand.primary}"
+    },
+    "accent": {
+      "$value": "{color.orange.primary}",
+      "$description": "Solid orange block · one per page"
+    },
+    "imageHold": {
+      "$value": "{color.sand.primary}"
+    },
+    "hairline": {
+      "$value": "{color.grey.400}",
+      "$description": "Hairlines and structure strokes — the deck/document default",
+      "$extensions": {
+        "provenance": "notion",
+        "note": "Grey 300 #E7E7E3 stays the documented colour for card borders and quiet separators; Grey 400 is the finer structural stroke."
+      }
+    },
+    "hairlineDark": {
+      "$value": "{color.midnight.accent}"
+    },
+    "bar": {
+      "$value": "{color.grey.400}",
+      "$description": "Data bar fill. Grey 400 — sits directly on paper, where Grey 300 measured 1.16:1 and did not read. Orange marks only the one that matters.",
+      "$extensions": {
+        "provenance": "raised from Grey 300 on 10 Sep 2026 — measured 1.16:1 against paper #F9F7F0, below the Grey 400 floor of handoff 5.3",
+        "source": "lleverage.css --grey-bar"
+      }
+    },
+    "gridline": {
+      "$value": "{color.grey.400}",
+      "$description": "Chart gridlines. Grey 400 — directly on paper; Grey 300 was invisible.",
+      "$extensions": {
+        "provenance": "raised from Grey 300 on 10 Sep 2026 — measured 1.16:1 against paper #F9F7F0, below the Grey 400 floor of handoff 5.3"
+      }
+    },
+    "emphasisFill": {
+      "$value": "{color.sand.accent}"
+    },
+    "sectionBreak": {
+      "$value": "{color.sand.accent}",
+      "$description": "Sand Accent — subtle section breaks and large page backgrounds. Its documented role; NOT card fills.",
+      "$extensions": {
+        "provenance": "notion"
+      }
+    },
+    "divider": {
+      "$value": "{color.sage.600}",
+      "$description": "Decorative dividers and accents — a deliberate warm rule, not a default border",
+      "$extensions": {
+        "provenance": "notion",
+        "quote": "Sage 600 — decorative accents, dividers"
+      }
+    },
+    "border": {
+      "$value": "{color.grey.300}",
+      "$description": "Card borders, quiet separators. Stays Grey 300: it edges a white card, where the fill does the separating, not the rule.",
+      "$extensions": {
+        "provenance": "notion"
+      }
+    }
+  },
+  "text": {
+    "$type": "color",
+    "primary": {
+      "$value": "{color.midnight.primary}"
+    },
+    "secondary": {
+      "$value": "{color.midnight.accent}",
+      "$description": "Body copy"
+    },
+    "muted": {
+      "$value": "{color.grey.700}",
+      "$description": "Captions, source notes, footer text",
+      "$extensions": {
+        "provenance": "notion"
+      }
+    },
+    "faint": {
+      "$value": "{color.grey.500}",
+      "$description": "Secondary text on light",
+      "$extensions": {
+        "provenance": "notion"
+      }
+    },
+    "onDark": {
+      "$value": "{color.paper}",
+      "$description": "Never pure white on midnight"
+    },
+    "onDarkMuted": {
+      "$value": "{color.grey.500}"
+    },
+    "onAccent": {
+      "$value": "{color.paper}"
+    },
+    "onCallout": {
+      "$value": "{color.calloutInk}"
+    },
+    "accent": {
+      "$value": "{color.orange.primary}"
+    },
+    "kicker": {
+      "$value": "{color.grey.700}",
+      "$description": "Kickers, labels and captions",
+      "$extensions": {
+        "provenance": "notion",
+        "quote": "Grey 700 — captions, labels",
+        "corrects": "conflicts.md 5 — Sage 900 is \"contrast accent, iconography on light\", NOT label text"
+      }
+    },
+    "iconOnLight": {
+      "$value": "{color.sage.900}",
+      "$description": "Iconography and contrast accents on light",
+      "$extensions": {
+        "provenance": "notion"
+      }
+    }
+  },
+  "stroke": {
+    "$type": "dimension",
+    "$description": "Three tiers, nothing between them (plan · PPT Strokes page). Deck values; the doc medium uses 1 for all hairlines at print resolution.",
+    "structure": {
+      "$value": {
+        "value": 0.75,
+        "unit": "pt"
+      },
+      "$description": "Grids, lifelines, table rules, borders — the default"
+    },
+    "content": {
+      "$value": {
+        "value": 1.5,
+        "unit": "pt"
+      },
+      "$description": "Dividers, shape outlines, markers"
+    },
+    "emphasis": {
+      "$value": {
+        "value": 2,
+        "unit": "pt"
+      },
+      "$description": "Axes, the one accent line, flow arrows"
+    },
+    "isometric": {
+      "$value": {
+        "value": 1.25,
+        "unit": "pt"
+      },
+      "$description": "Line-graphics figures only"
+    },
+    "dash": {
+      "$value": "6 4",
+      "$type": "string",
+      "$description": "The one dash pattern. Dashed means projected / not yet, or a secondary path (rule.dashedMeansProjected)."
+    }
+  },
+  "radius": {
+    "$type": "dimension",
+    "card": {
+      "$value": {
+        "value": 12,
+        "unit": "px"
+      },
+      "$extensions": {
+        "scope": [
+          "card",
+          "panel",
+          "dark-card",
+          "photo",
+          "portrait"
+        ],
+        "provenance": "decision",
+        "upstream": "ACTION: document in Notion",
+        "decided": "8 Sep 2026 — house radius scale retained. Portraits joined the photo scope 23 Sep (user): 12-radius squares, not circles."
+      }
+    },
+    "tile": {
+      "$value": {
+        "value": 8,
+        "unit": "px"
+      },
+      "$extensions": {
+        "scope": [
+          "tile",
+          "system-box",
+          "actor"
+        ],
+        "provenance": "notion"
+      },
+      "$description": "8px — Crisp --radius, the documented product default."
+    },
+    "input": {
+      "$value": {
+        "value": 4,
+        "unit": "px"
+      },
+      "$extensions": {
+        "scope": [
+          "input",
+          "small-button",
+          "tag"
+        ],
+        "provenance": "decision",
+        "upstream": "ACTION: document in Notion"
+      }
+    },
+    "none": {
+      "$value": {
+        "value": 0,
+        "unit": "px"
+      },
+      "$extensions": {
+        "scope": [
+          "marker",
+          "figure",
+          "axis",
+          "node",
+          "hatch-bar",
+          "orange-bar",
+          "table-cell"
+        ],
+        "provenance": "decision",
+        "upstream": "ACTION: document in Notion"
+      }
+    },
+    "$description": "House scale: 12 card · 8 tile · 4 input · 0 markers. Decided 8 Sep 2026 (user). Notion documents only the 8px product default (Crisp --radius), so 12 / 4 / 0 must be documented upstream.",
+    "pill": {
+      "$value": {
+        "value": 999,
+        "unit": "px"
+      },
+      "$description": "Pill — capsule markers, tags",
+      "$extensions": {
+        "provenance": "ds",
+        "dsToken": "--ll-radius-pill"
+      }
+    }
+  },
+  "space": {
+    "1": {
+      "$value": {
+        "value": 4,
+        "unit": "px"
+      }
+    },
+    "2": {
+      "$value": {
+        "value": 8,
+        "unit": "px"
+      }
+    },
+    "3": {
+      "$value": {
+        "value": 12,
+        "unit": "px"
+      }
+    },
+    "4": {
+      "$value": {
+        "value": 16,
+        "unit": "px"
+      }
+    },
+    "5": {
+      "$value": {
+        "value": 20,
+        "unit": "px"
+      }
+    },
+    "6": {
+      "$value": {
+        "value": 24,
+        "unit": "px"
+      }
+    },
+    "8": {
+      "$value": {
+        "value": 32,
+        "unit": "px"
+      }
+    },
+    "10": {
+      "$value": {
+        "value": 40,
+        "unit": "px"
+      }
+    },
+    "12": {
+      "$value": {
+        "value": 48,
+        "unit": "px"
+      }
+    },
+    "16": {
+      "$value": {
+        "value": 64,
+        "unit": "px"
+      },
+      "$description": "Page margin"
+    },
+    "ruleGap": {
+      "$value": {
+        "value": 4,
+        "unit": "px"
+      },
+      "$description": "The space ABOVE a head's rule — head text to hairline. 4 units = 3 pt. Below the rule the following text gets 4, which with its own line-box leading lands on the same optical gap. Approved 10 Sep; replaces ad-hoc 8 and 10.",
+      "$extensions": {
+        "provenance": "decided",
+        "note": "Applies to the section head, the card head and any rule that closes a head."
+      }
+    },
+    "$type": "dimension",
+    "$description": "4-base scale. Inside a card 16–20 · between cards 32 or 48 · between sections 64. ruleGap 12 closes a head."
+  },
+  "font": {
+    "$type": "fontFamily",
+    "display": {
+      "$value": [
+        "Abhaya Libre",
+        "Georgia",
+        "serif"
+      ],
+      "$description": "Titles, quotes, statements. Never below 20 pt.",
+      "$extensions": {
+        "provenance": "fig"
+      }
+    },
+    "sans": {
+      "$value": [
+        "Public Sans",
+        "Helvetica Neue",
+        "system-ui",
+        "sans-serif"
+      ],
+      "$description": "Body, card heads, stats",
+      "$extensions": {
+        "provenance": "fig"
+      }
+    },
+    "mono": {
+      "$value": [
+        "Roboto Mono",
+        "ui-monospace",
+        "monospace"
+      ],
+      "$description": "Kickers, labels, metadata, numeric grids. Always uppercase.",
+      "$extensions": {
+        "provenance": "fig"
+      }
+    },
+    "$extensions": {
+      "notAdopted": "Notion exposes --font-serif (Abhaya Libre) and --font-mono (Roboto Mono) in production, with Public Sans as the body face. Bricolage Grotesque, DM Mono, Chivo Mono, Be Vietnam Pro and Inter appear nowhere in Notion — conflict 5 closed: not brand fonts."
+    }
+  },
+  "type": {
+    "$description": "Same roles in both media, different scale and different floors. Deck is authored at 960×540 so 1 px = 1 pt.",
+    "floor": {
+      "$type": "dimension",
+      "mono": {
+        "$value": {
+          "value": 8,
+          "unit": "pt"
+        },
+        "$description": "Mono may go smaller than other faces"
+      },
+      "other": {
+        "$value": {
+          "value": 10,
+          "unit": "pt"
+        }
+      },
+      "body": {
+        "$value": {
+          "value": 12,
+          "unit": "pt"
+        }
+      },
+      "$extensions": {
+        "provenance": "policy",
+        "note": "Deck floors. The doc medium runs mono at ~7 pt in print, which is correct at reading distance."
+      },
+      "$description": "Print floors. The three values here are the DECK floors -- mono 8pt, other faces 10pt, body 12pt -- and are emitted as --ll-floor-*. Plan.md section 8: \"same roles, different scale per medium, floors per medium\", so the document scale carries its own set under .doc.",
+      "doc": {
+        "mono": {
+          "$value": {
+            "value": 6.75,
+            "unit": "pt"
+          },
+          "$type": "dimension",
+          "$description": "type.doc.micro, 9 px. The smallest mono the document scale authors."
+        },
+        "other": {
+          "$value": {
+            "value": 7.1,
+            "unit": "pt"
+          },
+          "$type": "dimension",
+          "$description": "type.doc.label, 9.5 px. The smallest non-mono the document scale authors."
+        },
+        "body": {
+          "$value": {
+            "value": 9.375,
+            "unit": "pt"
+          },
+          "$type": "dimension",
+          "$description": "type.doc.body, 12.5 px. Running text may not go below its own authored size."
+        },
+        "$description": "Document-scale floors. Deliberately below the deck floors: Plan.md section 8 records the doc scale as \"about 7 pt in print, correct at reading distance and far below the deck floor of 10 pt\"."
+      }
+    },
+    "deck": {
+      "$type": "dimension",
+      "display": {
+        "$value": {
+          "value": 48,
+          "unit": "pt"
+        },
+        "$extensions": {
+          "font": "{font.display}",
+          "use": "cover, close"
+        }
+      },
+      "title": {
+        "$value": {
+          "value": 32,
+          "unit": "pt"
+        },
+        "$extensions": {
+          "font": "{font.display}",
+          "use": "every content slide",
+          "note": "32 pt in a 92-unit zone (grid.titleHeight), which holds two lines at type.leading.deck.title. Was 23 pt in a 70-unit zone, kept for a step-4 compact header; raised on user instruction 10 Sep because 23 pt read as far too small. This note said 23 for eleven days after the value moved, which is what build/check-docs.mjs exists to stop in prose — and could not see here.",
+          "provenance": "doc"
+        }
+      },
+      "divider": {
+        "$value": {
+          "value": 43.5,
+          "unit": "pt"
+        },
+        "$extensions": {
+          "font": "{font.display}"
+        }
+      },
+      "numeral": {
+        "$value": {
+          "value": 128,
+          "unit": "pt"
+        },
+        "$extensions": {
+          "font": "{font.mono}",
+          "use": "the section divider's number",
+          "provenance": "master",
+          "note": "The master divider's numeral, which the user picked over the HTML deck's on 23 Sep. It had no token: the master drew it at 127 pt snapped to 128, the HTML deck at 150 px bold sans."
+        }
+      },
+      "quote": {
+        "$value": {
+          "value": 28.5,
+          "unit": "pt"
+        },
+        "$extensions": {
+          "font": "{font.display}"
+        }
+      },
+      "sectionHead": {
+        "$value": {
+          "value": 20,
+          "unit": "pt"
+        },
+        "$extensions": {
+          "font": "{font.display}",
+          "note": "serif once per slide, the floor for serif"
+        }
+      },
+      "statBig": {
+        "$value": {
+          "value": 55.5,
+          "unit": "pt"
+        },
+        "$extensions": {
+          "font": "{font.sans}",
+          "weight": 700
+        }
+      },
+      "stat": {
+        "$value": {
+          "value": 31.5,
+          "unit": "pt"
+        },
+        "$extensions": {
+          "font": "{font.sans}",
+          "weight": 700
+        }
+      },
+      "value": {
+        "$value": {
+          "value": 24,
+          "unit": "pt"
+        },
+        "$extensions": {
+          "font": "{font.sans}",
+          "weight": 700,
+          "provenance": "policy",
+          "note": "In-card numbers. Approved 9 Sep: the master's 24 / 28 / 36 pt values fold onto this one step, with stat 31.5 for standalone figures."
+        }
+      },
+      "cardHead": {
+        "$value": {
+          "value": 14,
+          "unit": "pt"
+        },
+        "$extensions": {
+          "font": "{font.sans}",
+          "weight": 700
+        }
+      },
+      "body": {
+        "$value": {
+          "value": 12,
+          "unit": "pt"
+        },
+        "$extensions": {
+          "font": "{font.sans}",
+          "note": "one body size — the floor"
+        }
+      },
+      "label": {
+        "$value": {
+          "value": 10,
+          "unit": "pt"
+        },
+        "$extensions": {
+          "font": "{font.mono}",
+          "tracking": "0.1em",
+          "case": "upper"
+        }
+      },
+      "micro": {
+        "$value": {
+          "value": 8,
+          "unit": "pt"
+        },
+        "$extensions": {
+          "font": "{font.mono}",
+          "tracking": "0.13em",
+          "case": "upper"
+        }
+      }
+    },
+    "leading": {
+      "deck": {
+        "$description": "Line spacing, as a percentage of the type size, one per role in the deck ramp. Percentages rather than points so one number serves every venue and each emitter resolves it: work/layouts.js writes <a:spcPts> in points, kit/system.js writes points for pptxgenjs. These are the values work/layouts.js has carried as literals since step 4; they are not new numbers, they are the same numbers with a source. Leading had no token until 22 Sep, which is how <a:spcPct> shipped for eleven days meaning a percentage of the FONT line box (118% of the em for the text faces, 132% for the mono) rather than of the size — a hairline through WHAT IT MEASURES on three pages, and the single most expensive bug on the presentations skill's own build.",
+        "display": {
+          "$value": 104,
+          "$type": "number",
+          "$extensions": {
+            "of": "{type.deck.display}",
+            "unit": "percent of the type size",
+            "provenance": "doc"
+          }
+        },
+        "title": {
+          "$value": 106,
+          "$type": "number",
+          "$extensions": {
+            "of": "{type.deck.title}",
+            "unit": "percent of the type size",
+            "provenance": "doc"
+          }
+        },
+        "quote": {
+          "$value": 112,
+          "$type": "number",
+          "$extensions": {
+            "of": "{type.deck.quote}",
+            "unit": "percent of the type size",
+            "provenance": "doc"
+          }
+        },
+        "statBig": {
+          "$value": 94,
+          "$type": "number",
+          "$extensions": {
+            "of": "{type.deck.statBig}",
+            "unit": "percent of the type size",
+            "provenance": "doc"
+          }
+        },
+        "stat": {
+          "$value": 105,
+          "$type": "number",
+          "$extensions": {
+            "of": "{type.deck.stat}",
+            "unit": "percent of the type size",
+            "provenance": "doc"
+          }
+        },
+        "value": {
+          "$value": 100,
+          "$type": "number",
+          "$extensions": {
+            "of": "{type.deck.value}",
+            "unit": "percent of the type size",
+            "provenance": "doc"
+          }
+        },
+        "cardHead": {
+          "$value": 115,
+          "$type": "number",
+          "$extensions": {
+            "of": "{type.deck.cardHead}",
+            "unit": "percent of the type size",
+            "provenance": "doc"
+          }
+        },
+        "body": {
+          "$value": 140,
+          "$type": "number",
+          "$extensions": {
+            "of": "{type.deck.body}",
+            "unit": "percent of the type size",
+            "provenance": "doc"
+          }
+        },
+        "label": {
+          "$value": 100,
+          "$type": "number",
+          "$extensions": {
+            "of": "{type.deck.label}",
+            "unit": "percent of the type size",
+            "provenance": "doc"
+          }
+        },
+        "micro": {
+          "$value": 100,
+          "$type": "number",
+          "$extensions": {
+            "of": "{type.deck.micro}",
+            "unit": "percent of the type size",
+            "provenance": "doc"
+          }
+        }
+      }
+    },
+    "doc": {
+      "$type": "dimension",
+      "$description": "Print, A4. Values as shipping in lleverage.css.",
+      "h1": {
+        "$value": {
+          "value": 60,
+          "unit": "px"
+        },
+        "$extensions": {
+          "font": "{font.display}",
+          "provenance": "doc"
+        }
+      },
+      "h2": {
+        "$value": {
+          "value": 34,
+          "unit": "px"
+        },
+        "$extensions": {
+          "font": "{font.display}",
+          "provenance": "doc"
+        }
+      },
+      "h3": {
+        "$value": {
+          "value": 16,
+          "unit": "px"
+        },
+        "$extensions": {
+          "font": "{font.sans}",
+          "weight": 600,
+          "provenance": "doc"
+        }
+      },
+      "lead": {
+        "$value": {
+          "value": 14,
+          "unit": "px"
+        },
+        "$extensions": {
+          "font": "{font.sans}",
+          "provenance": "doc"
+        }
+      },
+      "body": {
+        "$value": {
+          "value": 12.5,
+          "unit": "px"
+        },
+        "$extensions": {
+          "font": "{font.sans}",
+          "provenance": "doc"
+        }
+      },
+      "bodySmall": {
+        "$value": {
+          "value": 11.5,
+          "unit": "px"
+        },
+        "$extensions": {
+          "font": "{font.sans}",
+          "provenance": "doc",
+          "use": "card and table copy"
+        }
+      },
+      "stat": {
+        "$value": {
+          "value": 30,
+          "unit": "px"
+        },
+        "$extensions": {
+          "font": "{font.sans}",
+          "weight": 700,
+          "provenance": "doc"
+        }
+      },
+      "label": {
+        "$value": {
+          "value": 9.5,
+          "unit": "px"
+        },
+        "$extensions": {
+          "font": "{font.mono}",
+          "tracking": "0.22em",
+          "case": "upper",
+          "provenance": "doc"
+        }
+      },
+      "micro": {
+        "$value": {
+          "value": 9,
+          "unit": "px"
+        },
+        "$extensions": {
+          "font": "{font.mono}",
+          "tracking": "0.12em",
+          "case": "upper",
+          "provenance": "doc",
+          "use": "micro type: ticks, diagram tags, notes, pills. The document twin of type.deck.micro",
+          "renamed": "type.doc.tableHead until 23 Sep. The name claimed the table head, which has been bold Public Sans at body size since 10 Sep; only the micro text ever used this size."
+        }
+      }
+    },
+    "product": {
+      "$description": "14px design base. The .markdown scale for long-form; marketing heroes (Abhaya Libre 56–96px) sit outside it.",
+      "$type": "dimension",
+      "h1": {
+        "$value": {
+          "value": 20,
+          "unit": "px"
+        },
+        "$extensions": {
+          "weight": 600,
+          "lh": 1.7
+        }
+      },
+      "h2": {
+        "$value": {
+          "value": 18,
+          "unit": "px"
+        },
+        "$extensions": {
+          "weight": 600,
+          "lh": 1.7
+        }
+      },
+      "h3": {
+        "$value": {
+          "value": 16,
+          "unit": "px"
+        },
+        "$extensions": {
+          "weight": 600,
+          "lh": 1.7
+        }
+      },
+      "h4": {
+        "$value": {
+          "value": 15,
+          "unit": "px"
+        },
+        "$extensions": {
+          "weight": 600,
+          "lh": 1.7
+        }
+      },
+      "h5": {
+        "$value": {
+          "value": 14,
+          "unit": "px"
+        },
+        "$extensions": {
+          "weight": 600,
+          "lh": 1.7
+        }
+      },
+      "body": {
+        "$value": {
+          "value": 14,
+          "unit": "px"
+        },
+        "$extensions": {
+          "weight": 400,
+          "lh": 1.7
+        }
+      },
+      "$extensions": {
+        "provenance": "notion"
+      }
+    }
+  },
+  "grid": {
+    "$description": "Deck geometry, authored 1280×720 and exported at 960×540.",
+    "$type": "dimension",
+    "margin": {
+      "$value": {
+        "value": 64,
+        "unit": "px"
+      }
+    },
+    "contentWidth": {
+      "$value": {
+        "value": 1152,
+        "unit": "px"
+      }
+    },
+    "titleTop": {
+      "$value": {
+        "value": 40,
+        "unit": "px"
+      },
+      "$description": "1280-space units · 30 pt from the top edge — the skill’s 0.42 in"
+    },
+    "titleHeight": {
+      "$value": {
+        "value": 92,
+        "unit": "px"
+      },
+      "$description": "1280-space units = 52.5 pt · holds two lines of 23 pt · header rule, kicker and content zone unchanged"
+    },
+    "headerRule": {
+      "$value": {
+        "value": 142,
+        "unit": "px"
+      }
+    },
+    "kickerTop": {
+      "$value": {
+        "value": 149,
+        "unit": "px"
+      }
+    },
+    "contentTop": {
+      "$value": {
+        "value": 186,
+        "unit": "px"
+      }
+    },
+    "contentBottom": {
+      "$value": {
+        "value": 620,
+        "unit": "px"
+      }
+    },
+    "footerRule": {
+      "$value": {
+        "value": 642,
+        "unit": "px"
+      }
+    },
+    "footerTop": {
+      "$value": {
+        "value": 666,
+        "unit": "px"
+      },
+      "$description": "Logo top. Footer rule 642 + one ident height (24) = 666; lockup bottom 690, leaving 30 to the slide edge."
+    },
+    "gutter": {
+      "$value": {
+        "value": 32,
+        "unit": "px"
+      }
+    },
+    "columns": {
+      "$value": "1152 / 560+560 / 362.7×3 / 264×4",
+      "$type": "string"
+    }
+  },
+  "canvas": {
+    "$description": "The canvas every number in grid is a fraction of, and the factor for turning those units into inches or points. Its own group rather than part of grid because it is not a CSS length: work/emit-css.js writes every grid key out as px, and an inch value stamped px is nonsense. It had no token at all until 22 Sep, and that omission is the whole of the 23 vs 32 pt confusion. A point is an absolute 1/72 inch, so without the canvas a point size cannot be carried between two decks and stay the same size. The master is 13.333 x 7.5 in, PowerPoint Widescreen; pptxgenjs's LAYOUT_16x9 default is 10 x 5.625 in, the same shape 1.3333x smaller. 23 pt on that canvas is 30.67 pt on this one, 4% off the 32 pt here -- the same design, read as a disagreement because nobody wrote the canvas down. Normalised, margin, content width and content top agree to a tenth of a percent. Anything emitting inches or points MUST derive them through unitsPerInch and never restate them.",
+    "slideWidth": {
+      "$value": {
+        "value": 13.3333,
+        "unit": "in"
+      },
+      "$extensions": {
+        "note": "PowerPoint Widescreen 16:9, and what master/*.pptx declares in sldSz",
+        "provenance": "policy"
+      }
+    },
+    "slideHeight": {
+      "$value": {
+        "value": 7.5,
+        "unit": "in"
+      },
+      "$extensions": {
+        "note": "PowerPoint Widescreen 16:9",
+        "provenance": "policy"
+      }
+    },
+    "slideUnits": {
+      "$value": {
+        "value": 1280,
+        "unit": "px"
+      },
+      "$extensions": {
+        "note": "Slide units across the width. grid.contentWidth and every other number here is in these",
+        "provenance": "policy"
+      }
+    },
+    "unitsPerInch": {
+      "$value": {
+        "value": 96,
+        "unit": "px"
+      },
+      "$extensions": {
+        "note": "grid.slideUnits / grid.slideWidth. The one factor every inch conversion goes through — never restate an inch value, derive it",
+        "provenance": "policy"
+      }
+    }
+  },
+  "component": {
+    "card": {
+      "radius": {
+        "$value": "{radius.card}",
+        "$type": "dimension"
+      },
+      "padding": {
+        "$value": "{space.4}",
+        "$type": "dimension"
+      },
+      "border": {
+        "$value": "{surface.border}",
+        "$type": "color",
+        "$extensions": {
+          "decided": "23 Sep 2026 -- user: Grey 300. Was {surface.hairline} (Grey 400), which contradicted surface.border's own description ('card borders'); the CSS already drew Grey 300 and the master drew Grey 400."
+        }
+      },
+      "$description": "container · [eyebrow] · head · body · [footnote] · variants default|dark|outline|feature"
+    },
+    "marker": {
+      "radius": {
+        "$value": "{radius.none}",
+        "$type": "dimension"
+      },
+      "screwRadius": {
+        "$value": "{radius.pill}",
+        "$type": "dimension",
+        "$description": "The one rounded marker: the screw is a capsule. Every other marker resolves to radius 0.",
+        "$extensions": {
+          "decided": "23 Sep 2026 -- user: keep the screw rounded."
+        }
+      },
+      "stroke": {
+        "$value": "{stroke.content}",
+        "$type": "dimension"
+      },
+      "$description": "Fixed sizes: block 80×18 · column 23×110 · pin 20×20 · screw 20×10 · node 10. Always on a line. Repeat, never resize. THIS IS THE RULE THAT WENT UNENFORCED — radius must resolve to 0, except the screw (screwRadius).",
+      "color": {
+        "$value": "{color.midnight.accent}",
+        "$type": "color",
+        "$description": "Outline colour for markers and drawn figures. Retired #363C38 (absent from Notion) on 8 Sep 2026."
+      }
+    },
+    "orangeBar": {
+      "large": {
+        "$value": "56 12",
+        "$type": "string"
+      },
+      "medium": {
+        "$value": "40 8",
+        "$type": "string"
+      },
+      "small": {
+        "$value": "24 6",
+        "$type": "string"
+      },
+      "$description": "Sized to the type it opens. L display serif · M title/big stat · S card head. Both orientations."
+    },
+    "callout": {
+      "$description": "The midnight plate, approved 10 Sep: the claim first in the accent, then the sentence in paper, at the card radius, no border. Until 23 Sep this token still described the sand box with a dashed orange edge that the plate replaced, and the master's Claim layout was built from it.",
+      "surface": {
+        "$value": "{surface.emphasis}",
+        "$type": "color"
+      },
+      "text": {
+        "$value": "{text.onDark}",
+        "$type": "color"
+      },
+      "claim": {
+        "$value": "{text.accent}",
+        "$type": "color"
+      },
+      "radius": {
+        "$value": "{radius.card}",
+        "$type": "dimension"
+      }
+    },
+    "chrome": {
+      "$description": "The header rule under the title and the footer rule above the logo, on every slide that has them. One weight for the HTML deck and the master.",
+      "rule": {
+        "$value": "{stroke.structure}",
+        "$type": "dimension",
+        "$extensions": {
+          "decided": "23 Sep 2026 -- user: the rules were too heavy against the slides' hairlines. The HTML deck drew them at stroke.content (1.5 pt) while the master drew stroke.structure (0.75 pt); nothing named the weight, so the two had drifted."
+        }
+      },
+      "color": {
+        "$value": "{surface.divider}",
+        "$type": "color"
+      }
+    },
+    "bullet": {
+      "indent": {
+        "$value": {
+          "value": 15,
+          "unit": "px"
+        },
+        "$type": "dimension",
+        "$description": "Text starts this far in; the marker hangs at the left edge. The HTML (ul.bul) and the master's bullet styles (marL) both read it.",
+        "$extensions": {
+          "decided": "23 Sep 2026 -- user: keep the 15 the master used. The CSS carried a second, duplicate bullet rule at 16 px that lost to the first everywhere."
+        }
+      },
+      "size": {
+        "$value": {
+          "value": 5,
+          "unit": "px"
+        },
+        "$type": "dimension"
+      },
+      "color": {
+        "$value": "{text.primary}",
+        "$type": "color",
+        "$description": "The default marker: ink. On midnight it is text.onDark.",
+        "$extensions": {
+          "decided": "23 Sep 2026 -- user: ink default, orange allowed. Was orange, while the HTML deck and the master both drew ink bullets."
+        }
+      },
+      "accent": {
+        "$value": "{color.orange.primary}",
+        "$type": "color",
+        "$description": "Allowed variant: orange markers. It counts toward the page's one accent."
+      },
+      "$description": "A drawn square element, not a ▪ glyph — matches the doc skill and survives PPT conversion."
+    },
+    "logo": {
+      "clearSpace": {
+        "$value": "ident-height",
+        "$type": "string",
+        "$description": "At least the height of the IDENT MARK on all sides, free of other content. In the full lockup the ident is full-height, so clear space equals the lockup height in practice — but it is specified from the ident."
+      },
+      "minHeightLockup": {
+        "$value": {
+          "value": 24,
+          "unit": "px"
+        },
+        "$type": "dimension",
+        "$description": "Horizontal lockup — 24px / 6mm high"
+      },
+      "minHeightIdent": {
+        "$value": {
+          "value": 16,
+          "unit": "px"
+        },
+        "$type": "dimension",
+        "$description": "Ident — 16px / 4mm"
+      },
+      "$description": "Four primary backgrounds: On Sand (default for marketing, decks, documents) · On Orange (hero, covers, CTAs) · On Light (product, long-form, reports) · On Midnight (premium/dark, quiet moments). Never crop, rotate, skew, recolour, add a shadow, or place on a busy photo WITHOUT A SOLID CONTAINER. Never mix ident and wordmark separately on one surface.",
+      "$extensions": {
+        "provenance": "notion",
+        "conflict": "our footer lockup is 22px high — below the 24px minimum. conflicts.md 6",
+        "footerLockup": "111 × 24 px on the 1280-wide authoring grid = 0.25 in / 6.35 mm high at 96 px/in, clearing the 6 mm floor. Ratio held at the artwork’s 250:54.",
+        "provenanceOfOldValue": "The retired 104 × 22 px came from the presentations skill’s deck footer spec (~0.91 in × 0.20 in) scaled into our grid; 0.20 in = 5.1 mm, and 22 px = 5.8 mm — both under the documented 6 mm minimum."
+      },
+      "onPhotography": {
+        "$value": "solid-container-required",
+        "$type": "string",
+        "$description": "Notion don’ts: never place the logo on a busy photo WITHOUT a solid container. A paper or ink plate is required, not forbidden."
+      }
+    },
+    "icon": {
+      "sizes": {
+        "$value": "20 24 32 48 64",
+        "$type": "string"
+      },
+      "strokeConstruction": {
+        "$value": "{stroke.structure}",
+        "$type": "dimension"
+      },
+      "strokeOutline": {
+        "$value": "{stroke.content}",
+        "$type": "dimension"
+      },
+      "$description": "64-unit grid, body within 8–56. Strokes do not scale with the icon. Compact mode ≤24, stencil below 24. Data: assets/icons/icons.json (6 modes)."
+    },
+    "table": {
+      "$description": "A table is marked by its head and its total, nothing else: no fill on the head, no vertical or outer rules, no bands by default, no highlight column (decided 10 Sep). The head is bold Public Sans at the venue's body size, not mono (the owner, 23 Sep). The stylesheet, the PowerPoint table style and the skills read this; until 23 Sep it was typed into emit-css.js, the template's default table style was Office's orange-headed banded one, and the component page described zebra rows in a grey the CSS did not draw.",
+      "head": {
+        "font": {
+          "$value": "{font.sans}",
+          "$type": "fontFamily"
+        },
+        "weight": {
+          "$value": 700,
+          "$type": "fontWeight"
+        },
+        "size": {
+          "$value": "body",
+          "$type": "string",
+          "$description": "a type role, resolved per venue: type.deck.body in a deck, type.doc.body in a document"
+        },
+        "tracking": {
+          "$value": "-0.01em",
+          "$type": "string"
+        },
+        "color": {
+          "$value": "{text.primary}",
+          "$type": "color"
+        },
+        "rule": {
+          "$value": "{stroke.content}",
+          "$type": "dimension"
+        },
+        "ruleColor": {
+          "$value": "{text.primary}",
+          "$type": "color"
+        }
+      },
+      "cell": {
+        "size": {
+          "$value": "body",
+          "$type": "string",
+          "$description": "a type role, as head.size"
+        },
+        "color": {
+          "$value": "{text.secondary}",
+          "$type": "color"
+        },
+        "rule": {
+          "$value": "{stroke.structure}",
+          "$type": "dimension"
+        },
+        "ruleColor": {
+          "$value": "{surface.hairline}",
+          "$type": "color"
+        }
+      },
+      "total": {
+        "weight": {
+          "$value": 700,
+          "$type": "fontWeight"
+        },
+        "color": {
+          "$value": "{text.primary}",
+          "$type": "color"
+        },
+        "rule": {
+          "$value": "{stroke.content}",
+          "$type": "dimension"
+        },
+        "ruleColor": {
+          "$value": "{text.primary}",
+          "$type": "color"
+        }
+      },
+      "zebra": {
+        "fill": {
+          "$value": "{color.grey.300}",
+          "$type": "color",
+          "$description": "table.zebra only: a long table where the eye has to track a row. Its rows lose their rules."
+        }
+      }
+    }
+  },
+  "motion": {
+    "$type": "duration",
+    "$description": "Web and product only. Not in doc or deck.",
+    "fast": {
+      "$value": {
+        "value": 120,
+        "unit": "ms"
+      },
+      "$extensions": {
+        "provenance": "ds"
+      }
+    },
+    "base": {
+      "$value": {
+        "value": 200,
+        "unit": "ms"
+      },
+      "$extensions": {
+        "provenance": "ds"
+      }
+    },
+    "slow": {
+      "$value": {
+        "value": 280,
+        "unit": "ms"
+      },
+      "$extensions": {
+        "provenance": "ds"
+      }
+    },
+    "ease": {
+      "$value": "cubic-bezier(0.2, 0, 0, 1)",
+      "$type": "cubicBezier",
+      "$extensions": {
+        "provenance": "ds"
+      }
+    }
+  },
+  "rule": {
+    "$description": "Machine-readable conformance rules. The build fails on a violation (plan §6).",
+    "oneAccentPerPage": {
+      "$value": true,
+      "$type": "boolean"
+    },
+    "dashedMeansProjected": {
+      "$value": true,
+      "$type": "boolean",
+      "$description": "A dashed line means projected / not yet, or a secondary path: a sequence diagram's lifelines and return messages, a process gate. One pattern, stroke.dash. Nothing else is dashed.",
+      "$extensions": {
+        "decided": "23 Sep 2026 -- user: allow projected or secondary. The component pages already dashed lifelines and responses."
+      }
+    },
+    "noIntermediateStrokes": {
+      "$value": true,
+      "$type": "boolean"
+    },
+    "noDerivedTints": {
+      "$value": true,
+      "$type": "boolean",
+      "$description": "The orange 80/60/40/20 ramp is retired. Data uses midnight/grey steps."
+    },
+    "noContentInChrome": {
+      "$value": true,
+      "$type": "boolean"
+    },
+    "colourSetClosed": {
+      "$value": true,
+      "$type": "boolean",
+      "$description": "Nothing outside this file."
+    },
+    "sixtyThirtyTen": {
+      "$value": "60 Sand or Light neutral / 30 Midnight / 10 Orange",
+      "$type": "string",
+      "$description": "Notion. \"Never more\" than 10% orange — it should feel intentional, not decorative.",
+      "$extensions": {
+        "provenance": "notion"
+      }
+    },
+    "askBeforeAdding": {
+      "$value": true,
+      "$type": "boolean",
+      "$description": "Notion: \"If no existing token fits, stop and ask before adding a new one.\""
+    }
+  },
+  "theme": {
+    "$description": "shadcn/ui semantic tokens, HSL in code. Rules: always a semantic token; never raw hex/rgb/hsl in components; never Tailwind palette scales; no opacity modifiers except status-badge tints; if no token fits, STOP AND ASK rather than inventing one.",
+    "crisp": {
+      "$description": "Light, default",
+      "background": {
+        "$value": "48 33% 97%",
+        "$type": "string"
+      },
+      "card": {
+        "$value": "0 0% 100%",
+        "$type": "string"
+      },
+      "primaryForeground": {
+        "$value": "0 0% 100%",
+        "$type": "string"
+      },
+      "muted": {
+        "$value": "50 18% 93%",
+        "$type": "string"
+      },
+      "accent": {
+        "$value": "60 35% 91%",
+        "$type": "string"
+      },
+      "warning": {
+        "$value": "48 65% 42%",
+        "$type": "string"
+      },
+      "info": {
+        "$value": "210 45% 45%",
+        "$type": "string"
+      },
+      "highlight": {
+        "$value": "24 84% 53.1%",
+        "$type": "string"
+      },
+      "radius": {
+        "$value": "0.5rem",
+        "$type": "string"
+      }
+    },
+    "bold": {
+      "$description": "Dark",
+      "background": {
+        "$value": "83 11% 12%",
+        "$type": "string"
+      },
+      "foreground": {
+        "$value": "50 20% 93%",
+        "$type": "string"
+      },
+      "card": {
+        "$value": "83 9% 16%",
+        "$type": "string"
+      },
+      "primary": {
+        "$value": "24 84% 53.1%",
+        "$type": "string"
+      },
+      "secondary": {
+        "$value": "83 9% 20%",
+        "$type": "string"
+      },
+      "muted": {
+        "$value": "83 9% 18%",
+        "$type": "string"
+      },
+      "mutedForeground": {
+        "$value": "50 10% 55%",
+        "$type": "string"
+      },
+      "accent": {
+        "$value": "83 9% 20%",
+        "$type": "string"
+      },
+      "destructive": {
+        "$value": "0 55% 50%",
+        "$type": "string"
+      },
+      "warning": {
+        "$value": "48 65% 52%",
+        "$type": "string"
+      },
+      "success": {
+        "$value": "145 35% 45%",
+        "$type": "string"
+      },
+      "info": {
+        "$value": "210 45% 55%",
+        "$type": "string"
+      },
+      "border": {
+        "$value": "83 7% 22%",
+        "$type": "string"
+      },
+      "highlight": {
+        "$value": "24 84% 57%",
+        "$type": "string"
+      },
+      "badge": {
+        "$value": "24 40% 20%",
+        "$type": "string"
+      }
+    },
+    "$extensions": {
+      "provenance": "notion"
+    }
+  }
+}

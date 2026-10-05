@@ -31,6 +31,9 @@ Nothing is ever posted by this skill. A person reviews, picks and posts.
   source for the videos (every clip rebuilds the real screens from the code).
   The skill never writes to it.
 - Read access to Slack #change-log.
+- The Lleverage design system, carried in `toolkit/design-system/` (check its
+  version against `lleverage-ai/lleverage-design-system` at the start of a
+  drop; `references/design-system.md`).
 - Node, ffmpeg and Playwright (`references/build.md`), and the Artifact tool
   to publish the drop page.
 
@@ -42,6 +45,7 @@ Nothing is ever posted by this skill. A person reviews, picks and posts.
 | `references/copy.md` | Before writing any text. Templates, limits, hooks, emoji rules, copy check. |
 | `references/formats.md` | Before building. Exact specs for every output. |
 | `references/build.md` | When building and rendering. Setup, commands, timeline guide. |
+| `references/design-system.md` | Before building. The brand layer: kit, palette, type, cover and content patterns, how to update. |
 | `references/app-ui.md` | When rebuilding a screen. The real UI, with source paths. |
 | `references/qa.md` | Before hand-over. Definition of done. |
 
@@ -120,7 +124,9 @@ same message there and mark it ready for review.
 - One framing everywhere (`narrative.md`): people off the repetitive data work
   and onto the hard cases and the process, steering the AI; check copy against
   its five principles. Say it in plain sentences, never as a tagline.
-- Real product UI from the codebase; never a lookalike.
+- Real product UI from the codebase inside the stage; everything around it
+  (frame, cards, carousel, page) on the design system. Never a lookalike,
+  never an invented brand style.
 - ERP examples (orders, invoices, POs, a named ERP); features stay generic, so
   no process or domain labels on cards.
 - Marketing names for features; on-screen labels as the app shows them;

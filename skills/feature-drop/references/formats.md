@@ -7,12 +7,12 @@ Keep the numbers; they are what makes drops look the same week after week.
 
 | Property | Value |
 | --- | --- |
-| Size | 1080 × 1350 (4:5), H.264, yuv420p, CRF 18, 30 fps, no audio |
+| Size | 1080 × 1350 (4:5), H.264, yuv420p, CRF 18, 60 fps, no audio |
 | Timeline | ~20s of clip time, written in the clip HTML |
 | Playback | rendered at **0.85 speed** (`CLIP_SPEED`, default) → ~22–24s file |
-| Structure | 0–2.2s title card (slides up at 2.2) → app with camera, cursor and captions → end card fades in at ~17s and holds to the end |
+| Structure | 0–2.2s title card (design system dark cover: midnight + glow, orange bar, mono kicker, display title; slides up at 2.2) → app with camera, cursor and captions → end card (same pattern) fades in at ~17s and holds to the end |
 | Captions | 3–4 beats, each ≥ 4s of clip time, 58px Public Sans 600, two lines max, second line orange |
-| Frame chrome | brand row (logo + "Feature drop · Week NN" in orange caps), captions above the stage, stage 952 × 900 at (64, 330) with rounded border, footer "lleverage.ai · Live now" |
+| Frame chrome | design system content pattern: paper ground, full dark logo top left, mono tag "/ FEATURE DROP · WEEK NN" top right, hairline; display-serif captions (66px, second line orange) above the stage; stage 952 × 900 at (64, 330) with rounded border; mono footer "LLEVERAGE.AI · LIVE NOW" |
 | Stage | the real app at 1280 × 800, moved by a camera: ≈0.74 establishing shot, 1.45–2.0 on the action; one camera move per beat, 0.5–0.7s long |
 | Cursor | arrives 0.2–0.4s before a click; click ring on clicks; leaves the frame when idle |
 | Data | illustrative ERP data (see `copy.md`) |
@@ -26,7 +26,7 @@ Slugs are short and stable: `talk-to-llev`, `kanban-board`, `skill-tests`.
 | --- | --- |
 | Length | ~65s for three features (≈ 2.5 + 3 × ~20 + 3) |
 | Structure | 2.5s cover card → each clip from 0 (its title card announces the feature) up to its end card → 3s end card |
-| Chapter label | top-right tag "n / N · <Feature name>" instead of "Feature drop · Week NN" |
+| Chapter label | top-right tag "<Feature name> · 0n" instead of "Feature drop · Week NN" |
 | Speed | same 0.85 |
 | Build | `weekly.sh` (edit the `seg` lines: clip, chapter label, from `0`, until the clip's end-card time) |
 | File | `weekly.mp4`, cover still `weekly-cover.png` |
@@ -43,7 +43,7 @@ LinkedIn carousels are documents (PDF); videos cannot go inside them.
 | --- | --- |
 | Pages | N + 2: cover, one page per feature, closing page |
 | Size | 1080 × 1350 per page, PDF via Playwright `page.pdf`, plus one PNG per page |
-| Feature page | label "n / N · <Feature>" (22px orange caps) at y 150, headline 62px at y 196, sub line 27px at y 352, still 784 × 741 at (148, 520), page number bottom right |
+| Feature page | content pattern: mono tag "/ <FEATURE> · 0n" at y 150, display headline 66px at y 196 (second part orange), sans sub line 27px at y 352, still 784 × 741 at (148, 520), mono page number "n — N" bottom right. Cover and close use the dark cover pattern; the cover lists features agenda-style (orange 01/02/03) |
 | Stills | from the clip MP4: `ffmpeg -ss <t> -i <slug>.mp4 -frames:v 1 -vf crop=952:900:64:330 carousel-<slug>.png` at the moment the result is visible (chart landed, card dropped, results shown) |
 | Files | `carousel.html` (source), `carousel.pdf`, `carousel-1.png` … `carousel-<N+2>.png` |
 

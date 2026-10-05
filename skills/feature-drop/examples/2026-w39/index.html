@@ -1,18 +1,18 @@
 <title>Feature Drop Week 39</title>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Abhaya+Libre:wght@700&family=Public+Sans:wght@400;500;600;700&family=Roboto+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Abhaya+Libre:wght@400;700&family=Public+Sans:wght@400;500;600;700&family=Roboto+Mono:wght@400;500&display=swap">
 <style>
-/* Layout: a short masthead, then one row per feature (clip left, post copy right), then the personal post. Lleverage Crisp tokens. */
+/* Layout: a short masthead, the framing, the weekly post, one row per feature, the spokesperson post. Colours, type and kickers follow the Lleverage design system (brand.tokens.json v2.3.2). */
 :root {
-  --bg: hsl(48 33% 97%);
-  --fg: hsl(83 11% 14.1%);
-  --card: hsl(0 0% 100%);
-  --muted: hsl(50 18% 93%);
-  --muted-fg: hsl(60 7% 40%);
-  --border: hsl(48 22% 87%);
-  --accent: hsl(24 84% 48%);
-  --accent-tint: hsl(24 84% 53.1% / 0.1);
-  --ink: hsl(230 35% 15%);
-  --ink-fg: hsl(0 0% 100%);
+  --bg: #F9F7F0;          /* color.paper */
+  --fg: #141E28;          /* color.midnight.primary */
+  --card: #FFFFFF;        /* color.white */
+  --muted: #F0F0E0;       /* color.sand.accent */
+  --muted-fg: #656563;    /* text.muted / text.kicker (grey 700) */
+  --border: #D8D8D3;      /* surface.hairline (grey 400) */
+  --accent: #EC7523;      /* color.orange.primary */
+  --accent-tint: color-mix(in srgb, #EC7523 10%, transparent);
+  --ink: #141E28;         /* surface.emphasis */
+  --ink-fg: #F9F7F0;      /* text.onDark */
   --sans: "Public Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
   --serif: "Abhaya Libre", Georgia, "Times New Roman", serif;
   --mono: "Roboto Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
@@ -35,8 +35,9 @@ body { background: var(--bg); color: var(--fg); font-family: var(--sans); font-s
 @media (max-width: 600px) { .page { padding-inline: 16px; padding-block: 28px 40px; gap: 40px; } }
 
 header { display: grid; gap: 14px; max-width: 64ch; }
-.kicker { font-family: var(--mono); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); }
-h1 { font-family: var(--serif); font-size: clamp(40px, 6vw, 64px); line-height: 1; margin: 0; letter-spacing: -.01em; text-wrap: balance; }
+.kicker { font-family: var(--mono); font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted-fg); }
+.kicker::before { content: "/ "; color: var(--accent); }
+h1 { font-family: var(--serif); font-weight: 400; font-size: clamp(40px, 6vw, 64px); line-height: 1.04; margin: 0; text-wrap: balance; }
 h1 em { color: var(--accent); }
 .lede { margin: 0; color: var(--muted-fg); font-size: 16px; }
 .note { font-size: 13px; color: var(--muted-fg); border-left: 3px solid var(--accent); padding: 6px 12px; background: var(--accent-tint); border-radius: 0 6px 6px 0; }
@@ -57,11 +58,11 @@ button.copy { font: 600 13px var(--sans); color: var(--ink-fg); background: var(
 button.copy:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
 .personal { display: grid; gap: 16px; max-width: 720px; }
-.personal h2 { font-family: var(--serif); font-size: 36px; line-height: 1.05; margin: 0; }
+.personal h2 { font-family: var(--serif); font-weight: 400; font-size: 36px; line-height: 1.06; margin: 0; }
 .how { display: grid; gap: 10px; font-size: 14px; color: var(--muted-fg); max-width: 70ch; border-top: 1px solid var(--border); padding-top: 24px; }
 .weekly { display: grid; gap: 16px; }
 .narrative { display: grid; gap: 12px; max-width: 68ch; }
-.narrative h2 { margin: 0; font-family: var(--serif); font-size: 36px; line-height: 1.05; }
+.narrative h2 { margin: 0; font-family: var(--serif); font-weight: 400; font-size: 36px; line-height: 1.06; }
 .narrative p { margin: 0; }
 .weekly h2 { margin: 0; font-size: 22px; font-weight: 700; }
 .strip { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 8px; }
@@ -91,7 +92,7 @@ button.copy:focus-visible { outline: 2px solid var(--accent); outline-offset: 2p
   <section class="weekly" aria-labelledby="wk">
     <div class="kicker">Option 1 · one weekly post</div>
     <h2 id="wk">One post with all three features</h2>
-    <p class="why">Use the combined video (about a minute: a cover, each feature as a chapter that opens on its own title card and is marked "1 / 3 · Talk to your ERP", one end card), or the 5-page carousel PDF for people who swipe instead of watch. The post copy works for both.</p>
+    <p class="why">Use the combined video (about a minute: a cover, each feature as a chapter that opens on its own title card and is marked "Talk to your ERP · 01", one end card), or the 5-page carousel PDF for people who swipe instead of watch. The post copy works for both.</p>
     <div class="drop">
       <video src="weekly.mp4" poster="weekly-cover.png" muted loop playsinline controls></video>
       <div class="meta">
@@ -213,7 +214,7 @@ This week's skill tests are a small piece of that: the person who knows the rule
 
   <section class="how">
     <b>How these are made</b>
-    <span>Each clip rebuilds the real app UI (tokens, components and icons taken from the lleverage codebase) as an HTML page where every frame is a function of time. A Playwright script steps through it at 30 fps and ffmpeg encodes a 1080×1350 H.264 MP4. The video stays functional (feature name, what it does, what happens on screen); the message lives in the posts. Clips play at 0.85 speed. A new clip is a new HTML file: write the timeline, render, review a few stills. The carousel is <code>carousel.html</code>, rendered to a PDF with <code>carousel.mjs</code>.</span>
+    <span>Each clip rebuilds the real app UI (tokens, components and icons taken from the lleverage codebase) as an HTML page where every frame is a function of time. A Playwright script steps through it at 60 fps and ffmpeg encodes a 1080×1350 H.264 MP4. The video stays functional (feature name, what it does, what happens on screen); the message lives in the posts. Clips play at 0.85 speed. A new clip is a new HTML file: write the timeline, render, review a few stills. The carousel is <code>carousel.html</code>, rendered to a PDF with <code>carousel.mjs</code>.</span>
     <span>Built with this skill.</span>
   </section>
 </main>
