@@ -1,5 +1,6 @@
 ---
-# No repo: sessions work in this workstream's folder (worktrees_dir/customers), no git.
+# No repo: sessions run in the Autopilot folder, files in worktrees_dir/customers/<ID>/.
+# folder: ~/Documents/customers   # optional: run the sessions in this folder instead
 # The file name is the workstream id and the Linear project name.
 ---
 ## Routing

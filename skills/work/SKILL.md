@@ -5,9 +5,10 @@ description: How an Autopilot session works a Linear issue — read the issue an
 
 # Work an Autopilot issue
 
-The prompt says where you run: the workstream's own folder (no git; files
-for this issue go in its `<issue-id>/` subfolder), or, for a workstream with
-a repo, a git worktree on branch `claude/<issue-id>`. You were started
+The prompt says where you run: the Autopilot folder (leave its files alone;
+files for this issue go in the folder the prompt names), the workstream's own
+folder when it sets one (files in its `<issue-id>/` subfolder), or, for a
+workstream with a repo, a git worktree on branch `claude/<issue-id>`. You were started
 because the owner (the person the instructions say you work for) moved the issue to Start or
 commented on it. The launcher already moved it to Working. The owner may watch through Remote
 Control or `tmux attach`.
@@ -53,7 +54,7 @@ Do the work up to the point where the owner only has to decide:
   workstream's Work say; without such a rule, write it in the issue's
   folder and link it in the briefing.
 - **Code needed** → only in a git worktree: commit on this branch and
-  push the branch (when the repo has a remote). In a workstream folder,
+  push the branch (when the repo has a remote). Without a worktree,
   say in the briefing that the change belongs in a workstream with a
   repo. Push to the default branch, force-push or merge only when the
   owner asks for it or the Work allows it. Opening a draft PR is fine
@@ -111,7 +112,7 @@ next comment arrives here as a message, and the launcher moves the issue
 back to Working. If this session has been closed by then, a new one
 starts and reads the comments instead. When they move the issue to Done
 or Canceled, the session is closed (and a git worktree cleaned up; the
-workstream folder stays).
+issue's files stay).
 
 If you cannot proceed (missing access, unclear ask), comment what is
 missing and move the issue to Review with that as the decision needed.

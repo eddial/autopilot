@@ -3,7 +3,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import { randomUUID } from 'node:crypto';
 import path from 'node:path';
-import { ROOT, HOME, config, repoDir, readDir, section, instructions, withState, readState, run, log, transient, unwatch, claude, type Session } from './lib.ts';
+import { ROOT, HOME, home, config, repoDir, readDir, section, instructions, withState, readState, run, log, transient, unwatch, claude, type Session } from './lib.ts';
 
 const TMUX = 'autopilot';
 // Every comment Autopilot writes starts with this; a comment without it is the owner steering the issue.
@@ -34,7 +34,7 @@ export const move = (id: string, stateId: string) =>
 
 const tmux = (...a: string[]) => run('tmux', a);
 // Claude Code stops at "Do you trust this folder?" in a folder it has not seen, and the session never starts.
-// Every folder the launcher opens is its own (a workstream folder or a worktree of a configured repo), so it
+// Every folder the launcher opens is its own (Autopilot's, a workstream's folder or a worktree of a configured repo), so it
 // accepts the prompt ahead of time the way the app records it.
 function trust(dir: string) {
   const file = path.join(os.homedir(), '.claude.json');
@@ -116,12 +116,15 @@ async function start(issue: any) {
   const project = issue.project?.name ?? await route(issue);
   const ws = readDir('workstreams').find(w => w.name === project);
   if (!ws) throw new Error(`project "${project}" has no workstreams/*.md file`);
-  // Structural work (a workstream with a repo) gets a worktree and branch per issue; everything else
-  // works in the workstream's own folder, shared by its sessions and kept.
+  // Structural work (a workstream with a repo) gets a worktree and branch per issue. A workstream with a
+  // folder works in that folder. Everything else runs in the Autopilot folder, so its sessions sit together
+  // in the Claude app, and keeps its files in worktrees_dir/<workstream>/<ID>/.
   const repo = ws.meta.repo ? repoDir(ws.meta.repo) : '';
-  const worktree = path.join(config.worktrees_dir, repo ? id : ws.name), branch = repo ? `claude/${id.toLowerCase()}` : '';
+  const folder = !repo && ws.meta.folder ? path.resolve(home(ws.meta.folder)) : '';
+  const files = repo ? '' : path.join(folder || path.join(config.worktrees_dir, ws.name), id);
+  const worktree = repo ? path.join(config.worktrees_dir, id) : folder || ROOT, branch = repo ? `claude/${id.toLowerCase()}` : '';
   fs.mkdirSync(config.worktrees_dir, { recursive: true });
-  if (!repo) fs.mkdirSync(worktree, { recursive: true });
+  if (!repo) fs.mkdirSync(files, { recursive: true });
   // A follow-up after Review reuses the worktree and branch.
   else if (!fs.existsSync(worktree)) {
     // A local-only repo (the home, before it gets a remote) branches from its checked-out branch.
@@ -137,14 +140,15 @@ async function start(issue: any) {
   // A session ID we choose gives the desktop app's deep link, which opens this terminal session in the Code tab.
   const sessionId = randomUUID(), local = `claude://resume?session=${sessionId}`;
   const place = repo ? `You work in a git worktree of ${repo} on branch \`${branch}\`.`
-    : `You work in ${worktree}, the ${ws.name} workstream's folder: not a git repo, shared with its other sessions. Put files for this issue in ${id}/.`;
+    : folder ? `You work in ${folder}, the ${ws.name} workstream's folder, shared with its other sessions. Put files for this issue in ${files}/.`
+    : `You run in the Autopilot folder (${ROOT}); leave its files alone. Put files for this issue in ${files}/, the ${ws.name} workstream's folder for it.`;
   const prompt = [instructions(), section(ws.body, 'Work'), `${place} Use the autopilot:work skill on Linear issue ${id}.`].filter(Boolean).join('\n\n---\n\n');
   // Without --name the app titles the session from the prompt, which opens with the same generic
   // instructions for every issue, so every session gets a title like "General coding session".
   const name = `${id} ${issue.title}`;
   tmux('new-window', '-d', '-t', `${TMUX}:`, '-n', id, '-c', worktree,
     '-e', `AUTOPILOT_ISSUE=${id}`, '-e', `AUTOPILOT_ISSUE_UUID=${issue.id}`, '-e', `AUTOPILOT_ROOT=${ROOT}`, '-e', `AUTOPILOT_HOME=${HOME}`,
-    'claude', '--session-id', sessionId, '--name', name, '--remote-control', name, '--no-chrome', '--permission-mode', 'bypassPermissions', '--settings', path.join(ROOT, '.claude', 'settings.json'), prompt);
+    'claude', '--session-id', sessionId, '--name', name, '--remote-control', name, ...(files && !folder ? ['--add-dir', files] : []), '--no-chrome', '--permission-mode', 'bypassPermissions', '--settings', path.join(ROOT, '.claude', 'settings.json'), prompt);
 
   // Past step 3: the session runs. Failures from here on are reported but do not undo the claim.
   let link = '', pane = '';
@@ -166,7 +170,7 @@ async function start(issue: any) {
   const when = `${branch || ws.name} · started ${started.slice(0, 16).replace('T', ' ')} UTC`;
   for (const [url, title, sub] of [[local, 'Claude Code session (this Mac)', `Claude app · ${when}`], [link, 'Claude Code session (Remote Control)', when]])
     if (url) await attach(issue.id, url, title, sub).catch(e => log('launcher', id, 'session attachment failed:', (e as Error).message));
-  await comment(issue.id, [`${MARK} · session started ${branch ? `on branch \`${branch}\`` : `in the ${ws.name} folder`}.`,
+  await comment(issue.id, [`${MARK} · session started ${branch ? `on branch \`${branch}\`` : `for the ${ws.name} workstream, files in \`${files}\``}.`,
     `In the Claude app: ${local}`,
     link ? `Remote Control: ${link}` : 'Remote Control link not found yet; open it from the Claude app session list.',
     `On the server: \`tmux attach -t ${TMUX} \\; select-window -t ${id}\``].join('\n\n'))
