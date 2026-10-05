@@ -63,6 +63,14 @@ Node ≥ 24 runs the TypeScript directly; there are no dependencies.
   deny rules in `.claude/settings.json` block. The session gets an ID the launcher chooses, so the issue gets a
   `claude://resume?session=<id>` link that opens it in the Claude app on this Mac; that link and the Remote Control
   link scraped from the pane are commented on the issue and attached to it, so they show under its Resources. A failure before the session starts moves the issue back to Triage with the error.
+- **Watchers.** A session leaves a watcher on what its issue waits on (`node runtime/tick.ts watch <ID> "<what>"
+  [--every 30m] [--for 14d] [--signal …] [--tools …]`; `watch` lists them, `unwatch <ID>` removes one). It reads with
+  the tools of the issue's source signal (its label) or the tools given, so any connector or read-only command works.
+  The tick runs it every `every`: only while the issue is in Waiting or Review (Start and Working have a session on it).
+  One haiku call compares the source with the previous fingerprint; a person's new activity becomes a
+  `🤖 Autopilot · watcher update` comment, which the launcher relays into the session like Badr's comments (→ Working),
+  or moves the issue to Start when it has no session. Done/Canceled removes the watcher (launcher cleanup or the
+  next check); after `--for` without news it ends and a Waiting issue moves to Review.
 - **Health.** A job failing for 60 minutes and at least 3 runs, or a window cut by the 24-hour cap, makes a Claude call that
   creates or updates a p2 issue in the `autopilot` project; the failing issue is closed once runs succeed.
 - **Dream.** `schedules/dream.md` runs at 03:30 (or on the first tick after, if the laptop slept through it) and commits `autopilot(dream): …` plus the journal.

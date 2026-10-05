@@ -58,10 +58,17 @@ export type Job = {
   failures?: number; failing_since?: string | null; gaps?: { from: string; to: string }[]; health_reported?: boolean;
 };
 export type Session = { issue_id: string; repo: string; worktree: string; branch: string; window: string; session_id?: string; link?: string; started: string; seen?: string };
-export type State = { jobs: Record<string, Job>; sessions: Record<string, Session>; last_tick?: string; offline_since?: string | null };
+// A watcher checks what an issue waits on (a thread, a PR) every `every` while the issue is in Waiting or Review.
+export type Watcher = {
+  issue_id: string; what: string; signals: string[]; tools: string[]; every: string; until: string; created: string;
+  last_run?: string; fingerprint?: string;
+};
+export type State = {
+  jobs: Record<string, Job>; sessions: Record<string, Session>; watchers: Record<string, Watcher>; last_tick?: string; offline_since?: string | null;
+};
 const STATE = path.join(STATE_DIR, 'state.json');
 export const readState = (): State => {
-  try { return { jobs: {}, sessions: {}, ...JSON.parse(fs.readFileSync(STATE, 'utf8')) }; } catch { return { jobs: {}, sessions: {} }; }
+  try { return { jobs: {}, sessions: {}, watchers: {}, ...JSON.parse(fs.readFileSync(STATE, 'utf8')) }; } catch { return { jobs: {}, sessions: {}, watchers: {} }; }
 };
 export function withState<T>(fn: (s: State) => T): T {
   fs.mkdirSync(STATE_DIR, { recursive: true });
@@ -81,6 +88,7 @@ export function withState<T>(fn: (s: State) => T): T {
   } finally { fs.rmSync(lock, { recursive: true, force: true }); }
 }
 export const job = (s: State, key: string) => (s.jobs[key] ??= {});
+export const unwatch = (id: string) => withState(s => { delete s.watchers[id]; delete s.jobs[`watch:${id}`]; delete s.jobs[`health:watch:${id}`]; });
 export function succeeded(key: string, patch: Job = {}) {
   withState(s => Object.assign(job(s, key), { pid: null, last_success: new Date().toISOString(), last_error: null, failures: 0, failing_since: null }, patch));
 }

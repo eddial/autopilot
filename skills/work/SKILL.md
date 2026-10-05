@@ -76,7 +76,32 @@ Comment a briefing, at most 150 words:
 Then move the issue:
 
 - **Review** when the decision is Badr's.
-- **Waiting** when it is blocked on someone else; say who and on what.
+- **Waiting** when it is blocked on someone else; say who and on what,
+  and leave a watcher on it (below).
+
+### Watchers
+
+A watcher checks what the issue waits on (a Slack or email thread, a
+PR, a Linear issue elsewhere) while the issue is in Waiting or Review,
+and wakes this session when a person does something there. Set one
+before moving to Waiting, and in Review when the outside thread may
+still move (a PR under review):
+
+```
+node "$AUTOPILOT_ROOT/runtime/tick.ts" watch <ID> "<what, and what counts as news>" [--every 30m] [--for 14d] [--signal slack] [--tools "Bash(gh pr view:*)"]
+```
+
+- It reads with the tools of the signal the issue came from (its source
+  label) unless you give `--signal`; add `--tools` for anything else,
+  read-only only. GitHub: `--tools "Bash(gh pr view:*),Bash(gh pr checks:*)"`.
+- One watcher per issue; running the command again replaces it.
+  `node "$AUTOPILOT_ROOT/runtime/tick.ts" unwatch <ID>` when nothing is
+  left to wait for.
+- News arrives here as a message (a `🤖 Autopilot · watcher update`
+  comment) and moves the issue back to Working: act on it, then hand
+  over again. With no session open, a new one starts.
+- After `--for` with nothing new, the watcher ends and a Waiting issue
+  moves to Review. Done or Canceled removes it.
 
 Then end your turn and wait. The session stays open: Badr's next
 comment arrives here as a message, and the launcher moves the issue

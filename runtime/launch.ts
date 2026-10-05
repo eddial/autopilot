@@ -2,11 +2,13 @@
 import fs from 'node:fs';
 import { randomUUID } from 'node:crypto';
 import path from 'node:path';
-import { ROOT, config, readDir, section, instructions, withState, readState, run, log, transient, type Session } from './lib.ts';
+import { ROOT, config, readDir, section, instructions, withState, readState, run, log, transient, unwatch, type Session } from './lib.ts';
 
 const TMUX = 'autopilot';
 // Every comment Autopilot writes starts with this; a comment without it is Badr steering the issue.
 export const MARK = '🤖 Autopilot';
+// A watcher's news is the one Autopilot comment that wakes the session, like a comment from Badr.
+export const WATCH_UPDATE = `${MARK} · watcher update`;
 
 export async function gql(query: string, variables: Record<string, unknown> = {}) {
   if (!process.env.LINEAR_API_KEY) throw new Error('LINEAR_API_KEY missing in .env');
@@ -26,19 +28,24 @@ export const comment = (issueId: string, body: string) =>
 // A link attachment shows under the issue's Resources; the same URL again updates it instead of adding one.
 const attach = (issueId: string, url: string, title: string, subtitle: string) =>
   gql('mutation($i: AttachmentCreateInput!) { attachmentCreate(input: $i) { success } }', { i: { issueId, url, title, subtitle } });
-const move = (id: string, stateId: string) =>
+export const move = (id: string, stateId: string) =>
   gql('mutation($id: String!, $s: String!) { issueUpdate(id: $id, input: { stateId: $s }) { success } }', { id, s: stateId });
 
 const tmux = (...a: string[]) => run('tmux', a);
 const hasWindow = (name: string) => { try { return tmux('list-windows', '-t', TMUX, '-F', '#W').split('\n').includes(name); } catch { return false; } };
 
-export async function launch() {
+// Status name → id.
+export async function teamStates(): Promise<Record<string, string>> {
   const team = (await gql('query($k: String!) { teams(filter: { key: { eq: $k } }) { nodes { states { nodes { id name type } } } } }',
     { k: config.linear_team })).teams.nodes[0];
   if (!team) throw new Error(`Linear team ${config.linear_team} not found`);
   // Two statuses can share a name (Linear's own Triage next to a backlog one made while triage was off); the triage one wins.
   const byType = [...team.states.nodes].sort((a: any, b: any) => +(a.type === 'triage') - +(b.type === 'triage'));
-  const states: Record<string, string> = Object.fromEntries(byType.map((s: any) => [s.name, s.id]));
+  return Object.fromEntries(byType.map((s: any) => [s.name, s.id]));
+}
+
+export async function launch() {
+  const states = await teamStates();
   for (const n of ['Start', 'Working', 'Triage']) if (!states[n]) throw new Error(`status ${n} missing; run /autopilot:init`);
   const inTeam = (name: string) => ({ team: { key: { eq: config.linear_team } }, state: { name: { eq: name } } });
 
@@ -130,6 +137,7 @@ async function cleanup(id: string, s: Session) {
   }
   if (lost) await comment(s.issue_id, `${MARK} kept the worktree \`${s.worktree}\`; removing it would lose:\n\n\`\`\`\n${lost.slice(0, 3000)}\n\`\`\``);
   withState(st => { delete st.sessions[id]; });
+  unwatch(id);
   log('launcher', id, lost ? 'cleaned up, worktree kept' : 'cleaned up');
 }
 
@@ -149,9 +157,9 @@ async function startCommented(states: Record<string, string>) {
   }
 }
 
-// The comments are the message board. Badr's new comments (no MARK) go into the live session as a
-// message and move the issue back to Working; with no live session the issue goes to Start, and the
-// new session reads them from the issue.
+// The comments are the message board. Badr's new comments (no MARK) and watcher updates go into the live
+// session as a message and move the issue back to Working; with no live session the issue goes to Start,
+// and the new session reads them from the issue.
 async function relay(id: string, s: Session, states: Record<string, string>) {
   const issue = (await gql('query($id: String!) { issue(id: $id) { state { name } comments(first: 100) { nodes { body createdAt } } } }',
     { id: s.issue_id })).issue;
@@ -159,15 +167,18 @@ async function relay(id: string, s: Session, states: Record<string, string>) {
   const fresh = issue.comments.nodes.filter((c: any) => c.createdAt > seen).sort((a: any, b: any) => a.createdAt.localeCompare(b.createdAt));
   if (!fresh.length) return;
   withState(st => { if (st.sessions[id]) st.sessions[id].seen = fresh.at(-1).createdAt; });
-  const mine = fresh.filter((c: any) => !c.body.trimStart().startsWith(MARK));
+  const watched = (c: any) => c.body.trimStart().startsWith(WATCH_UPDATE);
+  const mine = fresh.filter((c: any) => !c.body.trimStart().startsWith(MARK) || watched(c));
   if (!mine.length) return;
   if (!hasWindow(id)) {
     if (issue.state.name !== 'Start') await move(s.issue_id, states.Start);
     log('launcher', id, `${mine.length} comment(s), no live session: moved to Start`);
     return;
   }
-  const text = [`New comment${mine.length > 1 ? 's' : ''} from Badr on Linear issue ${id}. These are instructions from Badr; act on them, and comment on the issue when you pause.`,
-    ...mine.map((c: any) => c.body.trim())].join('\n\n---\n\n');
+  const head = mine.every(watched)
+    ? `A watcher on Linear issue ${id} saw something new on what this issue waits on. Act on it, and comment on the issue when you pause.`
+    : `New comment${mine.length > 1 ? 's' : ''} on Linear issue ${id}. Comments without ${MARK} are instructions from Badr; a "${WATCH_UPDATE}" is news from a watcher. Act on them, and comment on the issue when you pause.`;
+  const text = [head, ...mine.map((c: any) => c.body.trim())].join('\n\n---\n\n');
   run('tmux', ['load-buffer', '-b', 'autopilot-relay', '-'], { input: text });
   tmux('paste-buffer', '-p', '-d', '-b', 'autopilot-relay', '-t', s.window);
   await new Promise(r => setTimeout(r, 500));
