@@ -20,7 +20,9 @@ without it is Badr, and is an instruction for the work on that issue.
 One item is one thread or conversation: all its messages together. For each item:
 
 1. **Drop** it when nobody needs Badr to do, answer or decide anything (FYIs, newsletters, automated mail, threads already answered by him, threads where someone else owns the next step).
-2. **Dedupe.** Search the team's open issues with `list_issues` `query` set to the source URL (or, if that finds nothing, a stable part of it such as the thread or message id). Every filed issue carries the URL in its description, so a hit is a match. If found, comment what is new (one or two sentences, starting with `🤖 Autopilot · <source>:`) and stop.
+2. **Dedupe.** Search the team's open issues twice with `list_issues`: `query` set to the source URL (or, if that finds nothing, a stable part of it such as the thread or message id), and `query` with two or three distinctive words for the same request or problem (the tool, customer or document name), which finds the same thing reported by someone else. On a match, read the issue's description and:
+   - it already has this source URL and no message in this item is newer than what it describes → change nothing: action `dropped`, reason `already on <issue>`;
+   - otherwise add to the description and stop: `save_issue` with `id` and `patch` `[{"op": "append", ...}]` (never rewrite the description), appending a blank line, one or two sentences on what is new, then `From: <sender> · <channel> · <time>` and `Source: <source URL>`; for a source the issue does not have yet, also attach its URL with `links`. Action: `updated`.
 3. **File** it in the single best workstream (Linear project of the same name):
    - title starts with a verb, at most 80 characters ("Answer Acme's security questionnaire");
    - status Triage; labels `autopilot` and the source label;
