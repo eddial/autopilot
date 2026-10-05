@@ -60,8 +60,9 @@ Node ≥ 24 runs the TypeScript directly; there are no dependencies.
   claimed (→ Working) while fewer than `max_parallel_sessions` are Working. Each gets a worktree at
   `worktrees_dir/<ID>` on `claude/<id>` and a tmux window in session `autopilot` running
   `claude --remote-control <ID> --permission-mode bypassPermissions`: no permission prompts, only the
-  deny rules in `.claude/settings.json` block. The Remote Control link is scraped from the pane,
-  commented on the issue and attached to it, so it shows under the issue's Resources. A failure before the session starts moves the issue back to Triage with the error.
+  deny rules in `.claude/settings.json` block. The session gets an ID the launcher chooses, so the issue gets a
+  `claude://resume?session=<id>` link that opens it in the Claude app on this Mac; that link and the Remote Control
+  link scraped from the pane are commented on the issue and attached to it, so they show under its Resources. A failure before the session starts moves the issue back to Triage with the error.
 - **Health.** A job failing for 60 minutes and at least 3 runs, or a window cut by the 24-hour cap, makes a Claude call that
   creates or updates a p2 issue in the `autopilot` project; the failing issue is closed once runs succeed.
 - **Dream.** `schedules/dream.md` runs at 03:30 (or on the first tick after, if the laptop slept through it) and commits `autopilot(dream): …` plus the journal.

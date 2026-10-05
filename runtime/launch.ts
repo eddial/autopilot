@@ -1,5 +1,6 @@
 // Launcher. Polls Linear with the API key: starts a session for each issue in Start, cleans up after Done/Canceled.
 import fs from 'node:fs';
+import { randomUUID } from 'node:crypto';
 import path from 'node:path';
 import { ROOT, config, readDir, section, instructions, withState, readState, run, log, transient, type Session } from './lib.ts';
 
@@ -86,10 +87,12 @@ async function start(issue: any) {
   try { tmux('has-session', '-t', TMUX); } catch { tmux('new-session', '-d', '-s', TMUX, '-n', 'home'); }
   if (hasWindow(id)) tmux('kill-window', '-t', `${TMUX}:${id}`);
 
+  // A session ID we choose gives the desktop app's deep link, which opens this terminal session in the Code tab.
+  const sessionId = randomUUID(), local = `claude://resume?session=${sessionId}`;
   const prompt = [instructions(), section(ws.body, 'Work'), `Use the autopilot:work skill on Linear issue ${id}.`].filter(Boolean).join('\n\n---\n\n');
   tmux('new-window', '-d', '-t', `${TMUX}:`, '-n', id, '-c', worktree,
     '-e', `AUTOPILOT_ISSUE=${id}`, '-e', `AUTOPILOT_ISSUE_UUID=${issue.id}`, '-e', `AUTOPILOT_ROOT=${ROOT}`,
-    'claude', '--remote-control', `${id} ${issue.title}`, '--no-chrome', '--permission-mode', 'bypassPermissions', '--settings', path.join(ROOT, '.claude', 'settings.json'), prompt);
+    'claude', '--session-id', sessionId, '--remote-control', `${id} ${issue.title}`, '--no-chrome', '--permission-mode', 'bypassPermissions', '--settings', path.join(ROOT, '.claude', 'settings.json'), prompt);
 
   // Past step 3: the session runs. Failures from here on are reported but do not undo the claim.
   let link = '';
@@ -98,12 +101,14 @@ async function start(issue: any) {
     try { link = tmux('capture-pane', '-p', '-J', '-S', '-200', '-t', `${TMUX}:${id}`).match(/https:\/\/claude\.ai\/\S+/)?.[0] ?? ''; } catch { break; }
   }
   const started = new Date().toISOString();
-  const session: Session = { issue_id: issue.id, repo, worktree, branch, window: `${TMUX}:${id}`, link, started, seen: started };
+  const session: Session = { issue_id: issue.id, repo, worktree, branch, window: `${TMUX}:${id}`, session_id: sessionId, link, started, seen: started };
   withState(s => { s.sessions[id] = session; });
   // The session runs whatever happens here; a lost comment or attachment must not send the issue back.
-  if (link) await attach(issue.id, link, 'Claude Code session', `Remote Control · ${branch} · started ${started.slice(0, 16).replace('T', ' ')} UTC`)
-    .catch(e => log('launcher', id, 'session attachment failed:', (e as Error).message));
+  const when = `${branch} · started ${started.slice(0, 16).replace('T', ' ')} UTC`;
+  for (const [url, title, sub] of [[local, 'Claude Code session (this Mac)', `Claude app · ${when}`], [link, 'Claude Code session (Remote Control)', when]])
+    if (url) await attach(issue.id, url, title, sub).catch(e => log('launcher', id, 'session attachment failed:', (e as Error).message));
   await comment(issue.id, [`${MARK} · session started on branch \`${branch}\`.`,
+    `In the Claude app: ${local}`,
     link ? `Remote Control: ${link}` : 'Remote Control link not found yet; open it from the Claude app session list.',
     `On the server: \`tmux attach -t ${TMUX} \\; select-window -t ${id}\``].join('\n\n'))
     .catch(e => log('launcher', id, 'start comment failed:', (e as Error).message));
