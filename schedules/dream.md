@@ -10,7 +10,7 @@ in Linear, improve the routing, and write the night's journal.
 ## Read
 
 1. `.state/decisions.jsonl`: every line with `ts` in the last 24 hours.
-2. The current state of every issue those lines created or commented on:
+2. The current state of every issue those lines created or updated:
    project, priority, status, and whether any work happened (comments
    beyond the signal's, a session, a status past Triage).
 3. Issues in the team created by hand in the last 24 hours: no

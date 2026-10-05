@@ -44,5 +44,5 @@ each hit.
 One thread is one issue, however many replies it gets. Source URL: the
 permalink of the thread's root message, also when the hit is a reply.
 Dedupe on the root's timestamp (the `p<digits>` part of the permalink):
-a reply in a thread that already has an issue becomes a comment with
-what is new, never a second issue.
+a reply in a thread that already has an issue is added to that
+issue's description, never a second issue.

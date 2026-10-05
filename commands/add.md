@@ -31,8 +31,8 @@ Write `signals/<name>.md` in the format of `signals/gmail.md`, with
 `paused: true`. Then preview: do what a signal run would do for the last
 hour — fetch with the read tools, apply the filing rules in
 `instructions.md` against the Routing of every workstream — but **do not
-create, comment or attach anything**. Show a table: item, action
-(would create / would comment / drop), workstream, priority, reason.
+create, update or attach anything**. Show a table: item, action
+(would create / would update / drop), workstream, priority, reason.
 
 Ask whether to enable it. On a yes, remove the `paused:` line; the next
 tick starts it from now, without backfill. Commit the file.

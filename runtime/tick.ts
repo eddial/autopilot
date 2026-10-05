@@ -109,7 +109,7 @@ const ITEMS_SCHEMA = {
   type: 'object', required: ['items'], properties: { items: { type: 'array', items: {
     type: 'object', required: ['source', 'source_url', 'from', 'subject', 'snippet', 'action', 'reason', 'workstream', 'priority', 'issue'], properties: {
       source: { type: 'string' }, source_url: { type: 'string' }, from: { type: 'string' }, subject: { type: 'string' },
-      snippet: { type: 'string' }, action: { enum: ['created', 'commented', 'dropped'] }, reason: { type: 'string' },
+      snippet: { type: 'string' }, action: { enum: ['created', 'updated', 'dropped'] }, reason: { type: 'string' },
       workstream: { type: ['string', 'null'] }, priority: { type: ['integer', 'null'] }, issue: { type: ['string', 'null'] },
     } } } },
 };
@@ -131,7 +131,7 @@ function runSignal(name: string, dry?: number) {
       `# Signal: ${name}\n\nSource label: ${name}. Linear team: ${config.linear_team}.\n\n${sig.body}`,
       `# Workstreams (Linear project = workstream name)\n\n${routing}`,
       `# Window\n\nFetch items with activity from ${iso(from)} up to ${iso(end)} (Unix seconds ${Math.floor(+from / 1e3)} to ${Math.floor(+end / 1e3)}). Ignore anything outside it.`,
-      dry ? `# Output\n\nDRY RUN: apply the filing rules but create, change and comment on nothing. Report what you would do (action = what you would do, issue = the existing issue for a comment, else null).`
+      dry ? `# Output\n\nDRY RUN: apply the filing rules, including both dedupe searches with list_issues, but create, change and comment on nothing. Report what you would do (action = what you would do, issue = the existing issue for an update, else null).`
           : `# Output\n\nFile each item per the filing rules, then return {"items": [...]} with one entry per item, filed or dropped.`,
     ].join('\n\n---\n\n');
     const filing = dry ? config.filing_tools.filter((t: string) => !/__save_/.test(t)) : config.filing_tools;
