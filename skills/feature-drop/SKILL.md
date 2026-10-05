@@ -1,6 +1,6 @@
 ---
 name: feature-drop
-description: Turn the features Badr picked from a product-marketing shortlist into a weekly feature drop - a 4:5 animated clip per feature built on the real Lleverage UI, a ~30s combined video, a 5-page LinkedIn carousel PDF, LinkedIn posts and a drop page published as an artifact. Use in the product-marketing workstream once Badr has picked from the shortlist, or when asked for "a feature drop", "clips for this week", "the weekly LinkedIn post".
+description: Turn the features Badr picked from a product-marketing shortlist into a weekly feature drop - a 4:5 animated clip per feature built on the real Lleverage UI, a combined video (each feature as a titled chapter), a 5-page LinkedIn carousel PDF, LinkedIn posts and a drop page published as an artifact. Use in the product-marketing workstream once Badr has picked from the shortlist, or when asked for "a feature drop", "clips for this week", "the weekly LinkedIn post".
 ---
 
 # Feature drop
