@@ -1,197 +1,137 @@
 ---
 name: feature-drop
-description: Turn the features Badr picked from a product-marketing shortlist into a weekly feature drop - a 4:5 animated clip per feature built on the real Lleverage UI, a combined video (each feature as a titled chapter), a 5-page LinkedIn carousel PDF, LinkedIn posts and a drop page published as an artifact. Use in the product-marketing workstream once Badr has picked from the shortlist, or when asked for "a feature drop", "clips for this week", "the weekly LinkedIn post".
+description: Produce the weekly Lleverage feature drop from what shipped - a shortlist to pick from, then for the picked features a 4:5 animated clip each built on the real product UI, a combined video with every feature as a titled chapter, a LinkedIn carousel PDF, LinkedIn posts (weekly, per feature, optional spokesperson) and a drop page to review and share. Use for "feature drop", "what shipped for LinkedIn", "clips and posts for this release", or when a shortlist pick comes in.
 ---
 
 # Feature drop
 
-One drop per week, made from what shipped. The first one is AP-10, worked
-example in `marketing/feature-drops/2026-w39/` (its drop page is
-https://claude.ai/artifact/WMcxSyuDMu8XB5WcYsqBKW). Read that folder before
-building a new drop; copy from it rather than starting from nothing.
+Turns what shipped in Lleverage into a ready-to-review LinkedIn feature drop.
+Anyone running it should end up with the same set of outputs, in the same
+style, as the first drop: `marketing/feature-drops/2026-w39/` (open its
+`index.html` to see the result).
 
-The order of work never changes: **shortlist → Badr picks → build → review → hand over.**
-Build nothing before the pick (see the workstream's Work section).
+## What you deliver
 
-## 1. Positioning: read before writing
-
-There is no single positioning doc in this repo; these are the sources, in
-order. Read them for every drop rather than relying on the summary below.
-
-1. **`delta:lleverage-content-voice`** and its `references/brand-context.md`
-   (OSÉ workshop, March 2026): strategic narrative, the three message-house
-   pillars (AI agents for complex processes, decision intelligence,
-   operational excellence across systems), audience narratives, proof points,
-   competitive differentiation, banned phrases. This is the canonical source.
-2. **lleverage.ai**: "Your autonomous back office", the six solution areas
-   and their pages (`/solutions/order-management`, `/solutions/ap-automation`,
-   …), customer proof points (Topa, Koninklijke Dekker, Royal Kaak, …).
-3. Badr's differentiators in AP-10's description (champions push skills down
-   to teams; team-scoped workspace and memory; workflows and agents mixed in
-   one process; built for messy reality; start assisted, promote to
-   autonomous with monitoring and human-in-the-loop; connect any system with
-   fine-grained access; forward deployed engineers).
-
-Summary, to check against the sources:
-- **Who**: companies that make, move and sell physical products:
-  manufacturing, wholesale and distribution, logistics. Mid-market, on ERPs
-  such as Exact, Business Central, SAP, AFAS, Navision.
-- **What**: the autonomous back office. Agents run the routine work inside the
-  ERP and handle the exceptions they can; people decide the rest.
-- **Processes** (website solution areas): Quote & Sell (quotes, order entry,
-  confirmations), Source & Procure (invoices and POs), Plan & Produce,
-  Deliver & Support, Pay & Collect (3-way matching, reconciliation, debtor
-  reminders), Govern & Enable (master data).
-
-### The guiding principle (never quote it)
-
-People should not be stuck in repetitive work, pumping data from one system
-into the next. They should work on the cases that need judgement, and steer
-the agents: set the rules, check the work, correct mistakes, decide what runs
-without them. That is the framing of the autonomous back office: people on
-the process and the hard cases, with AI, not in the process.
-
-Use this to choose the angle and the examples. **Do not write it out as a
-slogan** ("work on the process, not in it" and variants are out). Show it
-instead: an invoice inside tolerance that books itself, an order without a PO
-that goes to a person, a rule a person sets and the agent follows.
-
-Every feature does one of two things, and the post makes clear which:
-1. it takes repetitive work off people, or
-2. it gives people a better way to steer the agents or handle the hard cases.
-
-Rules that follow from it:
-- **ERP work as the example**: orders, invoices, POs, three-way matching,
-  booking in Exact / Business Central / SAP, customer price lists, article
-  codes. Not generic "runs", "records" or "tasks".
-- **Features are generic.** Do not label a card or chapter with a process or
-  domain ("Quote & Sell", "Pay & Collect"). Let the example speak to the
-  process; name the feature instead ("1 / 3 · Talk to your ERP").
-- Say **"voice call"**, never "phone call" or just "call" for the agent's voice feature.
-- **Name features for the buyer, not the codebase.** The marketing name can
-  differ from the in-app name: the voice feature ships as "Talk to Llev" but
-  is announced as **"Talk to your ERP"**. Ask Badr when a name is unclear;
-  on-screen UI labels stay as the app shows them ("Call the agent").
-- Reuse the website's phrasing: "with a person on the exceptions", "invoices inside tolerance book
-  themselves", "clean orders post on their own".
-- **Never call the agent a "coworker"** (or co-worker, colleague-as-agent).
-  Describe what it does instead.
-
-## 2. Copy
-
-**The video shows the feature; the post sells it.** In clips, title cards,
-captions and end cards stay strictly functional: name the feature, say what
-it does and what is happening on screen. The narrative and value proposition
-(section 1) go in the posts, the drop page and the carousel, never in the
-video.
-
-Visuals may be flashy; **text is plain and grounded**. Follow
-`delta:lleverage-content-voice` (load it), plus:
-
-- Title card: "New in Lleverage", the feature's name, one plain line on what
-  it does ("Show any data table as a Kanban board and drag records between
-  lanes."). End card: "Live now", the name, where it is available.
-- Captions describe the action: "Open Columns. Switch from List to Board.",
-  "Open a failed test. See each check and why." No slogans ("It's done.",
-  "Not a suggestion.") and no value claims.
-- Two lines per caption, second line in orange (`<em>`), at most ~32
-  characters a line. One caption per beat, 3–4 beats per clip.
-- **LinkedIn posts open with a catchy, concrete first line**: a statement or a
-  mild provocation, not a question, no emoji. Examples that worked:
-  "The fastest report on your order backlog is now a voice call." ·
-  "Finance should only ever see the invoices that don't match." ·
-  "An AI that guesses a PO number is worse than no AI at all."
-- Body: problem first, then what shipped, then the role it gives people. Short
-  paragraphs. End with where the clips are (first comment), not a generic CTA.
-- **Emojis**: none in the first line; at most one or two that do a job (→ for
-  list items, ✅/❌ for what posts vs what goes to a person); no hype emojis
-  (🚀🔥🤯💡👇); 📦 at the end of the weekly post as the series marker.
-- Facts come from #change-log and the PR descriptions only. **Never present a
-  feature-flagged change as available**; check the PR for a flag. Use the
-  feature's real name and real UI words (e.g. the voice button is "Call the
-  agent"; board view is switched in the Columns dialog, "List | Board").
-- Data in clips is illustrative (Dutch-sounding supplier/customer names, PO
-  numbers like 4500012877); say so on the drop page.
-- Personal post for Badr: one opinion tied to the narrative, draft only.
-
-## 3. Design: the real product, not a lookalike
-
-Every clip rebuilds the real Lleverage app UI from the codebase
-(`~/Sites/lleverage`, `apps/app/src`). Before animating a feature, read the
-components that render it and mirror their classes, colours, radii, copy and
-icons. `references/app-ui.md` has the shell, tokens and the components used so
-far, with file paths; extend it when you read new ones.
-
-- Tokens, shell (muted frame, 240px sidebar, rounded `bg-background` panel),
-  Public Sans at 13px base: `toolkit/app.css` + `toolkit/app.js`.
-- Icons are Font Awesome Pro (regular / solid) and lucide, taken from the app's
-  `node_modules`. `toolkit/fa-icons.js` has the ones used so far; extract more
-  with the snippet in `references/app-ui.md`.
-- The app is rendered at real size (1280×800) inside the clip's stage and a
-  **camera** zooms to the action (≈0.74 establishing shot, 1.5–2.0 for the
-  action), Linear-style.
-- Frame chrome: brand row, captions above the stage, navy hook card (kicker
-  with the Lleverage loader mark + "New in Lleverage", feature name) and end
-  card ("Live now"), Public Sans, orange highlight. No serif.
-
-## 4. Formats (make all of them; marketing picks)
-
-| Output | Spec |
+| Output | File(s) |
 | --- | --- |
-| One clip per feature | 1080×1350 (4:5), 30 fps, silent, captions burned in, loops. Timeline ~20s, rendered at **0.85 speed** (~23s): title card 0–2.2s → camera/UI → end card from ~17s. |
-| Combined weekly video | ~65s: 2.5s cover ("New in Lleverage" + the features), then **each clip in full from its title card** (which announces the feature) up to its end card, chapter label "n / 3 · Feature" in the top bar, 3s end card ("Live now in Lleverage" + the features). Same 0.85 speed. Built by `weekly.sh`. |
-| Carousel PDF | 5 pages 1080×1350: cover (narrative headline + list), one page per feature (feature label, plain line, still from the clip), closing page. LinkedIn carousels are documents only; videos cannot go inside one. |
-| Posts | One weekly post (works with the combined video or the carousel), one post per feature, one personal post for Badr. |
-| Drop page | `index.html` published as an Artifact (private): narrative, Option 1 weekly post (video + carousel + copy), Option 2 per-feature clips + posts, personal post, how it is made. |
+| Shortlist of what shipped, ranked | a message to the reviewer |
+| One clip per feature, 4:5, ~23s | `<slug>.mp4` (+ `<slug>.html` source, `<slug>.png` poster) |
+| Combined weekly video, ~65s, one titled chapter per feature | `weekly.mp4` |
+| LinkedIn carousel, N + 2 pages | `carousel.pdf`, `carousel-*.png` |
+| Posts: one weekly, one per feature, optional spokesperson post | on the drop page |
+| Drop page with everything, to review and share | `index.html`, published as a private Artifact |
 
-## 5. Build
+Nothing is ever posted by this skill. A person reviews, picks and posts.
 
-1. Make the week's folder: `marketing/feature-drops/<YYYY>-w<NN>/`. Copy
-   `toolkit/*` into it (engine, shell, icons, renderers), plus `index.html`,
-   `carousel.html` and `weekly-cards.html` from
-   `marketing/feature-drops/2026-w39/` as page/carousel/card templates. Copy
-   the closest clip from that folder as the starting point for each feature
-   (`talk-to-llev.html`: agent sidebar, voice, Overview widgets;
-   `kanban-board.html`: data table, dialog, board, drag;
-   `skill-tests.html`: skill page, side panel tests, results, diff).
-2. Playwright: `npm i playwright@1.57` in your scratchpad and run everything
-   with `NODE_PATH=<scratchpad>/node_modules`. ffmpeg is on PATH.
-3. Write each clip's timeline: captions `[start, end, html]`, camera keys
-   `[t, x, y, scale]`, cursor keys `[t, x, y, click]` (measure targets with the
-   `at()` helper, map through the camera), state per `t` in `C.run(D, t => …)`.
-   Everything is a function of `t`; no CSS animations.
-4. **Review stills before rendering video**: `node` a few `seek(t)` screenshots
-   (one per caption beat, hook, end) and look at them. Check: caption fits in
-   two lines, camera shows the target, nothing overlaps, text matches the UI.
-5. Render: `node render.mjs <clip>.html <posterSecond>` (one at a time, in the
-   background; it retries stalled frames). Then `node carousel.mjs`, then
-   `./weekly.sh` (edit its `seg` lines: clip, chapter label, from 0, until the
-   clip's end card). `CLIP_SPEED` sets playback speed (default 0.85).
-   Extract carousel stills with ffmpeg `crop=952:900:64:330` from the clips.
-6. Verify: `ffprobe` durations (~23 per clip, ~65 for weekly); check the first and last frame of every chapter (no empty slots mid-pan, results finished), and pull a frame or
-   two from every MP4. Fix and re-render rather than explain.
-7. Publish `index.html` with the Artifact tool, passing the MP4s, posters and
-   carousel PNGs as `files`. Commit the folder (HTML, MP4, PNG, PDF) on the
-   issue branch and push.
+## Read first
 
-## 6. Hand over
+| File | When |
+| --- | --- |
+| `references/narrative.md` | Always. The autonomous back office: core frame, ICP, how autonomy is earned per step, where people belong, trust, value language, processes, differentiators, vocabulary. |
+| `references/copy.md` | Before writing any text. Templates, limits, hooks, emoji rules, copy check. |
+| `references/formats.md` | Before building. Exact specs for every output. |
+| `references/build.md` | When building and rendering. Setup, commands, timeline guide. |
+| `references/app-ui.md` | When rebuilding a screen. The real UI, with source paths. |
+| `references/qa.md` | Before hand-over. Definition of done. |
 
-Comment on the issue (`🤖 Autopilot · briefing`): the drop page link, one line
-per feature (what it shows, the role it gives people), the formats ready, the
-commit. Decision needed is usually which format and which posts go out. Move
-the issue to Review. Never post anything yourself.
+Also load `delta:lleverage-content-voice` before writing.
 
-## Lessons from AP-10
+## Steps
 
-- First versions looked "brand-styled", not like the product: always start
-  from the codebase.
-- Generic demo data ("runs", "workflows") was rejected: use orders and invoices.
-- Slogans were rejected: keep text down to earth, keep the visuals lively.
-- Combined video: cutting it down to key moments (29s, 13s) made it too fast
-  and unclear; what works is full chapters, each announced by its title card,
-  played a bit slower (0.85). Show Badr each version before changing it again.
-- Value-prop titles in the video were too sloppy: keep the video functional,
-  put the message in the posts.
-- Domain labels on cards were wrong because features are generic.
-- Order intake: an order without the customer's PO goes to the order desk,
-  not to purchasing. Check who really owns an exception before writing it.
+### 1. Gather what shipped
+Read Slack #change-log for the window (default: the previous ISO week) and
+the merged PRs in `lleverage-ai/lleverage` for the same dates. Keep changes a
+customer can see. For each: what it does, the change-log permalink, the PR(s),
+and whether a feature flag is involved.
+*Done when* every candidate has evidence and a flag status.
+
+### 2. Shortlist, then stop
+Rank the candidates by marketing value: customer-visible, differentiating,
+easy to show on screen. One line each: what it is, why it matters (role in the
+story), the angle, the evidence link, flag status, and a proposed marketing
+name. Send it to the reviewer and **build nothing until they pick** (default
+three features) and confirm the names.
+*Done when* the reviewer has picked and the names are confirmed.
+
+### 3. Place each feature in the story
+For each picked feature answer the five questions in `narrative.md`
+(what it lets someone do, who it is for, what it moves, which differentiator,
+which process gives the example). Choose the example data (orders, invoices,
+a named ERP).
+*Done when* each feature has its five answers written down.
+
+### 4. Write the copy
+Using the templates in `copy.md`: title card, 3–4 captions and end card per
+clip; weekly cover and end; the weekly post, one post per feature, optional
+spokesperson post; carousel pages; the "why" paragraph per feature.
+*Done when* the copy check in `copy.md` passes.
+
+### 5. Build the clips
+Start the week's folder and pick a clip template per feature (`build.md`).
+Read the feature's real components in the Lleverage repo and rebuild them
+faithfully (`app-ui.md`). Write the timeline. Take stills for every beat and
+look at them before rendering.
+*Done when* every still passes the video checks in `qa.md`.
+
+### 6. Render everything
+Clips one at a time, then the carousel stills and `carousel.pdf`, then
+`weekly.sh` (`build.md`, `formats.md`).
+*Done when* durations and frames match `formats.md`.
+
+### 7. Check
+Go through `qa.md` top to bottom. Fix and re-render; do not hand over with
+known issues.
+
+### 8. Publish and hand over
+Publish `index.html` as a private Artifact with all media, commit and push the
+folder, and send the reviewer:
+
+```
+Feature drop week <NN> is ready to review: <drop page link>
+- <Feature>: <what the clip shows> (<role in the story>)
+- <Feature>: …
+Formats: per-feature clips, combined video (<length>), carousel (<pages> pages), weekly + per-feature posts<, spokesperson post>.
+Source: <folder> on <branch> (<commit>).
+Decision needed: which format and which posts go out, and any copy changes.
+```
+
+When run from an Autopilot issue, follow `autopilot:work` for comments and
+status: the message above is the briefing, and the issue goes to Review.
+
+## Rules that never change
+
+- The video shows the feature; the posts tell the story. No value claims or
+  slogans in the video.
+- The autonomous back office: the ERP stays the system of record, Lleverage
+  operates the work around it, and autonomy is earned per step (by hand →
+  assisted → supervised → autonomous) on evidence. People get asked only for
+  the decisions that need them. Never claim "AI runs everything".
+- One framing everywhere (`narrative.md`): people off the repetitive data work
+  and onto the hard cases and the process, steering the AI; check copy against
+  its five principles. Say it in plain sentences, never as a tagline.
+- Real product UI from the codebase; never a lookalike.
+- ERP examples (orders, invoices, POs, a named ERP); features stay generic, so
+  no process or domain labels on cards.
+- Marketing names for features; on-screen labels as the app shows them;
+  "voice call"; never "coworker".
+- Facts from the change log and PRs only; flagged features are never "live".
+- Same specs every week (`formats.md`). Change a format only after the
+  reviewer has seen the current one.
+- Draft only: never post, send or share anything yourself.
+
+## What earlier drops taught us
+
+- Brand-styled lookalike screens were rejected; screens rebuilt from the
+  codebase were accepted.
+- Generic demo data ("runs", "workflows") did not land; orders and invoices did.
+- Slogans and value-prop titles in the video felt sloppy; functional video
+  with the message in the posts worked.
+- The combined video was unclear when cut to key moments (29s, 13s) and too
+  fast; full chapters with a title card per feature at 0.85 speed worked.
+- Process labels on cards were wrong because features are generic.
+- Exceptions have owners: an order without the customer's PO goes to the
+  order desk, not purchasing. Check before writing.
+- A person reviewing a page must see every version before it is changed
+  again; do not iterate on a format they have not seen.
+- One drop, one session: two sessions editing the same folder and drop page
+  overwrite each other.
