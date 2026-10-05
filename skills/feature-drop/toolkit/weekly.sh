@@ -6,7 +6,7 @@ cd "$(dirname "$0")"
 enc() { python3 -c 'import sys,urllib.parse;print(urllib.parse.quote(sys.argv[1]))' "$1"; }
 # Only the key moment of each feature: no per-clip hook or end cards.
 seg() { CLIP_QUERY="chapter=$(enc "$2")" CLIP_FROM=$3 CLIP_UNTIL=$4 CLIP_OUT=$5 node render.mjs "$1"; }
-seg talk-to-llev.html '1 / 3 · Talk to Llev' 0 17.6 weekly-1.mp4
+seg talk-to-llev.html '1 / 3 · Talk to your ERP' 0 17.6 weekly-1.mp4
 seg kanban-board.html '2 / 3 · Board view' 0 16.2 weekly-2.mp4
 seg skill-tests.html '3 / 3 · Skill tests' 0 17.8 weekly-3a.mp4
 node -e '

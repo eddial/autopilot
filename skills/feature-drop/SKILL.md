@@ -13,17 +13,50 @@ building a new drop; copy from it rather than starting from nothing.
 The order of work never changes: **shortlist → Badr picks → build → review → hand over.**
 Build nothing before the pick (see the workstream's Work section).
 
-## 1. The story every drop tells
+## 1. Positioning: read before writing
 
-The autonomous back office. Say it the same way every time:
+There is no single positioning doc in this repo; these are the sources, in
+order. Read them for every drop rather than relying on the summary below.
 
-> Nobody should spend their day copying an order from an email into the ERP,
-> or checking an invoice line by line against a PO. The routine runs on its
-> own. People work **on the process, not in it**: they take the cases that need
-> judgement, and they steer the agents (set the rules, check the work, correct
-> mistakes, decide what can run without them).
+1. **`delta:lleverage-content-voice`** and its `references/brand-context.md`
+   (OSÉ workshop, March 2026): strategic narrative, the three message-house
+   pillars (AI agents for complex processes, decision intelligence,
+   operational excellence across systems), audience narratives, proof points,
+   competitive differentiation, banned phrases. This is the canonical source.
+2. **lleverage.ai**: "Your autonomous back office", the six solution areas
+   and their pages (`/solutions/order-management`, `/solutions/ap-automation`,
+   …), customer proof points (Topa, Koninklijke Dekker, Royal Kaak, …).
+3. Badr's differentiators in AP-10's description (champions push skills down
+   to teams; team-scoped workspace and memory; workflows and agents mixed in
+   one process; built for messy reality; start assisted, promote to
+   autonomous with monitoring and human-in-the-loop; connect any system with
+   fine-grained access; forward deployed engineers).
 
-Every feature does one of two things, and the copy says which:
+Summary, to check against the sources:
+- **Who**: companies that make, move and sell physical products:
+  manufacturing, wholesale and distribution, logistics. Mid-market, on ERPs
+  such as Exact, Business Central, SAP, AFAS, Navision.
+- **What**: the autonomous back office. Agents run the routine work inside the
+  ERP and handle the exceptions they can; people decide the rest.
+- **Processes** (website solution areas): Quote & Sell (quotes, order entry,
+  confirmations), Source & Procure (invoices and POs), Plan & Produce,
+  Deliver & Support, Pay & Collect (3-way matching, reconciliation, debtor
+  reminders), Govern & Enable (master data).
+
+### The guiding principle (never quote it)
+
+People should not be stuck in repetitive work, pumping data from one system
+into the next. They should work on the cases that need judgement, and steer
+the agents: set the rules, check the work, correct mistakes, decide what runs
+without them. That is the framing of the autonomous back office: people on
+the process and the hard cases, with AI, not in the process.
+
+Use this to choose the angle and the examples. **Do not write it out as a
+slogan** ("work on the process, not in it" and variants are out). Show it
+instead: an invoice inside tolerance that books itself, an order without a PO
+that goes to a person, a rule a person sets and the agent follows.
+
+Every feature does one of two things, and the post makes clear which:
 1. it takes repetitive work off people, or
 2. it gives people a better way to steer the agents or handle the hard cases.
 
@@ -33,12 +66,12 @@ Rules that follow from it:
   codes. Not generic "runs", "records" or "tasks".
 - **Features are generic.** Do not label a card or chapter with a process or
   domain ("Quote & Sell", "Pay & Collect"). Let the example speak to the
-  process; name the feature instead ("1 / 3 · Talk to Llev").
-- The website's processes (lleverage.ai, re-check when unsure): Quote & Sell
-  (quotes, order entry, confirmations), Source & Procure (invoices and POs),
-  Plan & Produce, Deliver & Support, Pay & Collect (3-way matching,
-  reconciliation, debtor reminders), Govern & Enable (master data). Reuse its
-  phrasing: "with a person on the exceptions", "invoices inside tolerance book
+  process; name the feature instead ("1 / 3 · Talk to your ERP").
+- **Name features for the buyer, not the codebase.** The marketing name can
+  differ from the in-app name: the voice feature ships as "Talk to Llev" but
+  is announced as **"Talk to your ERP"**. Ask Badr when a name is unclear;
+  on-screen UI labels stay as the app shows them ("Call the agent").
+- Reuse the website's phrasing: "with a person on the exceptions", "invoices inside tolerance book
   themselves", "clean orders post on their own".
 - **Never call the agent a "coworker"** (or co-worker, colleague-as-agent).
   Describe what it does instead.
@@ -59,15 +92,14 @@ Visuals may be flashy; **text is plain and grounded**. Follow
   lanes."). End card: "Live now", the name, where it is available.
 - Captions describe the action: "Open Columns. Switch from List to Board.",
   "Open a failed test. See each check and why." No slogans ("It's done.",
-  "Not a suggestion.") and no value claims ("Work on the process…").
+  "Not a suggestion.") and no value claims.
 - Two lines per caption, second line in orange (`<em>`), at most ~32
   characters a line. One caption per beat, 3–4 beats per clip.
 - **LinkedIn posts open with a catchy, concrete first line**: a statement or a
   mild provocation, not a question, no emoji. Examples that worked:
   "The fastest report on your order backlog is now a phone call." ·
   "Finance should only ever see the invoices that don't match." ·
-  "An AI that guesses a PO number is worse than no AI at all." ·
-  "People should work on the process, not in it."
+  "An AI that guesses a PO number is worse than no AI at all."
 - Body: problem first, then what shipped, then the role it gives people. Short
   paragraphs. End with where the clips are (first comment), not a generic CTA.
 - **Emojis**: none in the first line; at most one or two that do a job (→ for
