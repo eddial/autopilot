@@ -13,9 +13,10 @@
 ## 1. Start the folder
 
 ```sh
-W=marketing/feature-drops/2026-w41          # ISO week of the drop
-mkdir -p $W && cp skills/feature-drop/toolkit/*.* $W/
-cp skills/feature-drop/toolkit/templates/*.html $W/
+S=<path to this skill>                       # e.g. ~/.claude/skills/feature-drop
+W=marketing/feature-drops/2026-w41          # ISO week of the drop, in your working repo
+mkdir -p $W && cp $S/toolkit/*.* $W/
+cp $S/toolkit/templates/*.html $W/
 ```
 `toolkit/` holds the engine (`clip.css`, `clip.js`, `app.css`, `app.js`,
 `fa-icons.js`) and the renderers (`render.mjs`, `carousel.mjs`, `weekly.sh`).

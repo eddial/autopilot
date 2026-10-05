@@ -7,8 +7,8 @@ description: Produce the weekly Lleverage feature drop from what shipped - a sho
 
 Turns what shipped in Lleverage into a ready-to-review LinkedIn feature drop.
 Anyone running it should end up with the same set of outputs, in the same
-style, as the first drop: `marketing/feature-drops/2026-w39/` (open its
-`index.html` to see the result).
+style, as the first drop, bundled in `examples/2026-w39/` (open its
+`index.html` and the MP4s to see the result).
 
 ## What you deliver
 
@@ -106,8 +106,8 @@ Source: <folder> on <branch> (<commit>).
 Decision needed: which format and which posts go out, and any copy changes.
 ```
 
-When run from an Autopilot issue, follow `autopilot:work` for comments and
-status: the message above is the briefing, and the issue goes to Review.
+If the drop is tracked somewhere (an issue, a ticket, a thread), post the
+same message there and mark it ready for review.
 
 ## Rules that never change
 
