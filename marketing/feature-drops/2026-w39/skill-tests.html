@@ -88,15 +88,15 @@
   <div class="footer"><span>lleverage.ai</span><span>Live now</span></div>
 
   <div class="card-full" id="hook">
-    <div class="kicker"><span id="hl"></span>New in Lleverage</div>
-    <h1>Skills that<br><em>prove themselves.</em></h1>
-    <p>Test a skill against real cases, and see exactly why one fails.</p>
+    <div class="kicker"><span id="hl"></span>New · Quote &amp; Sell</div>
+    <h1>Test it before<br><em>it posts.</em></h1>
+    <p>Run your order intake skill against real orders before it posts into the ERP on its own.</p>
     <div class="mark"><span data-logo></span>Lleverage</div>
   </div>
   <div class="card-full" id="end">
     <div class="kicker"><span id="el"></span>Live now</div>
-    <h1>Build. Test.<br><em>Improve.</em></h1>
-    <p>Skill tests are live for everyone, no feature flag.</p>
+    <h1>Tested first.<br><em>Then on its own.</em></h1>
+    <p>Skill tests are live for everyone. Use them to decide when a skill can post without a person.</p>
     <div class="mark"><span data-logo></span>Lleverage</div>
     <div class="url">lleverage.ai</div>
   </div>
@@ -119,10 +119,10 @@
     <span class="pill" id="s${i}"></span><span class="ib">${lu("play")}</span><span class="ib">${lu("trash2")}</span></div>
     ${i === 2 ? `<div class="exp" id="exp">
       <div class="modes"><span class="btn sec h7">Results</span><span class="btn ghost h7">Edit</span><span class="btn ghost h7">Transcript</span></div>
-      <div class="fail">${lu("triangleAlert")}<p style="margin:0">1 of 3 checks failed. The skill took PO 4500012877 from the email subject instead of handing the order to purchasing.</p></div>
+      <div class="fail">${lu("triangleAlert")}<p style="margin:0">1 of 3 checks failed. The skill took PO 4500012877 from the email subject instead of handing the order to the order desk.</p></div>
       <div class="ac"><div class="hd">Assertions (3)</div>
         <div class="ai"><span class="ok">${fa("s:faCheck")}</span>Finds the customer in Exact</div>
-        <div class="ai"><span class="no">${fa("s:faXmark")}</span>Never invents a PO number; hands the order to purchasing</div>
+        <div class="ai"><span class="no">${fa("s:faXmark")}</span>Never invents a PO number; hands the order to the order desk</div>
         <div class="rs"><div class="k">Reasoning</div><div class="v">The order has no PO number. The agent used the number in the email subject, which belongs to a previous order, and created a draft.</div>
           <div class="d">Confidence Score <b>94%</b></div></div>
         <div class="ai"><span class="ok">${fa("s:faCheck")}</span>Creates nothing in Exact before review</div>
@@ -145,10 +145,10 @@
   cam(0);
 
   const cap = C.captions([
-    [2.6, 6.8, "Test your order intake<br><em>against real orders.</em>"],
-    [7.0, 10.8, "See why one failed.<br><em>Check by check.</em>"],
-    [11.0, 14.6, "The agent fixes the skill,<br><em>not the test.</em>"],
-    [14.8, 17.6, "Run again.<br><em>All passing.</em>"],
+    [2.6, 6.8, "Run the skill<br><em>against real orders.</em>"],
+    [7.0, 10.8, "See which check failed<br><em>and why.</em>"],
+    [11.0, 14.6, "The agent updates the instructions.<br><em>The test stays the same.</em>"],
+    [14.8, 17.6, "Run again.<br><em>All six pass.</em>"],
   ]);
   const PILL = { ready: ["ready", "s:faVial", "Ready"], running: ["running", "s:faCircleNotch", "Running"], passed: ["passed", "s:faCheck", "Passed"], failed: ["failed", "s:faXmark", "Failed"] };
 
@@ -184,7 +184,7 @@
     // The agent edits the instructions: the field pulses, two lines arrive as a diff.
     const pulse = t >= 11.2 && t < 14.4 ? 0.25 + 0.25 * Math.sin((t - 11.2) * Math.PI * 2 / 1.6) : 0;
     $("#instr").style.setProperty("--pa", pulse.toFixed(3));
-    $("#add1").style.display = t >= 11.8 ? "" : "none"; type($("#add1t"), "If the order has no PO number, never infer one. Hand it to purchasing.", t, 11.8, 13.0);
+    $("#add1").style.display = t >= 11.8 ? "" : "none"; type($("#add1t"), "If the order has no PO number, never infer one. Hand it to the order desk.", t, 11.8, 13.0);
     $("#add2").style.display = t >= 13.1 ? "" : "none"; type($("#add2t"), "Two delivery addresses: one draft order per address.", t, 13.1, 14.1);
     $("#chg").style.visibility = t >= 11.8 ? "visible" : "hidden";
   });

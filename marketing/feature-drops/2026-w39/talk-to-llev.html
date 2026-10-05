@@ -111,15 +111,15 @@
   <div class="footer"><span>lleverage.ai</span><span>Live now</span></div>
 
   <div class="card-full" id="hook">
-    <div class="kicker"><span id="hl"></span>New in Lleverage</div>
+    <div class="kicker"><span id="hl"></span>New · Quote &amp; Sell</div>
     <h1>Talk to<br><em>Llev.</em></h1>
-    <p>Call the agent. Say what you want. It changes the platform while you talk.</p>
+    <p>Call the agent and ask about your orders. It answers, and it can change the page you are on.</p>
     <div class="mark"><span data-logo></span>Lleverage</div>
   </div>
   <div class="card-full" id="end">
     <div class="kicker"><span id="el"></span>Live now</div>
-    <h1>Say it.<br><em>It's done.</em></h1>
-    <p>Voice calls with the agent. Everything you said lands in the chat.</p>
+    <h1>Ask about<br><em>your orders.</em></h1>
+    <p>Clean orders post into the ERP on their own. A call is the quickest way to check on the rest.</p>
     <div class="mark"><span data-logo></span>Lleverage</div>
     <div class="url">lleverage.ai</div>
   </div>
@@ -151,9 +151,9 @@
   $("#widget").style.top = $("#slot").offsetTop + "px";
 
   const cap = C.captions([
-    [2.6, 7.4, "Call the agent.<br><em>Say what you want.</em>"],
-    [7.6, 12.6, "It makes the change.<br><em>Not a suggestion.</em>"],
-    [12.8, 17.4, "Ask about your orders.<br><em>Get the answer.</em>"],
+    [2.6, 7.4, "Call the agent<br><em>and say what you need.</em>"],
+    [7.6, 12.6, "It adds the chart<br><em>to your Overview.</em>"],
+    [12.8, 17.4, "Ask which orders<br><em>are waiting on a PO.</em>"],
   ]);
   // Camera: whole app, then the agent sidebar, the new chart, and back.
   const VW = 952, VH = 900;
@@ -192,7 +192,7 @@
     type($("#a1t"), "Done. Orders last month is on your Overview: 3,425 booked straight into Exact, 258 handed to a person.", t, 10.6, 12.0);
     $("#u2").style.display = t >= 12.9 ? "" : "none"; type($("#u2t"), ask2, t, 12.9, 14.2);
     $("#a2").style.display = t >= 14.4 ? "" : "none";
-    type($("#a2t"), "Three: Van Dijk Metaal, Kuipers Hout and Smit Elektro. The oldest came in on Thursday. All three are in Requests for purchasing.", t, 15.3, 17.2);
+    type($("#a2t"), "Three: Van Dijk Metaal, Kuipers Hout and Smit Elektro. The oldest came in on Thursday. All three are in Requests, waiting for the customer's PO.", t, 15.3, 17.2);
 
     // The widget lands in the empty slot.
     const g = p(t, 9.0, 9.6);

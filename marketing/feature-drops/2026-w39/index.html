@@ -66,8 +66,8 @@ button.copy:focus-visible { outline: 2px solid var(--accent); outline-offset: 2p
 <main class="page">
   <header>
     <div class="kicker">Feature drop · Week 39 · 22 Sep – 3 Oct 2026</div>
-    <h1>Three things you can <em>see</em> working.</h1>
-    <p class="lede">Example clips and LinkedIn copy for the weekly feature drop. Each clip is 4:5, silent with captions built in, and loops.</p>
+    <h1>Three steps toward an <em>autonomous back office</em>.</h1>
+    <p class="lede">What shipped in the last two weeks, shown on the processes it is for: order intake and invoice matching. Each clip is 4:5, silent with captions built in, and loops.</p>
     <div class="note">Examples for review (AP-10). Nothing has been posted. Data in the clips is illustrative.</div>
   </header>
 
@@ -75,19 +75,19 @@ button.copy:focus-visible { outline: 2px solid var(--accent); outline-offset: 2p
     <video src="talk-to-llev.mp4" poster="talk-to-llev.png" autoplay muted loop playsinline controls></video>
     <div class="meta">
       <h2 id="f1">Talk to Llev</h2>
-      <p class="why">A voice call with the agent. You say what you want and it makes the change in the platform, then answers questions about the work. Easiest to show, and clearly unlike assistants that only suggest.</p>
-      <div class="facts"><span>20s · 4:5</span><a href="https://lleverage.slack.com/archives/C09PS3956F5/p1790343555673919" target="_blank" rel="noopener">#change-log 25 Sep</a></div>
+      <p class="why">Quote &amp; Sell, order intake. Clean orders post into the ERP on their own; the order desk keeps an eye on the rest. On a call with the agent they ask for a chart of last month's orders and which orders are waiting for a PO number, and get both without building a report.</p>
+      <div class="facts"><span>Quote &amp; Sell</span><span>20s · 4:5</span><a href="https://lleverage.slack.com/archives/C09PS3956F5/p1790343555673919" target="_blank" rel="noopener">#change-log 25 Sep</a></div>
       <div class="post">
         <div class="post-head">Company post<button class="copy" type="button">Copy</button></div>
-        <p>Most AI assistants tell you what to click. Then you go and click it.
+        <p>An order desk asks two questions all day: what came in, and what is stuck.
 
-Llev doesn't. Call the agent from the chat and say "add a chart of last month's orders: booked in Exact or handed to a person". The chart is on your Overview page before you finish the call.
+You can now call the agent in Lleverage and ask. "Add a chart of last month's orders: booked in Exact or handed to a person." The chart is on the Overview page before the call ends.
 
-Ask "which orders are waiting for a PO number?" and you get the three orders, the oldest one, and who has them.
+"Which orders are waiting for a PO number?" Three, with the customer names and how long they have waited.
 
-Cut it off mid-sentence and it stops and listens. Everything you said lands in the chat transcript.
+Clean orders post into the ERP on their own. A call is the quickest way to check on the ones that don't.
 
-Talk to Llev is live now in the Lleverage agent.</p>
+Talk to Llev is live in the Lleverage agent.</p>
       </div>
     </div>
   </section>
@@ -96,17 +96,17 @@ Talk to Llev is live now in the Lleverage agent.</p>
     <video src="kanban-board.mp4" poster="kanban-board.png" autoplay muted loop playsinline controls></video>
     <div class="meta">
       <h2 id="f2">Board view for data tables</h2>
-      <p class="why">Supplier invoices as a three-way-match board: to match, price difference, ready to book. Any data table switches from list to board in the Columns dialog. Very visual, and it shows Lleverage as the team's workspace, not a chat window.</p>
-      <div class="facts"><span>18s · 4:5</span><a href="https://lleverage.slack.com/archives/C09PS3956F5/p1790153229252049" target="_blank" rel="noopener">#change-log 23 Sep</a></div>
+      <p class="why">Pay &amp; Collect, three-way matching. Invoices inside tolerance book themselves; the rest wait in finance. A board grouped by match status (to match, price difference, ready to book) is where finance works through those exceptions.</p>
+      <div class="facts"><span>Pay &amp; Collect</span><span>19s · 4:5</span><a href="https://lleverage.slack.com/archives/C09PS3956F5/p1790153229252049" target="_blank" rel="noopener">#change-log 23 Sep</a></div>
       <div class="post">
         <div class="post-head">Company post<button class="copy" type="button">Copy</button></div>
-        <p>An accounts payable team doesn't think in rows. They think in "to match", "price difference" and "ready to book".
+        <p>Most supplier invoices match. The order, the goods receipt and the invoice agree, and the invoice books itself.
 
-Every data table in Lleverage now has a board view. Switch from list to board, pick a column to group by, and each record becomes a card.
+The ones that don't land with finance: a price that changed, a short delivery, a PO number nobody can find.
 
-Approve a price difference by dragging the invoice to Ready to book. The record updates.
+Any data table in Lleverage can now be shown as a board. Group the invoices by match status and finance works through them lane by lane. Move an invoice to Ready to book and the record updates.
 
-Group by status, owner, select or yes/no columns. Choose which fields show on each card. Same data, in the view the team actually works in.</p>
+You can group by any status, person or yes/no column, so the same works for orders, returns or anything else you track in a table.</p>
       </div>
     </div>
   </section>
@@ -115,37 +115,36 @@ Group by status, owner, select or yes/no columns. Choose which fields show on ea
     <video src="skill-tests.mp4" poster="skill-tests.png" autoplay muted loop playsinline controls></video>
     <div class="meta">
       <h2 id="f3">Skill tests</h2>
-      <p class="why">Tests run a skill against saved checks. When one fails you see which check and why, and the agent fixes the instructions. Shows the work the ERP never sees: a PO number that isn't there, an order for two sites, and an agent that learns the rule instead of guessing.</p>
-      <div class="facts"><span>20s · 4:5</span><a href="https://lleverage.slack.com/archives/C09PS3956F5/p1790343555673919" target="_blank" rel="noopener">#change-log 25 Sep</a></div>
+      <p class="why">Quote &amp; Sell, order entry. Before an order intake skill posts into the ERP without a person, you want proof it handles the awkward orders. Tests run it against saved cases and show which check failed and why.</p>
+      <div class="facts"><span>Quote &amp; Sell</span><span>20s · 4:5</span><a href="https://lleverage.slack.com/archives/C09PS3956F5/p1790343555673919" target="_blank" rel="noopener">#change-log 25 Sep</a></div>
       <div class="post">
         <div class="post-head">Company post<button class="copy" type="button">Copy</button></div>
-        <p>The person who builds an AI skill usually ends up as its test suite. Every change, they re-run the same ten orders by hand.
+        <p>Before an order intake skill posts into your ERP on its own, you want to know how it handles the awkward orders.
 
-In Lleverage, the agent writes tests for a skill, runs them, reads why one failed and changes the skill. Then it runs them again.
+Skill tests run the skill against saved cases: an order without a PO number, customer article codes, two delivery addresses. Each test has checks, and when one fails you see which check and why.
 
-In the clip, a purchase order skill fails on an order without a PO number. The model took one from the email subject. The fix isn't a looser test. It's one line in the instructions: never infer a PO number, hand the order to purchasing.
+In this example the skill took a PO number from the email subject. The agent changed the instructions: no PO number on the order, no guessing, hand it to the order desk. The test stayed the same. On the next run all six passed.
 
-Skill tests are live, no feature flag.</p>
+Skill tests are live for everyone.</p>
       </div>
     </div>
   </section>
 
   <section class="personal" aria-labelledby="p1">
     <div class="kicker">Personal post · draft for Badr</div>
-    <h2 id="p1">Build for the champions.</h2>
+    <h2 id="p1">One process at a time.</h2>
     <div class="post">
       <div class="post-head">Pairs with the Skill tests clip<button class="copy" type="button">Copy</button></div>
-      <p>AI adoption isn't stuck because the models are weak. It's stuck because most AI tools need every employee to become an AI enthusiast.
+      <p>Most AI tools ask every employee to become an AI power user. Operations teams don't work like that.
 
-That's not how operations teams work. A purchasing team has one or two people who will build a skill. The other eight want the order handled.
+An order desk has one or two people who will set up a skill. The rest want the order in the ERP and the confirmation sent.
 
-So we build for the champions. They build a skill, the agent writes tests for it, and it reaches the rest of the team once it passes. When a test fails, the agent shows why and fixes the instructions, not the test.
+So we build for those one or two. They set up the skill, test it against real orders, and decide when it can post on its own. Until then a person approves every draft order.
 
-Start with a person approving every draft order. Let it book straight into Exact once the tests and the monitoring say it's ready.
-
-That's the loop we shipped this week.</p>
+That is how a back office becomes autonomous: one process at a time, tested, with a person on the exceptions.</p>
     </div>
   </section>
+
 
   <section class="how">
     <b>How these are made</b>
