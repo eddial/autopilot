@@ -84,8 +84,20 @@ export const job = (s: State, key: string) => (s.jobs[key] ??= {});
 export function succeeded(key: string, patch: Job = {}) {
   withState(s => Object.assign(job(s, key), { pid: null, last_success: new Date().toISOString(), last_error: null, failures: 0, failing_since: null }, patch));
 }
+// Each job is its own process, so the process start is the job's start.
+const STARTED = Date.now();
+// A run the Mac slept through (started awake, lid closed) times out at a later wake; that says nothing about
+// the job. kern.waketime is the last wake, dark or full.
+function wokeDuringRun() {
+  if (process.platform !== 'darwin') return false;
+  const r = spawnSync('sysctl', ['-n', 'kern.waketime'], { encoding: 'utf8' });
+  const sec = Number(r.stdout?.match(/sec = (\d+)/)?.[1]);
+  return sec * 1e3 > STARTED;
+}
 export function failed(key: string, err: unknown) {
   const msg = String((err as Error)?.message ?? err).slice(0, 2000);
+  // Not a failure: the next tick retries the same window.
+  if (wokeDuringRun()) { log(key, 'interrupted by sleep:', msg); return withState(s => { job(s, key).pid = null; }); }
   log(key, 'failed:', msg);
   withState(s => {
     const j = job(s, key);
