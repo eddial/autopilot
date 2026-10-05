@@ -60,6 +60,9 @@ button.copy:focus-visible { outline: 2px solid var(--accent); outline-offset: 2p
 .personal h2 { font-family: var(--serif); font-size: 36px; line-height: 1.05; margin: 0; }
 .how { display: grid; gap: 10px; font-size: 14px; color: var(--muted-fg); max-width: 70ch; border-top: 1px solid var(--border); padding-top: 24px; }
 .weekly { display: grid; gap: 16px; }
+.narrative { display: grid; gap: 12px; max-width: 68ch; }
+.narrative h2 { margin: 0; font-family: var(--serif); font-size: 36px; line-height: 1.05; }
+.narrative p { margin: 0; }
 .weekly h2 { margin: 0; font-size: 22px; font-weight: 700; }
 .strip { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 8px; }
 .strip img { width: 216px; max-width: 60vw; aspect-ratio: 4 / 5; border-radius: 8px; border: 1px solid var(--border); flex: none; }
@@ -70,19 +73,27 @@ button.copy:focus-visible { outline: 2px solid var(--accent); outline-offset: 2p
 <main class="page">
   <header>
     <div class="kicker">Feature drop · Week 39 · 22 Sep – 3 Oct 2026</div>
-    <h1>Three steps toward an <em>autonomous back office</em>.</h1>
-    <p class="lede">What shipped in the last two weeks, shown on the processes it is for: order intake and invoice matching. One weekly LinkedIn post with a carousel, and a 4:5 clip per feature that is silent, captioned and loops.</p>
+    <h1>Work on the process, <em>not in it</em>.</h1>
+    <p class="lede">What shipped in Lleverage in the last two weeks, and how each piece moves the back office toward running on its own. One weekly LinkedIn post (a combined video or a carousel), and a 4:5 clip per feature that is silent, captioned and loops.</p>
     <div class="note">Examples for review (AP-10). Nothing has been posted. Data in the clips is illustrative.</div>
   </header>
+
+  <section class="narrative" aria-labelledby="nar">
+    <div class="kicker">The story every drop tells</div>
+    <h2 id="nar">The autonomous back office</h2>
+    <p>Nobody should spend their day copying an order from an email into the ERP, or checking an invoice line by line against a PO. That work is repetitive, it pulls people away from what they are good at, and it is exactly what agents do well.</p>
+    <p>In an autonomous back office the routine runs on its own. People work on the process, not in it. They take the cases that need judgement: a price that changed, a customer with an unusual request, an order that doesn't fit the rules. And they steer the agents: they set the rules, check the work, correct mistakes and decide what can run without them.</p>
+    <p>Every feature in a drop does one of two things. It takes repetitive work off people, or it gives them a better way to steer the agents doing it. The copy says which.</p>
+  </section>
 
   <section class="weekly" aria-labelledby="wk">
     <div class="kicker">Option 1 · one weekly post</div>
     <h2 id="wk">One post with all three features</h2>
-    <p class="why">Use the combined video (about 58 seconds: a cover, each feature as a chapter marked "1 / 3 · Quote &amp; Sell", one end card), or the 5-page carousel PDF for people who swipe instead of watch. The post copy works for both.</p>
+    <p class="why">Use the combined video (about 29 seconds: a cover, the key moment of each feature as a chapter marked "1 / 3 · Talk to Llev", one end card), or the 5-page carousel PDF for people who swipe instead of watch. The post copy works for both.</p>
     <div class="drop">
       <video src="weekly.mp4" poster="weekly-cover.png" muted loop playsinline controls></video>
       <div class="meta">
-        <div class="facts"><span>Combined video · 58s · 4:5</span><span>Carousel · carousel.pdf · 5 pages</span></div>
+        <div class="facts"><span>Combined video · 29s · 4:5</span><span>Carousel · carousel.pdf · 5 pages</span></div>
         <div class="strip">
           <img src="carousel-1.png" alt="Carousel cover: three steps toward an autonomous back office">
           <img src="carousel-2.png" alt="Carousel page: Talk to Llev">
@@ -92,17 +103,17 @@ button.copy:focus-visible { outline: 2px solid var(--accent); outline-offset: 2p
         </div>
     <div class="post">
       <div class="post-head">Weekly company post · attach weekly.mp4 or carousel.pdf<button class="copy" type="button">Copy</button></div>
-      <p>The back office doesn't need more dashboards. It needs fewer things to chase.
+      <p>People should work on the process, not in it.
 
-What shipped in Lleverage over the last two weeks:
+The routine in a back office (orders in, invoices matched, data moved from one system to the next) can run on its own. What needs people is the hard cases, and steering the agents that do the rest.
 
-→ Talk to Llev. Call the agent and ask which orders are waiting for a PO number, or have it add last month's orders to your Overview.
+Three things we shipped toward that in the last two weeks:
 
-→ Board view for data tables. Supplier invoices grouped by match status, so finance only works the ones outside tolerance.
+→ Talk to Llev. Call the agent and ask which orders are waiting for a PO number, or have it chart last month's orders. Checking on the process becomes a two-minute call.
 
-→ Skill tests. Run an order intake skill against real orders before it posts into the ERP on its own.
+→ Board view for data tables. Supplier invoices grouped by match status, so finance only sees the ones that need judgement.
 
-Each one moves a core process a step closer to running on its own, with a person on the exceptions.
+→ Skill tests. You set the rules and test them against real orders, then decide when a skill runs without a person.
 
 Clips of all three in the first comment. 📦</p>
     </div>
@@ -116,8 +127,8 @@ Clips of all three in the first comment. 📦</p>
     <video src="talk-to-llev.mp4" poster="talk-to-llev.png" autoplay muted loop playsinline controls></video>
     <div class="meta">
       <h2 id="f1">Talk to Llev</h2>
-      <p class="why">Quote &amp; Sell, order intake. Clean orders post into the ERP on their own; the order desk keeps an eye on the rest. On a call with the agent they ask for a chart of last month's orders and which orders are waiting for a PO number, and get both without building a report.</p>
-      <div class="facts"><span>Quote &amp; Sell</span><span>20s · 4:5</span><a href="https://lleverage.slack.com/archives/C09PS3956F5/p1790343555673919" target="_blank" rel="noopener">#change-log 25 Sep</a></div>
+      <p class="why">Clean orders post into the ERP on their own; the order desk keeps an eye on the rest. On a call with the agent they ask for a chart of last month's orders and which orders wait for a PO number, and get both without building a report. People check on the process and steer it without opening a report. The same works for invoices, returns or any other process in a project.</p>
+      <div class="facts"><span>20s · 4:5</span><a href="https://lleverage.slack.com/archives/C09PS3956F5/p1790343555673919" target="_blank" rel="noopener">#change-log 25 Sep</a></div>
       <div class="post">
         <div class="post-head">Company post<button class="copy" type="button">Copy</button></div>
         <p>The fastest report on your order backlog is now a phone call.
@@ -126,7 +137,7 @@ An order desk asks two questions all day: what came in, and what is stuck. You c
 
 "Which orders are waiting for a PO number?" Three, with the customer names and how long they have waited.
 
-Clean orders post into the ERP on their own. A call is the quickest way to check on the ones that don't.
+The routine runs on its own. A call is how you check on it and steer it, without opening a report.
 
 Talk to Llev is live in the Lleverage agent.</p>
       </div>
@@ -137,8 +148,8 @@ Talk to Llev is live in the Lleverage agent.</p>
     <video src="kanban-board.mp4" poster="kanban-board.png" autoplay muted loop playsinline controls></video>
     <div class="meta">
       <h2 id="f2">Board view for data tables</h2>
-      <p class="why">Pay &amp; Collect, three-way matching. Invoices inside tolerance book themselves; the rest wait in finance. A board grouped by match status (to match, price difference, ready to book) is where finance works through those exceptions.</p>
-      <div class="facts"><span>Pay &amp; Collect</span><span>19s · 4:5</span><a href="https://lleverage.slack.com/archives/C09PS3956F5/p1790153229252049" target="_blank" rel="noopener">#change-log 23 Sep</a></div>
+      <p class="why">Any data table can be shown as a board. In the clip: supplier invoices grouped by match status. Invoices inside tolerance book themselves; the board is where people take the ones that need judgement. The same works for orders, returns or quotes.</p>
+      <div class="facts"><span>19s · 4:5</span><a href="https://lleverage.slack.com/archives/C09PS3956F5/p1790153229252049" target="_blank" rel="noopener">#change-log 23 Sep</a></div>
       <div class="post">
         <div class="post-head">Company post<button class="copy" type="button">Copy</button></div>
         <p>Finance should only ever see the invoices that don't match.
@@ -149,7 +160,7 @@ The ones that don't land with finance: a price that changed, a short delivery, a
 
 Any data table in Lleverage can now be shown as a board. Group the invoices by match status and finance works through them lane by lane. Move an invoice to Ready to book and the record updates.
 
-You can group by any status, person or yes/no column, so the same works for orders, returns or anything else you track in a table.</p>
+People spend their time on the invoices that need judgement, not on the ones that match. You can group by any status, person or yes/no column, so the same works for orders, returns or anything else you track in a table.</p>
       </div>
     </div>
   </section>
@@ -158,8 +169,8 @@ You can group by any status, person or yes/no column, so the same works for orde
     <video src="skill-tests.mp4" poster="skill-tests.png" autoplay muted loop playsinline controls></video>
     <div class="meta">
       <h2 id="f3">Skill tests</h2>
-      <p class="why">Quote &amp; Sell, order entry. Before an order intake skill posts into the ERP without a person, you want proof it handles the awkward orders. Tests run it against saved cases and show which check failed and why.</p>
-      <div class="facts"><span>Quote &amp; Sell</span><span>20s · 4:5</span><a href="https://lleverage.slack.com/archives/C09PS3956F5/p1790343555673919" target="_blank" rel="noopener">#change-log 25 Sep</a></div>
+      <p class="why">Before a skill acts in the ERP without a person, you want proof it handles the awkward cases. Tests run it against saved cases and show which check failed and why. People set the rules and decide when the skill runs on its own. In the clip: an order intake skill.</p>
+      <div class="facts"><span>20s · 4:5</span><a href="https://lleverage.slack.com/archives/C09PS3956F5/p1790343555673919" target="_blank" rel="noopener">#change-log 25 Sep</a></div>
       <div class="post">
         <div class="post-head">Company post<button class="copy" type="button">Copy</button></div>
         <p>An AI that guesses a PO number is worse than no AI at all.
@@ -170,25 +181,25 @@ Skill tests run the skill against saved cases: an order without a PO number, cus
 
 In this example the skill took a PO number from the email subject. The agent changed the instructions: no PO number on the order, no guessing, hand it to the order desk. The test stayed the same. On the next run all six passed.
 
-Skill tests are live for everyone.</p>
+The person who knows the rules sets them. The agent follows them. Skill tests are live for everyone.</p>
       </div>
     </div>
   </section>
 
   <section class="personal" aria-labelledby="p1">
     <div class="kicker">Personal post · draft for Badr</div>
-    <h2 id="p1">One process at a time.</h2>
+    <h2 id="p1">On the process, not in it.</h2>
     <div class="post">
       <div class="post-head">Pairs with the Skill tests clip<button class="copy" type="button">Copy</button></div>
-      <p>Your order desk doesn't want an AI tool. It wants the order in the ERP.
+      <p>Nobody joined an order desk to copy PO numbers from a PDF into an ERP.
 
-Most AI tools ask every employee to become an AI power user. Operations teams don't work like that.
+Yet that is where a lot of back-office time goes: pumping data from one system into the next, checking it, and doing it again tomorrow.
 
-An order desk has one or two people who will set up a skill. The rest want the order in the ERP and the confirmation sent.
+We think people belong somewhere else. On the cases that need judgement: the customer with the odd request, the price that doesn't add up. And on the process itself: setting the rules the agents follow, checking their work, deciding when something can run without them.
 
-So we build for those one or two. They set up the skill, test it against real orders, and decide when it can post on its own. Until then a person approves every draft order.
+That is what we mean by an autonomous back office. Not a process without people, but people working on the process instead of in it.
 
-That is how a back office becomes autonomous: one process at a time, tested, with a person on the exceptions.</p>
+This week's skill tests are a small piece of that: the person who knows the rules writes them down, tests them against real orders, and decides when the agent is ready.</p>
     </div>
   </section>
 
