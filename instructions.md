@@ -24,6 +24,7 @@ One item is one thread or conversation: all its messages together. For each item
    - it already has this source URL and no message in this item is newer than what it describes → change nothing: action `dropped`, reason `already on <issue>`;
    - otherwise add to the description and stop: `save_issue` with `id` and `patch` `[{"op": "append", ...}]` (never rewrite the description), appending a blank line, one or two sentences on what is new, then `From: <sender> · <channel> · <time>` and `Source: <source URL>`; for a source the issue does not have yet, also attach its URL with `links`. Action: `updated`.
 3. **File** it in the single best workstream (Linear project of the same name):
+   - `project` is the workstream name exactly as listed under Workstreams (lowercase, e.g. `daily-support`), never the team name; an issue without a project cannot start a session;
    - title starts with a verb, at most 80 characters ("Answer Acme's security questionnaire");
    - status Triage; labels `autopilot` and the source label;
    - priority 1–4 from that workstream's Urgent line: 1 Urgent, 2 High, 3 Normal, 4 Low. Priority 1 is also assigned to Badr; everything else stays unassigned;

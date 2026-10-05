@@ -79,8 +79,9 @@ export async function launch() {
 
 async function start(issue: any) {
   const id: string = issue.identifier;
-  const ws = readDir('workstreams').find(w => w.name === issue.project?.name);
-  if (!ws) throw new Error(`project "${issue.project?.name ?? '(none)'}" has no workstreams/*.md file`);
+  const all = readDir('workstreams'), ws = all.find(w => w.name === issue.project?.name);
+  if (!ws) throw new Error(issue.project ? `project "${issue.project.name}" has no workstreams/*.md file`
+    : `the issue has no project; set it to a workstream (${all.map(w => w.name).join(', ')}) and move it to Start again`);
   const repo = !ws.meta.repo || ws.meta.repo === 'autopilot' ? ROOT : path.join(config.repos_dir, ws.meta.repo);
   const worktree = path.join(config.worktrees_dir, id), branch = `claude/${id.toLowerCase()}`;
 
