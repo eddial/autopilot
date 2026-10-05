@@ -59,6 +59,10 @@ button.copy:focus-visible { outline: 2px solid var(--accent); outline-offset: 2p
 .personal { display: grid; gap: 16px; max-width: 720px; }
 .personal h2 { font-family: var(--serif); font-size: 36px; line-height: 1.05; margin: 0; }
 .how { display: grid; gap: 10px; font-size: 14px; color: var(--muted-fg); max-width: 70ch; border-top: 1px solid var(--border); padding-top: 24px; }
+.weekly { display: grid; gap: 16px; }
+.weekly h2 { margin: 0; font-size: 22px; font-weight: 700; }
+.strip { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 8px; }
+.strip img { width: 216px; max-width: 60vw; aspect-ratio: 4 / 5; border-radius: 8px; border: 1px solid var(--border); flex: none; }
 .how b { color: var(--fg); }
 .how code { font-family: var(--mono); font-size: 12.5px; background: var(--muted); padding: 1px 5px; border-radius: 4px; }
 </style>
@@ -67,9 +71,38 @@ button.copy:focus-visible { outline: 2px solid var(--accent); outline-offset: 2p
   <header>
     <div class="kicker">Feature drop · Week 39 · 22 Sep – 3 Oct 2026</div>
     <h1>Three steps toward an <em>autonomous back office</em>.</h1>
-    <p class="lede">What shipped in the last two weeks, shown on the processes it is for: order intake and invoice matching. Each clip is 4:5, silent with captions built in, and loops.</p>
+    <p class="lede">What shipped in the last two weeks, shown on the processes it is for: order intake and invoice matching. One weekly LinkedIn post with a carousel, and a 4:5 clip per feature that is silent, captioned and loops.</p>
     <div class="note">Examples for review (AP-10). Nothing has been posted. Data in the clips is illustrative.</div>
   </header>
+
+  <section class="weekly" aria-labelledby="wk">
+    <div class="kicker">Weekly post · one per drop</div>
+    <h2 id="wk">One LinkedIn post with a 5-page carousel</h2>
+    <p class="why">LinkedIn can't put several videos in one post, so the weekly post is a PDF document carousel: a cover, one page per feature tied to its process, and a closing page. The clips live on this page, linked from the first comment, and stay available for a single-feature or personal post when one is strong enough.</p>
+    <div class="strip">
+      <img src="carousel-1.png" alt="Cover: three steps toward an autonomous back office">
+      <img src="carousel-2.png" alt="Talk to Llev page">
+      <img src="carousel-3.png" alt="Board view page">
+      <img src="carousel-4.png" alt="Skill tests page">
+      <img src="carousel-5.png" alt="Closing page">
+    </div>
+    <div class="post">
+      <div class="post-head">Weekly company post · attach carousel.pdf<button class="copy" type="button">Copy</button></div>
+      <p>The back office doesn't need more dashboards. It needs fewer things to chase.
+
+What shipped in Lleverage over the last two weeks:
+
+→ Talk to Llev. Call the agent and ask which orders are waiting for a PO number, or have it add last month's orders to your Overview.
+
+→ Board view for data tables. Supplier invoices grouped by match status, so finance only works the ones outside tolerance.
+
+→ Skill tests. Run an order intake skill against real orders before it posts into the ERP on its own.
+
+Each one moves a core process a step closer to running on its own, with a person on the exceptions.
+
+Clips of all three in the first comment. 📦</p>
+    </div>
+  </section>
 
   <section class="drop" aria-labelledby="f1">
     <video src="talk-to-llev.mp4" poster="talk-to-llev.png" autoplay muted loop playsinline controls></video>
@@ -154,7 +187,7 @@ That is how a back office becomes autonomous: one process at a time, tested, wit
 
   <section class="how">
     <b>How these are made</b>
-    <span>Each clip rebuilds the real app UI (tokens, components and icons taken from the lleverage codebase) as an HTML page where every frame is a function of time. A Playwright script steps through it at 30 fps and ffmpeg encodes a 1080×1350 H.264 MP4. A new clip is a new HTML file: write the timeline, render, review a few stills.</span>
+    <span>Each clip rebuilds the real app UI (tokens, components and icons taken from the lleverage codebase) as an HTML page where every frame is a function of time. A Playwright script steps through it at 30 fps and ffmpeg encodes a 1080×1350 H.264 MP4. A new clip is a new HTML file: write the timeline, render, review a few stills. The carousel is <code>carousel.html</code>, rendered to a PDF with <code>carousel.mjs</code>.</span>
     <span>Source: <code>marketing/feature-drops/2026-w39/</code> on branch <code>claude/ap-10</code>.</span>
   </section>
 </main>
