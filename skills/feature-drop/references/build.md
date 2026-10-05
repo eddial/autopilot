@@ -6,7 +6,7 @@
 | --- | --- |
 | Node 20+ and ffmpeg | `node -v`, `ffmpeg -version` |
 | Playwright 1.57 + Chromium | `npm i playwright@1.57` in a scratch folder; run scripts with `NODE_PATH=<that folder>/node_modules`. If Chromium is missing: `npx playwright install chromium` |
-| A checkout of `lleverage-ai/lleverage` with `node_modules` installed | Needed to read the real UI and to extract Font Awesome Pro icons. Default path `~/Sites/lleverage`; use yours |
+| **Read-only access to the `lleverage-ai/lleverage` monorepo** (GitHub + a local checkout with `node_modules` installed) | Required, for two things: (1) checking what shipped: merged PRs, their descriptions and feature flags (`gh pr list/view`); (2) the UI source for the videos: every clip rebuilds the real screens from `apps/app/src`, and icons are extracted from its `node_modules`. Read-only is enough; the skill never writes to it. Default path `~/Sites/lleverage`; use yours |
 | Read access to Slack #change-log and the GitHub repo | For the shortlist and the facts |
 | The Artifact tool (Claude) | To publish the drop page |
 
