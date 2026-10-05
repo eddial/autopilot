@@ -1,5 +1,6 @@
 // Launcher. Polls Linear with the API key: starts a session for each issue in Start, cleans up after Done/Canceled.
 import fs from 'node:fs';
+import os from 'node:os';
 import { randomUUID } from 'node:crypto';
 import path from 'node:path';
 import { ROOT, HOME, config, repoDir, readDir, section, instructions, withState, readState, run, log, transient, unwatch, claude, type Session } from './lib.ts';
@@ -32,6 +33,18 @@ export const move = (id: string, stateId: string) =>
   gql('mutation($id: String!, $s: String!) { issueUpdate(id: $id, input: { stateId: $s }) { success } }', { id, s: stateId });
 
 const tmux = (...a: string[]) => run('tmux', a);
+// Claude Code stops at "Do you trust this folder?" in a folder it has not seen, and the session never starts.
+// Every folder the launcher opens is its own (a workstream folder or a worktree of a configured repo), so it
+// accepts the prompt ahead of time the way the app records it.
+function trust(dir: string) {
+  const file = path.join(os.homedir(), '.claude.json');
+  const c = fs.existsSync(file) ? JSON.parse(fs.readFileSync(file, 'utf8')) : {};
+  if (c.projects?.[dir]?.hasTrustDialogAccepted) return;
+  c.projects ??= {};
+  c.projects[dir] = { ...c.projects[dir], hasTrustDialogAccepted: true };
+  fs.writeFileSync(file + '.autopilot.tmp', JSON.stringify(c, null, 2));
+  fs.renameSync(file + '.autopilot.tmp', file);
+}
 const hasWindow = (name: string) => { try { return tmux('list-windows', '-t', TMUX, '-F', '#W').split('\n').includes(name); } catch { return false; } };
 
 // Status name → id.
@@ -117,6 +130,7 @@ async function start(issue: any) {
     const base = remote ? run('git', ['-C', repo, 'symbolic-ref', '--short', 'refs/remotes/origin/HEAD']) : run('git', ['-C', repo, 'rev-parse', '--abbrev-ref', 'HEAD']);
     run('git', ['-C', repo, 'worktree', 'add', '-b', branch, worktree, base]);
   }
+  trust(worktree);
   try { tmux('has-session', '-t', TMUX); } catch { tmux('new-session', '-d', '-s', TMUX, '-n', 'home'); }
   if (hasWindow(id)) tmux('kill-window', '-t', `${TMUX}:${id}`);
 
@@ -130,10 +144,17 @@ async function start(issue: any) {
     'claude', '--session-id', sessionId, '--remote-control', `${id} ${issue.title}`, '--no-chrome', '--permission-mode', 'bypassPermissions', '--settings', path.join(ROOT, '.claude', 'settings.json'), prompt);
 
   // Past step 3: the session runs. Failures from here on are reported but do not undo the claim.
-  let link = '';
+  let link = '', pane = '';
   for (let i = 0; i < 30 && !link; i++) {
     await new Promise(r => setTimeout(r, 1000));
-    try { link = tmux('capture-pane', '-p', '-J', '-S', '-200', '-t', `${TMUX}:${id}`).match(/https:\/\/claude\.ai\/\S+/)?.[0] ?? ''; } catch { break; }
+    try { pane = tmux('capture-pane', '-p', '-J', '-S', '-200', '-t', `${TMUX}:${id}`); } catch { break; }
+    link = pane.match(/https:\/\/claude\.ai\/\S+/)?.[0] ?? '';
+  }
+  // A session held at a startup prompt has no transcript, so its deep link opens nothing. Send the issue
+  // back to Triage with what the window showed instead of leaving it in Working.
+  if (!link && /trust this folder|Enter to confirm/.test(pane)) {
+    try { tmux('kill-window', '-t', `${TMUX}:${id}`); } catch {}
+    throw new Error(`the session stopped at a startup prompt in ${worktree}:\n${pane.trim().split('\n').slice(0, 12).join('\n')}`);
   }
   const started = new Date().toISOString();
   const session: Session = { issue_id: issue.id, repo, worktree, branch, window: `${TMUX}:${id}`, session_id: sessionId, link, started, seen: started };
