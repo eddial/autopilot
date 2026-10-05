@@ -8,6 +8,9 @@ with: a question to answer, a draft to write, something to research,
 analyse, decide on with a recommendation, or fix in a workflow or code.
 Not every DM: drop chit-chat, thanks, FYIs, status updates, scheduling
 and anything a teammate already owns or has resolved in the thread.
+A teammate reporting a bug, error or broken tool to me, or asking for
+access, in a DM or a mention counts as a request to look into it, even
+without an explicit question. So does a reply in a thread I started.
 
 Look at direct messages to me, group DMs I am in, channel messages that
 mention me or reply in threads I started or replied to, and customer
@@ -21,12 +24,21 @@ as Conclude posting for them): treat those as people. Skip only real
 automation: Linear, alerts, CI and status bots, channel joins, and
 threads where I already gave the last answer.
 
-Search with the `after` parameter set to the window start (Unix seconds)
-and `sort: timestamp`: first `is:dm`, then mentions of my user id
-(`<@U06E7AAF99C>`), then the customer channels: list them with
-search_channels (query `lleverage`, keep names ending in `-lleverage`)
-and search them together with one `in:<#id>` filter per channel. Page
-until results are older than the window. Read the whole thread for
+Run these four searches with slack_search_public_and_private, each with
+`after` and `before` set to the window (Unix seconds), `sort: timestamp`
+and `include_bots: true`:
+1. DMs and group DMs: `{"filters": "is:dm"}`.
+2. Messages that mention me, in any channel:
+   `{"query": "<@U06E7AAF99C>"}`. Copy this exactly: the query is the
+   bare mention, with no `from:`, `in:` or other text around it.
+   (`from:<@U06E7AAF99C>` finds my own messages, which is wrong here.)
+3. Replies in threads I started or replied to, in any channel:
+   `{"filters": "is:thread with:<@U06E7AAF99C>"}`.
+4. Customer channels: list them with search_channels (query
+   `lleverage`, keep names ending in `-lleverage`), then
+   `{"filters": "in:<#id1> in:<#id2> …"}` with one `in:` per channel
+   and no query or keywords.
+Page until results are older than the window. Read the whole thread for
 each hit.
 
 One thread is one issue, however many replies it gets. Source URL: the
