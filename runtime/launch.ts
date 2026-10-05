@@ -139,9 +139,12 @@ async function start(issue: any) {
   const place = repo ? `You work in a git worktree of ${repo} on branch \`${branch}\`.`
     : `You work in ${worktree}, the ${ws.name} workstream's folder: not a git repo, shared with its other sessions. Put files for this issue in ${id}/.`;
   const prompt = [instructions(), section(ws.body, 'Work'), `${place} Use the autopilot:work skill on Linear issue ${id}.`].filter(Boolean).join('\n\n---\n\n');
+  // Without --name the app titles the session from the prompt, which opens with the same generic
+  // instructions for every issue, so every session gets a title like "General coding session".
+  const name = `${id} ${issue.title}`;
   tmux('new-window', '-d', '-t', `${TMUX}:`, '-n', id, '-c', worktree,
     '-e', `AUTOPILOT_ISSUE=${id}`, '-e', `AUTOPILOT_ISSUE_UUID=${issue.id}`, '-e', `AUTOPILOT_ROOT=${ROOT}`, '-e', `AUTOPILOT_HOME=${HOME}`,
-    'claude', '--session-id', sessionId, '--remote-control', `${id} ${issue.title}`, '--no-chrome', '--permission-mode', 'bypassPermissions', '--settings', path.join(ROOT, '.claude', 'settings.json'), prompt);
+    'claude', '--session-id', sessionId, '--name', name, '--remote-control', name, '--no-chrome', '--permission-mode', 'bypassPermissions', '--settings', path.join(ROOT, '.claude', 'settings.json'), prompt);
 
   // Past step 3: the session runs. Failures from here on are reported but do not undo the claim.
   let link = '', pane = '';
