@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { spawn } from 'node:child_process';
-import { ROOT, STATE_DIR, config, readDir, readMd, section, instructions, duration, withState, readState, job, succeeded, failed, alive, log, claude } from './lib.ts';
+import { ROOT, STATE_DIR, config, readDir, readMd, section, instructions, duration, withState, readState, job, succeeded, failed, alive, log, claude, unwatch } from './lib.ts';
 
 const [cmd, ...args] = process.argv.slice(2);
 const now = new Date();
@@ -95,6 +95,13 @@ async function tick() {
     }
   }
   if (!alive(s.jobs.launcher?.pid)) detach('launcher', ['launch']);
+  // Watchers: due every `every`; the run itself checks the issue's status (watch.ts).
+  for (const [id, w] of Object.entries(s.watchers)) {
+    const key = `watch:${id}`;
+    if (alive(s.jobs[key]?.pid) || (w.last_run && +now - +new Date(w.last_run) < duration(w.every))) continue;
+    withState(st => { if (st.watchers[id]) st.watchers[id].last_run = iso(now); });
+    detach(key, ['watch-run', id]);
+  }
   // Health: report after 60 minutes and 3 runs of failure, or on a capped window; close once runs succeed.
   // The run count keeps a single failure followed by sleep (a laptop's dark wake) from counting as an hour.
   for (const [key, j] of Object.entries(s.jobs)) {
@@ -209,6 +216,12 @@ else if (cmd === 'health') runHealth(args[0], args[1]);
 else if (cmd === 'launch') {
   const { launch } = await import('./launch.ts');
   try { await launch(); succeeded('launcher'); } catch (e) { failed('launcher', e); }
-} else if (cmd === 'install') install();
+} else if (cmd === 'watch' || cmd === 'watch-run') {
+  const w = await import('./watch.ts');
+  if (cmd === 'watch-run') await w.check(args[0]);
+  else if (!args.length) w.list();
+  else try { await w.add(args); } catch (e) { console.error((e as Error).message); process.exit(1); }
+} else if (cmd === 'unwatch') { unwatch(args[0]); console.log(`unwatched ${args[0]}`); }
+else if (cmd === 'install') install();
 else if (!cmd || cmd === 'tick') await tick();
-else { console.error('usage: autopilot [tick|signal <name> [--dry=<minutes>]|schedule <name>|launch|install]'); process.exit(1); }
+else { console.error('usage: autopilot [tick|signal <name> [--dry=<minutes>]|schedule <name>|launch|watch [<ID> "<what>" …]|unwatch <ID>|install]'); process.exit(1); }

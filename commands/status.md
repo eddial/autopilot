@@ -1,5 +1,5 @@
 ---
-description: Autopilot status — signals, sessions and open health issues
+description: Autopilot status — signals, sessions, watchers and open health issues
 ---
 
 Read `.state/state.json`, the tail of `.state/tick.log` and the last
@@ -13,7 +13,9 @@ Read `.state/state.json`, the tail of `.state/tick.log` and the last
 3. **Sessions** — one row per `sessions` entry: issue, branch, started,
    whether its tmux window is alive (`tmux list-windows -t autopilot`),
    the Remote Control link.
-4. **Health issues** — open Linear issues in the `autopilot` project whose
+4. **Watchers** — one row per `watchers` entry: issue, what, every,
+   until, last run, and its `watch:<ID>` job's last error.
+5. **Health issues** — open Linear issues in the `autopilot` project whose
    title starts with "Autopilot health:".
 
 Flag anything that needs Badr: a job failing for more than an hour, a
