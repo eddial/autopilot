@@ -96,7 +96,7 @@ far, with file paths; extend it when you read new ones.
 | Output | Spec |
 | --- | --- |
 | One clip per feature | 1080×1350 (4:5), 18–20s, 30 fps, silent, captions burned in, loops. Hook card 0–2.2s → camera/UI → end card from ~17s. |
-| Combined weekly video | ~30s: 2s cover card, the **key moment** of each clip (~7–8s, no per-clip hook/end cards) with chapter label "n / 3 · Feature", 2.5s end card. Built by `weekly.sh`. |
+| Combined weekly video | **~13s**: 1.5s cover card, only the **payoff moment** of each clip (~2.5–3s: the chart landing, the card dropping, all tests passing; no per-clip hook/end cards) with chapter label "n / 3 · Feature", 2s end card. Built by `weekly.sh`. |
 | Carousel PDF | 5 pages 1080×1350: cover (narrative headline + list), one page per feature (feature label, plain line, still from the clip), closing page. LinkedIn carousels are documents only; videos cannot go inside one. |
 | Posts | One weekly post (works with the combined video or the carousel), one post per feature, one personal post for Badr. |
 | Drop page | `index.html` published as an Artifact (private): narrative, Option 1 weekly post (video + carousel + copy), Option 2 per-feature clips + posts, personal post, how it is made. |
@@ -124,7 +124,7 @@ far, with file paths; extend it when you read new ones.
    background; it retries stalled frames). Then `node carousel.mjs`, then
    `./weekly.sh` (edit its `seg` lines: clip, chapter label, from, until).
    Extract carousel stills with ffmpeg `crop=952:900:64:330` from the clips.
-6. Verify: `ffprobe` durations (20/19/20, ~29 for weekly), and pull a frame or
+6. Verify: `ffprobe` durations (20/19/20, ~13 for weekly); check the first and last frame of every chapter (no empty slots mid-pan, results finished), and pull a frame or
    two from every MP4. Fix and re-render rather than explain.
 7. Publish `index.html` with the Artifact tool, passing the MP4s, posters and
    carousel PNGs as `files`. Commit the folder (HTML, MP4, PNG, PDF) on the
@@ -143,7 +143,7 @@ the issue to Review. Never post anything yourself.
   from the codebase.
 - Generic demo data ("runs", "workflows") was rejected: use orders and invoices.
 - Slogans were rejected: keep text down to earth, keep the visuals lively.
-- The combined video at 58s was too long: cut to the key moment per feature.
+- The combined video was too long at 58s and still too long at 29s: ~13s, payoff moments only.
 - Domain labels on cards were wrong because features are generic.
 - Order intake: an order without the customer's PO goes to the order desk,
   not to purchasing. Check who really owns an exception before writing it.
