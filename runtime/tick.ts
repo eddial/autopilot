@@ -142,7 +142,7 @@ function runSignal(name: string, dry?: number) {
       `# Workstreams (Linear project = workstream name)\n\n${routing}`,
       `# Window\n\nFetch items with activity from ${iso(from)} up to ${iso(end)} (Unix seconds ${Math.floor(+from / 1e3)} to ${Math.floor(+end / 1e3)}). Ignore anything outside it.`,
       dry ? `# Output\n\nDRY RUN: apply the filing rules, including both dedupe searches with list_issues, but create, change and comment on nothing. Report what you would do (action = what you would do, issue = the existing issue for an update, else null).`
-          : `# Output\n\nFile each item per the filing rules, then return {"items": [...]} with one entry per item, filed or dropped.`,
+          : `# Output\n\nThis is an unattended run: nobody reads or answers questions. Do it now: fetch the window's items with the signal's tools, apply the filing rules to each (gate, active-issue searches, then drop, update or file), and return {"items": [...]} with one entry per item, filed or dropped. Return an empty list only when the fetch itself found nothing.`,
     ].join('\n\n---\n\n');
     const filing = dry ? config.filing_tools.filter((t: string) => !/__save_/.test(t)) : config.filing_tools;
     const started = Date.now();
