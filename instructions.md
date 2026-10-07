@@ -20,17 +20,18 @@ without it is {{owner}}, and is an instruction for the work on that issue.
 
 One item is one thread or conversation: all its messages together. For each item:
 
-1. **Drop** it when nobody needs {{owner}} to do, answer or decide anything (FYIs, newsletters, automated mail, threads already answered by them, threads where someone else owns the next step).
-2. **Dedupe.** Search the team's open issues twice with `list_issues`: `query` set to the source URL (or, if that finds nothing, a stable part of it such as the thread or message id), and `query` with two or three distinctive words for the same request or problem (the tool, customer or document name), which finds the same thing reported by someone else. On a match, read the issue's description and:
+1. **Gate.** Apply the signal's rules on who and what counts at all (senders that matter, automated mail, newsletters, {{owner}}'s own messages). Items that fail them are dropped here and never reach step 2.
+2. **Match an active issue first.** Before judging whether the item is worth an issue of its own, check whether it belongs to one that is already active. Search the team's issues twice with `list_issues`: `query` set to the source URL (or, if that finds nothing, a stable part of it such as the thread or message id), and `query` with two or three distinctive words for the same request or problem (the tool, customer, vendor or document name), which finds a follow-up in a new thread or the same thing reported by someone else. Only active issues count: ignore any whose status is Done, Canceled or Duplicate. On a match, read the issue's description and:
    - it already has this source URL and no message in this item is newer than what it describes → change nothing: action `dropped`, reason `already on <issue>`;
-   - otherwise add to the description and stop: `save_issue` with `id` and `patch` `[{"op": "append", ...}]` (never rewrite the description), appending a blank line, one or two sentences on what is new, then `From: <sender> · <channel> · <time>` and `Source: <source URL>`; for a source the issue does not have yet, also attach its URL with `links`. Action: `updated`.
-3. **File** it in the single best workstream (Linear project of the same name):
+   - otherwise add it as context and stop, even when the item on its own would be dropped below (a reply, an FYI, a receipt or document someone sends for it, a status update on it): `save_issue` with `id` and `patch` `[{"op": "append", ...}]` (never rewrite the description), appending a blank line, one or two sentences on what is new, then `From: <sender> · <channel> · <time>` and `Source: <source URL>`; for a source the issue does not have yet, also attach its URL with `links`. Action: `updated`.
+3. **Drop** what matches no active issue when nobody needs {{owner}} to do, answer or decide anything (FYIs, threads already answered by them, threads where someone else owns the next step), and anything else the signal's rules say not to file.
+4. **File** it in the single best workstream (Linear project of the same name):
    - `project` is the workstream name exactly as listed under Workstreams (lowercase, e.g. `daily-support`), never the team name; an issue without a project cannot start a session;
    - title starts with a verb, at most 80 characters ("Answer Acme's security questionnaire");
    - status Triage; labels `autopilot` and the source label;
    - priority 1–4 from that workstream's Urgent line: 1 Urgent, 2 High, 3 Normal, 4 Low. Priority 1 is also assigned to {{owner}} (`assignee: "me"`, the connector's account); everything else stays unassigned;
    - description: who wants what, by when, in one or two sentences; then a blank line, `From: <sender> · <channel> · <time>` and `Source: <source URL>`;
    - attach the source URL with `save_issue` `links` (`{url, title}`, title = source and subject).
-4. When unsure between two workstreams, pick one and say why in `reason`; {{owner}} re-files by changing the project.
+5. When unsure between two workstreams, pick one and say why in `reason`; {{owner}} re-files by changing the project.
 
 Return every item you looked at, filed or dropped, with a short `reason`.
