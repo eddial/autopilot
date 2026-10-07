@@ -115,16 +115,17 @@ async function tick() {
 
 const ITEMS_SCHEMA = {
   type: 'object', required: ['items'], properties: { items: { type: 'array', items: {
-    type: 'object', required: ['source', 'source_url', 'from', 'subject', 'snippet', 'action', 'reason', 'searches', 'workstream', 'priority', 'issue'], properties: {
+    type: 'object', required: ['source', 'source_url', 'from', 'subject', 'snippet', 'action', 'reason', 'searches', 'note', 'workstream', 'priority', 'issue'], properties: {
       source: { type: 'string' }, source_url: { type: 'string' }, from: { type: 'string' }, subject: { type: 'string' },
       snippet: { type: 'string' }, action: { enum: ['created', 'updated', 'dropped'] }, reason: { type: 'string' },
       // The list_issues queries actually run for this item: empty only when the gate dropped it.
       searches: { type: 'array', items: { type: 'string' } },
+      // For `updated`: what is new, for the comment the engine posts on the issue; else "".
+      note: { type: 'string' },
       workstream: { type: ['string', 'null'] }, priority: { type: ['integer', 'null'] }, issue: { type: ['string', 'null'] },
     } } } },
 };
 
-// --dry=<minutes>: preview a window of that length; read-only Linear tools, nothing filed, no state or log written.
 // The team's active issues go into every signal run, so matching a follow-up does not depend on the model
 // remembering to search. Without the list (Linear unreachable, no key) it falls back to its own searches.
 async function activeIssues(): Promise<string> {
@@ -138,6 +139,25 @@ async function activeIssues(): Promise<string> {
   } catch (e) { return `(could not list them: ${(e as Error).message.slice(0, 200)}; use the searches)`; }
 }
 
+// An item that belongs to an active issue becomes a NEW_SIGNAL comment on it, posted here rather than by the
+// model, so it cannot be claimed without happening. Overlapping windows can see a message twice: a comment
+// with the same source from the last hour means it is already there. (A thread the issue was filed from can
+// still get a newer reply added; the model drops one with nothing newer.)
+async function addSignal(name: string, item: any) {
+  const { gql, comment, NEW_SIGNAL } = await import('./launch.ts');
+  const i = (await gql(`query($id: String!) { issue(id: $id) { id state { type }
+      comments(first: 100) { nodes { body createdAt } } } }`, { id: item.issue })).issue;
+  if (!i) return { ...item, action: 'dropped', reason: `no issue ${item.issue}: ${item.reason}` };
+  if (['completed', 'canceled'].includes(i.state.type)) return { ...item, action: 'dropped', reason: `${item.issue} is closed: ${item.reason}` };
+  const recent = i.comments.nodes.filter((c: any) => +new Date(c.createdAt) > Date.now() - 36e5);
+  if (recent.some((c: any) => c.body.includes(item.source_url))) return { ...item, action: 'dropped', reason: `already on ${item.issue}` };
+  await comment(i.id, [`${NEW_SIGNAL} · ${name}`, item.note || item.snippet, `From: ${item.from} · ${item.source} · ${item.subject}\nSource: ${item.source_url}`].join('\n\n'));
+  await gql('mutation($i: String!, $u: String!, $t: String) { attachmentLinkURL(issueId: $i, url: $u, title: $t) { success } }',
+    { i: i.id, u: item.source_url, t: `${item.source}: ${item.subject}` }).catch(() => {});
+  return item;
+}
+
+// --dry=<minutes>: preview a window of that length; read-only Linear tools, nothing filed, no state or log written.
 async function runSignal(name: string, dry?: number) {
   const key = `signal:${name}`;
   try {
@@ -163,8 +183,10 @@ async function runSignal(name: string, dry?: number) {
     // The run's full transcript, for /autopilot:why and for debugging empty runs.
     const out = claude(prompt, { tools: [...sig.meta.tools, ...filing], model: config.model, schema: ITEMS_SCHEMA,
       log: `${name}-${iso(now).replace(/[:.]/g, '-')}${dry ? '-dry' : ''}` });
-    const items = (typeof out === 'string' ? JSON.parse(out.replace(/^[^{]*|[^}]*$/g, '')) : out).items;
+    let items = (typeof out === 'string' ? JSON.parse(out.replace(/^[^{]*|[^}]*$/g, '')) : out).items;
     if (!Array.isArray(items)) throw new Error(`bad output: ${JSON.stringify(out).slice(0, 500)}`);
+    if (!dry) items = await Promise.all(items.map(i => i.action !== 'updated' || !i.issue ? i
+      : addSignal(name, i).catch(e => ({ ...i, action: 'dropped', reason: `could not add to ${i.issue}: ${(e as Error).message.slice(0, 200)}` }))));
     if (dry) return console.log(JSON.stringify({ window: [iso(from), iso(end)], seconds: (Date.now() - started) / 1e3, items }, null, 2));
     fs.appendFileSync(path.join(STATE_DIR, 'decisions.jsonl'),
       items.map(i => JSON.stringify({ ts: iso(Date.now()), signal: name, window: [iso(from), iso(end)], ...i }) + '\n').join(''));
