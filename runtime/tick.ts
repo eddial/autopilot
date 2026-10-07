@@ -125,7 +125,20 @@ const ITEMS_SCHEMA = {
 };
 
 // --dry=<minutes>: preview a window of that length; read-only Linear tools, nothing filed, no state or log written.
-function runSignal(name: string, dry?: number) {
+// The team's active issues go into every signal run, so matching a follow-up does not depend on the model
+// remembering to search. Without the list (Linear unreachable, no key) it falls back to its own searches.
+async function activeIssues(): Promise<string> {
+  try {
+    const { gql } = await import('./launch.ts');
+    const nodes = (await gql(`query($f: IssueFilter) { issues(filter: $f, first: 250, orderBy: updatedAt) { nodes {
+        identifier title description state { name } project { name } } } }`,
+      { f: { team: { key: { eq: config.linear_team } }, state: { type: { nin: ['completed', 'canceled'] } } } })).issues.nodes;
+    return nodes.map((i: any) => `- ${i.identifier} [${i.state.name} · ${i.project?.name ?? 'no project'}] ${i.title}: ` +
+      (i.description ?? '').replace(/\s+/g, ' ').slice(0, 300)).join('\n') || '(none)';
+  } catch (e) { return `(could not list them: ${(e as Error).message.slice(0, 200)}; use the searches)`; }
+}
+
+async function runSignal(name: string, dry?: number) {
   const key = `signal:${name}`;
   try {
     const sig = readMd(path.join(HOME, 'signals', `${name}.md`));
@@ -140,6 +153,7 @@ function runSignal(name: string, dry?: number) {
       instructions(),
       `# Signal: ${name}\n\nSource label: ${name}. Linear team: ${config.linear_team}.\n\n${sig.body}`,
       `# Workstreams (Linear project = workstream name)\n\n${routing}`,
+      `# Active issues\n\nThe team's open issues right now (identifier, status, project, title, start of the description). Step 2 of the filing rules matches each item against this list first; the searches find what it does not show.\n\n${await activeIssues()}`,
       `# Window\n\nFetch items with activity from ${iso(from)} up to ${iso(end)} (Unix seconds ${Math.floor(+from / 1e3)} to ${Math.floor(+end / 1e3)}). Ignore anything outside it.`,
       dry ? `# Output\n\nDRY RUN: apply the filing rules, including both dedupe searches with list_issues, but create, change and comment on nothing. Report what you would do (action = what you would do, issue = the existing issue for an update, else null).`
           : `# Output\n\nThis is an unattended run: nobody reads or answers questions. Do it now: fetch the window's items with the signal's tools, apply the filing rules to each (gate, active-issue searches, then drop, update or file), and return {"items": [...]} with one entry per item, filed or dropped. Return an empty list only when the fetch itself found nothing.`,
@@ -227,7 +241,7 @@ function install() {
   console.log(`linked ${link}; merged ${ours.permissions.deny.length} deny rules into ${file}`);
 }
 
-if (cmd === 'signal') runSignal(args[0], Number(args.find(a => a.startsWith('--dry='))?.slice(6)) || undefined);
+if (cmd === 'signal') await runSignal(args[0], Number(args.find(a => a.startsWith('--dry='))?.slice(6)) || undefined);
 else if (cmd === 'schedule') runSchedule(args[0]);
 else if (cmd === 'health') runHealth(args[0], args[1]);
 else if (cmd === 'launch') {
