@@ -115,9 +115,11 @@ async function tick() {
 
 const ITEMS_SCHEMA = {
   type: 'object', required: ['items'], properties: { items: { type: 'array', items: {
-    type: 'object', required: ['source', 'source_url', 'from', 'subject', 'snippet', 'action', 'reason', 'workstream', 'priority', 'issue'], properties: {
+    type: 'object', required: ['source', 'source_url', 'from', 'subject', 'snippet', 'action', 'reason', 'searches', 'workstream', 'priority', 'issue'], properties: {
       source: { type: 'string' }, source_url: { type: 'string' }, from: { type: 'string' }, subject: { type: 'string' },
       snippet: { type: 'string' }, action: { enum: ['created', 'updated', 'dropped'] }, reason: { type: 'string' },
+      // The list_issues queries actually run for this item: empty only when the gate dropped it.
+      searches: { type: 'array', items: { type: 'string' } },
       workstream: { type: ['string', 'null'] }, priority: { type: ['integer', 'null'] }, issue: { type: ['string', 'null'] },
     } } } },
 };

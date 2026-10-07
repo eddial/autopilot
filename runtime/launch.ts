@@ -8,8 +8,10 @@ import { ROOT, HOME, home, config, repoDir, readDir, section, instructions, with
 const TMUX = 'autopilot';
 // Every comment Autopilot writes starts with this; a comment without it is the owner steering the issue.
 export const MARK = '🤖 Autopilot';
-// A watcher's news is the one Autopilot comment that wakes the session, like a comment from the owner.
+// A watcher's news and a signal run's new message on an existing issue are the Autopilot comments that wake
+// the session, like a comment from the owner.
 export const WATCH_UPDATE = `${MARK} · watcher update`;
+export const NEW_SIGNAL = `${MARK} · 📨 new signal`;
 
 export async function gql(query: string, variables: Record<string, unknown> = {}) {
   if (!process.env.LINEAR_API_KEY) throw new Error(`LINEAR_API_KEY missing in ${path.join(HOME, '.env')}`);
@@ -237,7 +239,7 @@ async function startCommented(states: Record<string, string>) {
   }
 }
 
-// The comments are the message board. The owner's new comments (no MARK) and watcher updates go into the live
+// The comments are the message board. The owner's new comments (no MARK), watcher updates and new signals go into the live
 // session as a message and move the issue back to Working; with no live session the issue goes to Start,
 // and the new session reads them from the issue.
 async function relay(id: string, s: Session, states: Record<string, string>) {
@@ -247,7 +249,7 @@ async function relay(id: string, s: Session, states: Record<string, string>) {
   const fresh = issue.comments.nodes.filter((c: any) => c.createdAt > seen).sort((a: any, b: any) => a.createdAt.localeCompare(b.createdAt));
   if (!fresh.length) return;
   withState(st => { if (st.sessions[id]) st.sessions[id].seen = fresh.at(-1).createdAt; });
-  const watched = (c: any) => c.body.trimStart().startsWith(WATCH_UPDATE);
+  const watched = (c: any) => [WATCH_UPDATE, NEW_SIGNAL].some(m => c.body.trimStart().startsWith(m));
   const mine = fresh.filter((c: any) => !c.body.trimStart().startsWith(MARK) || watched(c));
   if (!mine.length) return;
   if (!hasWindow(id)) {
@@ -256,8 +258,8 @@ async function relay(id: string, s: Session, states: Record<string, string>) {
     return;
   }
   const head = mine.every(watched)
-    ? `A watcher on Linear issue ${id} saw something new on what this issue waits on. Act on it, and comment on the issue when you pause.`
-    : `New comment${mine.length > 1 ? 's' : ''} on Linear issue ${id}. Comments without ${MARK} are instructions from ${config.owner}; a "${WATCH_UPDATE}" is news from a watcher. Act on them, and comment on the issue when you pause.`;
+    ? `Something new came in on Linear issue ${id} (a watcher update or a new signal). Act on it, and comment on the issue when you pause.`
+    : `New comment${mine.length > 1 ? 's' : ''} on Linear issue ${id}. Comments without ${MARK} are instructions from ${config.owner}; a "${WATCH_UPDATE}" is news from a watcher; a "${NEW_SIGNAL}" is a new message for this issue from a signal. Act on them, and comment on the issue when you pause.`;
   const text = [head, ...mine.map((c: any) => c.body.trim())].join('\n\n---\n\n');
   run('tmux', ['load-buffer', '-b', 'autopilot-relay', '-'], { input: text });
   tmux('paste-buffer', '-p', '-d', '-b', 'autopilot-relay', '-t', s.window);
