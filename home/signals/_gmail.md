@@ -23,7 +23,7 @@ research, analyse, decide on with a recommendation, or fix. Drop FYIs,
 thanks, status updates, scheduling, and threads a colleague already
 owns or has resolved.
 
-Skip newsletters, receipts, calendar notifications, automated mail,
+Skip newsletters, automated receipts, calendar notifications, automated mail,
 mail from my own other accounts, and threads whose last message is mine.
 
 Search with `in:inbox -from:me after:<window start as Unix seconds>`
