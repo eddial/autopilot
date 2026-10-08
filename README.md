@@ -186,7 +186,7 @@ home/
   autopilot.yaml          owner, Linear team, model, max parallel sessions, window cap, paths, filing tools
   instructions.md         your own rules (who you are, how you write, what never to touch); optional
   workstreams/<name>.md   ## Routing (with an Urgent: line) and ## Work; optional `repo:` frontmatter
-  signals/<source>.md     every: (or cron:), tools:, optional paused:, delay:, window_cap:; then what counts
+  signals/<source>.md     every: (or cron:), tools:, optional paused:, delay:, window_cap:, model:; then what counts
   schedules/dream.md      the nightly routing review
   dreams/                 the dream's journal: every change with its old and new lines
   .env                    LINEAR_API_KEY, optional GH_TOKEN
@@ -253,7 +253,7 @@ branch.
 
 - **Signals.** A signal is due when `now − last_checked ≥ every` and its previous run is dead. The
   window is `max(last_checked − window_overlap, now − window_cap)` → start of run. One `claude -p
-  --model haiku --json-schema …` call with the signal's read tools plus `filing_tools` files the items;
+  --model haiku --json-schema …` call (the signal's `model:` overrides it) with the signal's read tools plus `filing_tools` files the items;
   every item goes to `.state/decisions.jsonl`. A failed or unparseable run leaves `last_checked`, so the
   next tick retries. The first run only sets `last_checked` (no backfill). A signal with `cron:` is a
   digest instead: it runs when the cron matches, over everything since its previous run (the first run

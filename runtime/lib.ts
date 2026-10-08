@@ -145,12 +145,16 @@ export function run(cmd: string, args: string[], opts: { cwd?: string; input?: s
 // claude.ai connectors connect in the background, and -p only waits briefly for them. Make it wait until
 // they are connected (MCP_CONNECTION_NONBLOCKING=0, up to 30s). As a safety net every listed MCP tool must
 // be in the init event's tools, or the call fails and the next tick retries the same window instead of
-// "succeeding" without them.
+// "succeeding" without them. Subagents and wakeups are off: a run that hands off work or schedules
+// itself ends in several result events, and the last one no longer carries the structured output.
+const NEVER = ['Agent', 'Task', 'ScheduleWakeup', 'CronCreate', 'Monitor', 'Workflow', 'RemoteTrigger', 'SendMessage'];
 export function claude(prompt: string, o: { tools: string[]; model?: string; schema?: object; timeout?: number; log?: string }) {
-  const args = ['-p', '--output-format', 'stream-json', '--verbose', '--permission-mode', 'dontAsk', '--allowedTools', o.tools.join(',')];
+  const args = ['-p', '--output-format', 'stream-json', '--verbose', '--permission-mode', 'dontAsk', '--allowedTools', o.tools.join(','),
+    '--disallowedTools', NEVER.join(',')];
   if (o.model) args.push('--model', o.model);
   if (o.schema) args.push('--json-schema', JSON.stringify(o.schema));
-  const env = { ...process.env, MCP_CONNECTION_NONBLOCKING: '0', CLAUDE_CODE_MCP_STARTUP_WAIT_MS: '30000' };
+  // A meeting transcript runs to 100k characters; above the default 25k-token cap a tool result lands in a file.
+  const env = { ...process.env, MCP_CONNECTION_NONBLOCKING: '0', CLAUDE_CODE_MCP_STARTUP_WAIT_MS: '30000', MAX_MCP_OUTPUT_TOKENS: '60000' };
   const raw = run('claude', args, { cwd: HOME, input: prompt, env, timeout: o.timeout ?? 30 * 6e4 });
   if (o.log) { fs.mkdirSync(path.join(STATE_DIR, 'runs'), { recursive: true }); fs.writeFileSync(path.join(STATE_DIR, 'runs', `${o.log}.jsonl`), raw); }
   const events = raw
@@ -158,7 +162,7 @@ export function claude(prompt: string, o: { tools: string[]; model?: string; sch
   const init = events.find(e => e.type === 'system' && e.subtype === 'init');
   const missing = o.tools.filter(t => t.startsWith('mcp__') && !init?.tools?.includes(t));
   if (missing.length) throw new Error(`claude: tools not available (connector not connected?): ${missing.join(', ')}`);
-  const out = events.findLast(e => e.type === 'result');
+  const out = events.findLast(e => e.type === 'result' && (!o.schema || e.structured_output)) ?? events.findLast(e => e.type === 'result');
   if (!out) throw new Error('claude: no result event');
   if (out.is_error) throw new Error(`claude: ${out.result ?? out.subtype}`);
   return out.structured_output ?? out.result;
