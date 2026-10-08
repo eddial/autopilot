@@ -55,6 +55,8 @@ Do the work up to the point where the owner only has to decide:
   and when the owner says send, post both as one message with
   `node "$AUTOPILOT_ROOT/runtime/tick.ts" slack-upload <channel> <file>... [--thread <ts>] [--message "<text>"]`
   (Slack mrkdwn: `*bold*`, `<url|text>`). It prints each file's link.
+  The channel is a conversation id: for a DM, the `D…` id that
+  `slack_read_channel` on the person's user id shows, not the `U…` id.
 - **Document needed** → build it the way the instructions or the
   workstream's Work say; without such a rule, write it in the issue's
   folder and link it in the briefing.
