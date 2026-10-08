@@ -189,7 +189,7 @@ home/
   signals/<source>.md     every: (or cron:), tools:, optional paused:, delay:, window_cap:, model:; then what counts
   schedules/dream.md      the nightly routing review
   dreams/                 the dream's journal: every change with its old and new lines
-  .env                    LINEAR_API_KEY, optional GH_TOKEN
+  .env                    LINEAR_API_KEY, optional GH_TOKEN, optional SLACK_USER_TOKEN
   .state/                 state.json, decisions.jsonl (every item a signal looked at), tick.log, run transcripts
 ```
 
