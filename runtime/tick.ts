@@ -302,9 +302,12 @@ else if (cmd === 'launch') {
   if (cmd === 'watch-run') await w.check(args[0]);
   else if (!args.length) w.list();
   else try { await w.add(args); } catch (e) { console.error((e as Error).message); process.exit(1); }
+} else if (cmd === 'slack-upload') {
+  const { upload } = await import('./slack.ts');
+  try { await upload(args); } catch (e) { console.error((e as Error).message); process.exit(1); }
 } else if (cmd === 'unwatch') { unwatch(args[0]); console.log(`unwatched ${args[0]}`); }
 else if (cmd === 'install') install();
 else if (cmd === 'setup') setup();
 else if (cmd === 'where') console.log(`engine ${ROOT}\nhome   ${HOME}${fs.existsSync(CONFIG) ? '' : ' (not set up: run `autopilot setup`)'}`);
 else if (!cmd || cmd === 'tick') await tick();
-else { console.error('usage: autopilot [tick|signal <name> [--dry=<minutes>]|schedule <name>|launch|watch [<ID> "<what>" …]|unwatch <ID>|setup|install|where]'); process.exit(1); }
+else { console.error('usage: autopilot [tick|signal <name> [--dry=<minutes>]|schedule <name>|launch|watch [<ID> "<what>" …]|unwatch <ID>|slack-upload <channel> <file>…|setup|install|where]'); process.exit(1); }

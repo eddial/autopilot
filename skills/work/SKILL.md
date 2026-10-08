@@ -50,6 +50,11 @@ Do the work up to the point where the owner only has to decide:
 - **Reply needed** → a draft in the source's own place: a Gmail draft
   in the thread, a Slack draft, or the text in a comment when no draft
   tool exists. Send only when the owner asks for it or the Work allows it.
+  A Slack reply that carries a file (a PDF, an image, a spreadsheet)
+  cannot be a draft: put its text and the file path in the briefing,
+  and when the owner says send, post both as one message with
+  `node "$AUTOPILOT_ROOT/runtime/tick.ts" slack-upload <channel> <file>... [--thread <ts>] [--message "<text>"]`
+  (Slack mrkdwn: `*bold*`, `<url|text>`). It prints each file's link.
 - **Document needed** → build it the way the instructions or the
   workstream's Work say; without such a rule, write it in the issue's
   folder and link it in the briefing.
