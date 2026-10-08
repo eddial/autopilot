@@ -23,6 +23,8 @@ export async function upload(argv: string[]) {
   const thread = flag('thread'), message = flag('message');
   const [channel, ...files] = argv;
   if (!channel || !files.length) throw new Error('usage: autopilot slack-upload <channel> <file>... [--thread <ts>] [--message "<text>"]');
+  // Uploads take a conversation id; a DM is its D… id (slack_read_channel on the user id shows it), not the U… id.
+  if (/^[UW]/.test(channel)) throw new Error(`${channel} is a user id: pass the DM's conversation id (D…), which slack_read_channel with the user id shows`);
   const ids = [];
   for (const file of files) {
     const data = fs.readFileSync(file), name = path.basename(file);
