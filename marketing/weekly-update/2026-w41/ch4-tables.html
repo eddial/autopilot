@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<title>Data tables</title>
+<link rel="stylesheet" href="clip.css">
+<link rel="stylesheet" href="app.css">
+<link rel="stylesheet" href="_table.css">
+<link rel="stylesheet" href="_board.css">
+<link rel="stylesheet" href="chapter.css">
+<style>
+  .board { top: 52px; }
+  .kc dl div.own { overflow: hidden; }
+  /* column-visibility-dropdown.tsx: w-72, search, Show all / Hide all / Reset to view, counter, field rows */
+  .menu.cv { width: 288px; padding: 4px; }
+  .menu.cv .srch { height: 32px; margin: 4px; border: 1px solid hsl(var(--input)); border-radius: 6px; display: flex; align-items: center; padding: 0 10px; color: hsl(var(--muted-foreground)); }
+  .menu.cv hr { border: 0; border-top: 1px solid hsl(var(--border)); margin: 4px -4px; }
+  .menu.cv .it svg { width: 16px; height: 16px; }
+  .menu.cv .cnt { font-size: 12px; color: hsl(var(--muted-foreground)); padding: 4px 8px; }
+  #fields { display: block; padding: 0; }
+  .menu.cv .fr { display: flex; align-items: center; gap: 8px; padding: 6px 8px; }
+  .menu.cv .fr .g svg { width: 16px; height: 16px; color: hsl(var(--muted-foreground)); }
+  .menu.cv .fr .ty svg { width: 12px; height: 12px; color: hsl(var(--muted-foreground)); }
+  .menu.cv .fr .nm { flex: 1; font-size: 14px; }
+  .menu.cv .fr .e svg { width: 16px; height: 16px; color: hsl(var(--muted-foreground)); }
+  /* table-list.tsx: page title, search (h-10 rounded-lg border), Create Table, one row per table with a records badge */
+  .lp { position: absolute; inset: 0; padding: 0 32px; display: flex; flex-direction: column; }
+  .lp .lt { display: flex; align-items: center; gap: 8px; margin: 14px 0 16px; }
+  .lp .lt .s { flex: 1; height: 40px; display: flex; align-items: center; gap: 8px; border: 1px solid hsl(var(--border)); border-radius: 8px; padding: 0 12px; color: hsl(var(--muted-foreground)); }
+  .lp .lt .s svg { width: 13px; height: 13px; }
+  .lp .row { display: flex; align-items: center; gap: 12px; padding: 14px 16px; border: 1px solid hsl(var(--border)); border-radius: 8px; background: hsl(var(--card)); margin-bottom: 8px; }
+  .lp .row .ti { width: 28px; height: 28px; border-radius: 6px; background: hsl(var(--muted)); display: grid; place-items: center; color: hsl(var(--muted-foreground)); }
+  .lp .row .ti svg { width: 13px; height: 13px; }
+  .lp .row b { font-weight: 500; }
+  .lp .row .bdg { margin-left: auto; font-size: 12px; border-radius: 6px; padding: 2px 8px; background: hsl(var(--muted)); color: hsl(var(--muted-foreground)); }
+  .lp .row.hov { box-shadow: 0 1px 3px rgb(0 0 0 / .08); border-color: hsl(var(--muted-foreground) / .4); }
+  .grid { position: absolute; left: 0; right: 0; top: 52px; }
+  .main-wrap { position: relative; flex: 1; display: flex; flex-direction: column; min-height: 0; }
+</style></head>
+<body>
+<div class="frame">
+  <div class="stage">
+    <div class="app" id="app">
+      <div id="sb"></div>
+      <main class="panel">
+        <div class="ph" id="phList" style="display:none"><h1>Data tables</h1><div class="right"><span class="btn pri"><span data-fa="faPlus"></span>Create Table</span></div></div>
+        <div class="ph" id="phTable">
+          <div class="th-title"><h1>Supplier invoices</h1><span data-fa="faChevronDown" data-s="width:12px;height:12px;color:hsl(var(--muted-foreground))"></span></div>
+          <div class="vtabs"><span class="tab" id="tabAll">All</span><span class="tab" id="tabBm">By match</span></div>
+          <div class="right"><span class="btn pri"><span data-fa="faPlus"></span>New Record</span></div>
+        </div>
+        <div class="main-wrap">
+        <div class="lp" id="list">
+          <div class="lt"><div class="s"><span data-fa="faMagnifyingGlass"></span>Search tables...</div></div>
+          <div class="row"><span class="ti" data-fa="faFileSpreadsheet"></span><b>Sales orders</b><span class="bdg">1,284 records</span></div>
+          <div class="row" id="rowSI"><span class="ti" data-fa="faFileSpreadsheet"></span><b>Supplier invoices</b><span class="bdg">312 records</span></div>
+          <div class="row"><span class="ti" data-fa="faFileSpreadsheet"></span><b>Customers</b><span class="bdg">486 records</span></div>
+          <div class="row"><span class="ti" data-fa="faFileSpreadsheet"></span><b>Price agreements</b><span class="bdg">92 records</span></div>
+        </div>
+        <div class="body" id="tbody" style="margin-top:12px">
+          <div class="tcard" id="tcard">
+            <div class="tb">
+              <span class="btn out"><span data-fa="faFilter"></span>Filter</span>
+              <span class="input search"><span data-fa="faMagnifyingGlass"></span>Search records...</span>
+              <div class="rt"><span class="btn out ico" id="eye" data-fa="faEye"></span><span class="btn out ico" data-fa="faLayerPlus"></span><span class="btn out ico" data-fa="faFileImport"></span><span class="btn out ico" data-fa="faDownload"></span><span class="btn out ico" data-fa="faSliders"></span></div>
+            </div>
+            <div class="grid" id="grid"></div><div class="board" id="board"></div>
+          </div>
+        </div>
+        </div>
+      </main>
+      <div class="menu cv" id="menu">
+        <div class="srch">Search properties...</div><hr>
+        <div class="it"><span data-fa="faEye"></span>Show all columns</div>
+        <div class="it"><span data-fa="faEyeSlash"></span>Hide all columns</div>
+        <div class="it" id="reset"><span data-fa="faRotateLeft"></span>Reset to view</div><hr>
+        <div class="cnt" id="cnt">3 of 6 visible</div>
+        <div id="fields"></div>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="fa-icons.js"></script><script src="fa-extra.js"></script>
+<script src="app.js"></script>
+<script src="clip.js"></script>
+<script src="chapter.js"></script>
+<script>
+  CHAPTER({ n: 4, total: 5, tag: "Data tables", kicker: "This week in Lleverage", where: true, footerLeft: "lleverage.ai · Week of 5 Oct 2026",
+    title: "Boards that<br><em>keep their place.</em>", line: "Cards stay in the lane you drop them in, and a saved view's columns come back with one click." });
+  const O = 3.6, D = 7.8 + O;
+  window.HOLDS = [[1.0, 0.7], [4.95, 0.6], [4.3 + O, 1.0], [7.7 + O, 1.0]];
+  const { $, $$, p, io, out } = C;
+  $("#sb").outerHTML = APP.sidebar("Overview");
+  const COL = { "To match": "#3b82f6", "Price difference": "#f59e0b", "Ready to book": "#10b981" };
+  const PEOPLE = { Sanne: "hsl(280 30% 42%)", Joris: "hsl(170 35% 35%)", Mila: "hsl(15 45% 45%)" };
+  const who = (n) => `<span class="who"><span class="uav" style="background:${PEOPLE[n]}">${n[0]}</span>${n}</span>`;
+  const R = [["Brouwer Verpakking", "€1,265", "To match", "Joris", "4500012902"], ["De Graaf Transport", "€860", "To match", "Mila", "4500012915"],
+    ["Van Dijk Metaal", "€4,820", "Price difference", "Sanne", "4500012877"], ["Kuipers Hout", "€3,410", "Price difference", "Joris", "4500012888"],
+    ["Rijnstaal", "€12,940", "Ready to book", "Sanne", "4500012851"], ["Noord Coatings", "€7,150", "Ready to book", "Mila", "4500012860"]];
+  const card = (r, id = "") => `<div class="kc" ${id}><p>${r[0]}</p><dl><div><dt>PO number</dt><dd class="tnum">${r[4]}</dd></div><div><dt>Amount</dt><dd class="tnum">${r[1]}</dd></div><div class="own"><dt>Owner</dt><dd>${who(r[3])}</dd></div></dl></div>`;
+  const lane = (label, cards, id) => `<div class="lane"><div class="lh"><span class="grip" data-fa="faGripDotsVertical"></span><span class="dot" style="background:${COL[label]}"></span><span class="lbl">${label}</span><span class="xs mf tnum" id="${id}n">${cards.length}</span></div><div class="lb" id="${id}">${cards.join("")}</div></div>`;
+  const vd = R[2];
+  $("#board").innerHTML = lane("To match", R.filter((r) => r[2] === "To match").map((r) => card(r)), "lM")
+    + lane("Price difference", [card(vd, 'id="vdA"'), card(R[3])], "lP")
+    + lane("Ready to book", [...R.filter((r) => r[2] === "Ready to book").map((r) => card(r)), card(vd, 'id="vdB"')], "lA");
+  // The All tab: the same records as a grid (data-table.tsx).
+  const chip = (m) => `<span class="chip" style="color:${COL[m]};border-color:${COL[m]}55;background:${COL[m]}14">${m}</span>`;
+  $("#grid").innerHTML = `<table><thead><tr><th class="n">#</th><th>Supplier</th><th>PO number</th><th>Amount</th><th>Match</th><th>Owner</th></tr></thead><tbody>`
+    + R.map((r, i) => `<tr><td class="n">${i + 1}</td><td>${r[0]}</td><td class="tnum">${r[4]}</td><td class="tnum">${r[1]}</td><td>${chip(r[2])}</td><td>${who(r[3])}</td></tr>`).join("") + `</tbody></table>`;
+  const F6 = [["faFont", "Supplier", 1], ["faHashtag", "PO number", 1], ["faHashtag", "Amount", 1], ["faCaretDown", "Match", 0], ["faUser", "Owner", 0], ["faCalendar", "Due date", 0]];
+  $("#tcard").insertAdjacentHTML("beforeend", `<div class="kc drag" id="drag">${$("#vdA").innerHTML}</div>`);
+  $$("[data-fa]").forEach((el) => (el.innerHTML = fa(el.dataset.fa, "", el.dataset.s || "")));
+  const app = $("#app");
+  const at = (el, fx = 0.5, fy = 0.5) => { const a = app.getBoundingClientRect(), r = el.getBoundingClientRect(), s = a.width / 1280;
+    return [(r.left - a.left + r.width * fx) / s, (r.top - a.top + r.height * fy) / s]; };
+  const navs = $$(".sb .nav"), navDt = navs.find((el) => el.textContent.trim() === "Data tables"), navOv = navs.find((el) => el.textContent.trim() === "Overview");
+  const e = at($("#eye"), 0, 1); $("#menu").style.left = Math.min(e[0], 1280 - 296) + "px"; $("#menu").style.top = e[1] + 4 + "px";
+  const P = { nav: at(navDt, 0.3), tab: at($("#tabBm")), vdA: at($("#vdA")), lA: at($("#lA"), 0.5, 0.85), eye: at($("#eye")), reset: at($("#reset")) };
+  $("#tbody").style.display = "none"; P.row = at($("#rowSI"), 0.25); $("#tbody").style.display = "";
+  const tcard = at($("#tcard"), 0, 0);
+  const VW = C.STAGE_W, VH = C.STAGE_H, FIT = Math.min(VW / 1280, VH / 800) * 0.98;
+  const cam = C.camera(app, VW, VH, [[0, 640, 400, FIT], [1.9, 640, 400, FIT], [2.3, 490, 300, 1.35], [3.0, 490, 300, 1.35], [3.5, 640, 400, FIT],
+    [1.9 + O, 640, 400, FIT], [2.4 + O, 760, 320, 1.3], [4.6 + O, 760, 320, 1.3], [5.1 + O, 730, 340, 1.2], [D, 730, 340, 1.2]]);
+  const F = (t, [x, y]) => { const m = cam(t).map(x, y); return [C.STAGE_X + m[0], C.STAGE_Y + m[1]]; };
+  const OFF = [C.W * 0.6, C.H + 40], OFF2 = [C.W * 0.75, C.H + 40];
+  const cur = C.cursor([[1.9, ...OFF], [2.6, ...F(2.6, P.nav), true], [3.3, ...F(3.3, P.nav)], [3.9, ...F(3.9, P.row), true], [4.7, ...F(4.7, P.tab), true],
+    [2.7 + O, ...F(2.7 + O, P.vdA), true], [3.9 + O, ...F(3.9 + O, P.lA)], [4.5 + O, ...OFF2], [5.2 + O, ...OFF2], [5.8 + O, ...F(5.8 + O, P.eye), true], [6.5 + O, ...F(6.5 + O, P.reset), true], [7.4 + O, ...OFF2]]);
+  const where = C.where([[2.6, "Data tables"], [3.9, "Supplier invoices"], [4.7, "By match (board view)"], [5.8 + O, "Columns"], [6.5 + O, "Reset to view"]]);
+  const cap = C.captions([
+    [1.9, 5.2, "Open Data tables,<br><em>then a board view.</em>"],
+    [1.9 + O, 4.55 + O, "Drag a card to a new lane.<br><em>It stays there.</em>"],
+    [4.95 + O, 99, "Open column visibility.<br><em>Pick Reset to view.</em>"],
+  ]);
+  cam(0);
+  C.run(D, (t) => {
+    C.hook($("#hook"), t, 1.5);
+    cap(t); cam(t); where(t); const c = cur(t);
+    // Beat 0: Overview, then Data tables (the table list), then the table (All), then its board view.
+    const inDt = t >= 2.65, inTable = t >= 3.95, board = t >= 4.75;
+    navDt.classList.toggle("on", inDt); navOv.classList.toggle("on", !inDt);
+    $("#phList").style.display = inDt && !inTable ? "" : "none";
+    $("#phTable").style.display = inTable ? "" : "none";
+    $("#list").style.display = inDt && !inTable ? "" : "none";
+    $("#list").style.opacity = out(p(t, 2.65, 2.95));
+    $("#rowSI").classList.toggle("hov", t >= 3.6 && !inTable);
+    $("#tbody").style.display = inTable ? "" : "none";
+    $("#tabAll").classList.toggle("on", !board); $("#tabBm").classList.toggle("on", board);
+    $("#grid").style.display = board ? "none" : ""; $("#board").style.display = board ? "" : "none";
+    const dragging = t >= 2.75 + O && t < 3.95 + O, dropped = t >= 3.95 + O;
+    $("#vdA").style.display = dropped ? "none" : ""; $("#vdA").className = "kc" + (dragging ? " ghost" : "");
+    $("#vdB").style.display = dropped ? "" : "none";
+    $("#lPn").textContent = dropped ? 1 : 2; $("#lAn").textContent = dropped ? 3 : 2;
+    $("#lA").className = "lb" + (t >= 3.3 + O && dragging ? " over" : "");
+    const d = $("#drag"); d.style.display = dragging ? "" : "none";
+    if (dragging) { const m = cam(t); const ux = (c.x - C.STAGE_X - VW / 2) / m.s + m.x, uy = (c.y - C.STAGE_Y - VH / 2) / m.s + m.y;
+      d.style.left = ux - tcard[0] - 128 + "px"; d.style.top = uy - tcard[1] - 30 + "px"; }
+    // Owner was hidden on this view; Reset to view brings back the view's saved fields.
+    const reset = t >= 6.55 + O;
+    $$(".kc .own").forEach((el) => (el.style.display = reset ? "" : "none"));
+    const open = t >= 5.85 + O && t < 6.75 + O;
+    $("#menu").style.display = open ? "" : "none"; $("#menu").style.opacity = out(p(t, 5.85 + O, 6.0 + O));
+    $("#reset").className = "it" + (t >= 6.3 + O ? " hl" : "");
+    $("#cnt").textContent = (reset ? 4 : 3) + " of 6 visible";
+    $("#fields").innerHTML = F6.map(([ic, n, v], i) => `<div class="fr"><span class="g">${fa("faGripDotsVertical")}</span><span class="ty">${fa(ic)}</span><span class="nm">${n}</span><span class="e">${fa(v || (reset && n === "Owner") ? "faEye" : "faEyeSlash")}</span></div>`).join("");
+  });
+</script>
+</body></html>

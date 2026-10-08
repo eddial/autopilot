@@ -1,0 +1,88 @@
+/* Shared frame for feature clips, 1080 wide and --frame-h tall (1350 for 4:5, 1080 for 1:1; clip.js sets it from ?h=),
+   on the Lleverage design system.
+   Brand tokens come from brand.css (generated from design-system/ by sync-brand.mjs). The app UI inside
+   .stage uses the product tokens in app.css instead. */
+@import url("brand.css");
+:root {
+  /* frame names, mapped onto the brand tokens */
+  --bg: var(--ll-color-paper);
+  --fg: var(--ll-text-primary);
+  --card: var(--ll-color-white);
+  --muted: var(--ll-color-grey-100);
+  --muted-fg: var(--ll-text-muted);
+  --border: var(--ll-color-grey-300);
+  --navy: var(--ll-color-midnight-primary);
+  --orange: var(--ll-color-orange-primary);
+  --orange-tint: color-mix(in srgb, var(--ll-color-orange-primary) 12%, transparent);
+  --success: hsl(145 35% 35%);
+  --success-tint: hsl(145 35% 35% / 0.12);
+  --danger: hsl(0 55% 48%);
+  --danger-tint: hsl(0 55% 48% / 0.1);
+  --plum: hsl(280 30% 42%); --olive: hsl(85 30% 38%); --coral: hsl(15 45% 45%);
+  --teal: hsl(170 35% 35%); --sky: hsl(200 35% 42%); --slate: hsl(220 15% 42%);
+  --mauve: hsl(320 22% 45%); --rose: hsl(350 40% 42%);
+  --sans: var(--ll-font-sans);
+  --serif: var(--ll-font-display);
+  --mono: var(--ll-font-mono);
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; background: #222; }
+body { font-family: var(--sans); color: var(--fg); -webkit-font-smoothing: antialiased; }
+.frame { position: relative; width: var(--frame-w, 1080px); height: var(--frame-h, 1350px); overflow: hidden; background: var(--bg); margin: 0 auto; }
+.frame .dots { display: none; }
+
+/* Brand row: full logo left, section tag right ("/ FEATURE DROP · WEEK 39"), as on the deck's content slides */
+.brandrow { position: absolute; top: 56px; left: 64px; right: 64px; display: flex; align-items: center; justify-content: space-between; padding-bottom: 22px; border-bottom: 1.5px solid var(--ll-color-grey-400); }
+.brandrow .logo img { height: 40px; display: block; }
+.brandrow .tag { font-family: var(--mono); font-size: 19px; color: var(--ll-text-kicker); letter-spacing: .1em; text-transform: uppercase; }
+.brandrow .tag::before { content: "/ "; color: var(--orange); }
+
+/* Captions: display serif, second line orange (the deck's title treatment) */
+.captions { position: absolute; top: 150px; left: 64px; right: 64px; height: 160px; }
+.caption { position: absolute; inset: 0; display: flex; align-items: center; font-family: var(--serif); font-size: 66px; line-height: 1.04; font-weight: 400; color: var(--ll-text-primary); opacity: 0; text-wrap: balance; }
+.caption em { font-style: normal; color: var(--orange); }
+
+.stage { position: absolute; top: 330px; left: 64px; width: calc(var(--frame-w, 1080px) - 128px); height: calc(var(--frame-h, 1350px) - 450px); background: hsl(50 18% 93%); border: 2px solid var(--border); border-radius: 24px; box-shadow: 0 20px 60px hsl(30 20% 20% / .12); overflow: hidden; }
+.stage-bar { height: 76px; border-bottom: 2px solid var(--border); display: flex; align-items: center; gap: 16px; padding: 0 28px; font-size: 24px; font-weight: 600; }
+.stage-bar .crumb { color: var(--muted-fg); font-weight: 500; }
+.ic { display: grid; place-items: center; color: #fff; border-radius: 10px; flex: none; }
+.ic svg { width: 60%; height: 60%; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+.footer { position: absolute; bottom: 52px; left: 64px; right: 64px; display: flex; justify-content: space-between; font-family: var(--mono); font-size: 17px; letter-spacing: .1em; text-transform: uppercase; color: var(--ll-text-kicker); }
+
+.cursor { position: absolute; left: 0; top: 0; width: 44px; height: 44px; z-index: 50; pointer-events: none; filter: drop-shadow(0 4px 6px rgb(0 0 0 / .25)); }
+.cursor .ring { position: absolute; left: -22px; top: -22px; width: 44px; height: 44px; border-radius: 50%; border: 4px solid var(--orange); opacity: 0; }
+
+/* Title and end cards: the deck's dark cover. Midnight with the glow, orange bar, mono kicker, display title. */
+.card-full { position: absolute; inset: 0; background: var(--navy) url("design-system/backgrounds/midnight-glow.png") center / cover no-repeat; color: var(--ll-text-onDark); display: flex; flex-direction: column; justify-content: center; padding: 0 96px; z-index: 80; }
+.card-full .kicker { display: flex; flex-direction: column; align-items: flex-start; gap: 22px; font-family: var(--mono); font-size: 22px; letter-spacing: .1em; text-transform: uppercase; color: var(--ll-text-onDarkMuted); margin-bottom: 40px; }
+.card-full .kicker::before { content: ""; width: 72px; height: 12px; background: var(--orange); }
+.card-full .kicker .loader, .card-full .kicker > span:empty { display: none; }
+.card-full h1 { font-family: var(--serif); font-size: 112px; line-height: 1.02; margin: 0; font-weight: 400; color: var(--ll-text-onDark); }
+.card-full h1 em { font-style: normal; color: var(--orange); }
+.card-full p { font-family: var(--sans); font-size: 32px; line-height: 1.4; color: var(--ll-text-onDarkMuted); margin: 44px 0 0; max-width: 26ch; }
+.card-full .mark { position: absolute; left: 96px; bottom: 88px; }
+.card-full .mark img { height: 44px; display: block; }
+.card-full .url { position: absolute; right: 96px; bottom: 96px; font-family: var(--mono); font-size: 20px; letter-spacing: .1em; text-transform: uppercase; color: var(--ll-text-onDarkMuted); }
+
+/* "Find it": where the feature lives, as a path that lights up step by step (C.where). Mono label, sans path. */
+.where { position: absolute; display: flex; align-items: center; gap: 18px; font-family: var(--sans); }
+.where .lbl { font-family: var(--mono); font-size: 17px; letter-spacing: .1em; text-transform: uppercase; color: var(--ll-text-kicker); white-space: nowrap; }
+.where .lbl::before { content: "/ "; color: var(--orange); }
+.where .path { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; font-size: 24px; font-weight: 600; }
+.where .wstep { color: var(--ll-color-grey-400); transition: none; }
+.where .wstep.on { color: var(--ll-text-primary); }
+.where .sep { color: var(--ll-color-grey-400); font-weight: 400; }
+/* Portrait and square: the path sits in the footer row. */
+html:not(.wide) .where { left: 64px; right: 64px; bottom: 44px; }
+html:not(.wide) .frame:has(.where) .footer { display: none; }
+
+/* Landscape (4:3 up to 16:9): 1080 tall, the stage spans the width under the captions and the "find it" row. */
+html.wide .brandrow { top: 44px; padding-bottom: 18px; }
+html.wide .captions { top: 120px; height: 124px; }
+html.wide .caption { font-size: 56px; }
+html.wide .where { left: 64px; right: 64px; top: 258px; height: 40px; }
+html.wide .stage { top: 318px; height: calc(var(--frame-h) - 402px); }
+html.wide .footer { bottom: 34px; }
+html.wide .card-full { padding: 0 128px; }
+html.wide .card-full p { max-width: 34ch; }

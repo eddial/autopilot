@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<title>Weekly update cards</title>
+<link rel="stylesheet" href="clip.css">
+<link rel="stylesheet" href="app.css">
+<link rel="stylesheet" href="chapter.css">
+<style>
+  /* Cover, "also this week" slide and end card for the weekly update (4:3, 1440 x 1080). */
+  html, body { background: #fff; }
+  .frame { page-break-after: always; break-after: page; }
+  .card-full .list { margin: 48px 0 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 16px; max-width: 980px; }
+  .card-full .list li { display: flex; gap: 28px; align-items: baseline; font-family: var(--sans); font-size: 30px; font-weight: 600; color: var(--ll-text-onDark); padding-bottom: 16px; border-bottom: 1.5px solid var(--ll-color-midnight-accent); }
+  .card-full .list li span { flex: none; width: 64px; font-size: 32px; font-weight: 700; color: var(--orange); }
+  .card-full h1.sm { font-size: 96px; }
+  .ttl { position: absolute; top: 120px; left: 64px; right: 64px; margin: 0; font-family: var(--serif); font-size: 60px; line-height: 1.04; font-weight: 400; color: var(--ll-text-primary); }
+  .ttl em { font-style: normal; color: var(--orange); }
+  .grp { position: absolute; left: 64px; right: 64px; }
+  .grp h3 { margin: 0 0 14px; font-family: var(--mono); font-size: 19px; font-weight: 400; letter-spacing: .1em; text-transform: uppercase; color: var(--ll-text-kicker); }
+  .grp h3::before { content: "/ "; color: var(--orange); }
+  .grp ul { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; }
+  .grp li { display: flex; justify-content: space-between; align-items: baseline; gap: 32px; padding: 16px 0; border-top: 1.5px solid var(--ll-color-grey-300); }
+  .grp li b { font-family: var(--sans); font-size: 27px; line-height: 1.3; font-weight: 600; color: var(--ll-text-primary); }
+  .grp li b small { display: block; margin-top: 2px; font-size: 21px; font-weight: 400; color: var(--muted-fg); }
+  .grp li span { flex: none; max-width: 440px; font-family: var(--mono); font-size: 16px; line-height: 1.5; letter-spacing: .06em; text-transform: uppercase; color: var(--ll-text-kicker); text-align: right; }
+</style></head>
+<body>
+  <!-- Cover -->
+  <div class="frame"><div class="card-full" style="position:absolute">
+    <div class="kicker"><span></span>Week of 5 October 2026</div>
+    <h1 class="sm">This week<br><em>in Lleverage.</em></h1>
+    <ul class="list">
+      <li><span>01</span>The Agent step, now for everyone</li>
+      <li><span>02</span>Guided setup for a new project</li>
+      <li><span>03</span>Voice calls that follow you</li>
+      <li><span>04</span>Data tables and boards</li>
+      <li><span>05</span>SSO invites stay on your domains</li>
+    </ul>
+    <div class="mark"><span data-logo></span></div><div class="url">Product changelog</div>
+  </div></div>
+
+  <!-- Also this week -->
+  <div class="frame">
+    <div class="brandrow"><div class="logo"><span data-logo></span></div><div class="tag">Also this week · 06</div></div>
+    <h2 class="ttl">Also this week,<br><em>and where to find it.</em></h2>
+    <div class="grp" style="top:300px"><h3>Also live</h3><ul>
+      <li><b>Linked records show their names<small>Cards, board, record preview, filters, grid and table widgets show the name, not an id</small></b><span>Data tables › any table</span></li>
+      <li><b>Table widget shows a saved view<small>Pick a data table view; its filters and sort come with it</small></b><span>Overview › Edit › Table widget › View</span></li>
+      <li><b>Zoom into request attachments<small>Zoom, fit and drag images; click through every attachment</small></b><span>Requests › a request › attachment</span></li>
+      <li><b>Preview files before you submit a form<small>On app start forms, request forms and the item editor</small></b><span>Apps › a form › file field</span></li>
+      <li><b>Feedback tab on every Skill<small>Builders see the feedback on sessions where the Skill ran</small></b><span>Skills › a skill › Feedback</span></li>
+      <li><b>Claude Haiku 5.5 is the Fastest preset<small>Haiku 4.5 moves to legacy</small></b><span>Any model picker › Fastest</span></li>
+    </ul></div>
+    <div class="footer"><span>lleverage.ai · Week of 5 Oct 2026</span><span>06 / 06</span></div>
+  </div>
+
+  <!-- End -->
+  <div class="frame"><div class="card-full" style="position:absolute">
+    <div class="kicker"><span></span>Week of 5 October 2026</div>
+    <h1 class="sm">This week<br><em>in Lleverage.</em></h1>
+    <p style="max-width:40ch">Every change, and where to find it, is in the product changelog in our docs.</p>
+    <div class="mark"><span data-logo></span></div><div class="url">lleverage.ai</div>
+  </div></div>
+
+<script src="fa-icons.js"></script><script src="fa-extra.js"></script>
+<script src="app.js"></script>
+<script src="clip.js"></script>
+<script>C.run(1, () => {});</script>
+</body></html>

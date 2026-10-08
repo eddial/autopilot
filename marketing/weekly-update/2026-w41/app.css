@@ -1,0 +1,73 @@
+/* The Lleverage app UI, rebuilt from apps/app (globals.css, sidebar-nav, page-header, section-tabs, ui/*).
+   Real CSS pixel sizes; clips scale it with a camera. Light theme = org default "lightWarm". */
+.app {
+  --background: 48 33% 97%; --foreground: 83 11% 14.1%; --card: 0 0% 100%;
+  --primary: 230 35% 15%; --primary-foreground: 0 0% 100%;
+  --secondary: 60 32% 91.4%; --muted: 50 18% 93%; --muted-foreground: 60 7% 43.9%; --muted-foreground-subtle: 60 7% 60%;
+  --accent: 60 32% 91.4%; --border: 48 22% 87%; --input: 48 22% 87%;
+  --destructive: 0 55% 40%; --warning: 48 65% 42%; --success: 145 35% 35%; --info: 210 45% 45%;
+  --highlight: 24 84% 53.1%; --highlight-foreground: 0 0% 100%;
+  --chart-2: 170 35% 35%; --chart-3: 35 50% 40%; --chart-6: 85 30% 38%; --forest: 145 30% 32%;
+  position: absolute; left: 0; top: 0; width: 1280px; height: 800px; display: flex; overflow: hidden;
+  background: hsl(var(--muted)); color: hsl(var(--foreground));
+  font-family: "Public Sans", ui-sans-serif, system-ui, sans-serif; font-size: 13px; line-height: 20px;
+  -webkit-font-smoothing: antialiased;
+}
+.app * { box-sizing: border-box; }
+.app svg.fa, .app svg.lu { display: block; flex: none; }
+.mono { font-family: "Roboto Mono", ui-monospace, monospace; }
+.mf { color: hsl(var(--muted-foreground)); }
+.xs { font-size: 12px; line-height: 16px; }
+.tnum { font-variant-numeric: tabular-nums; }
+
+/* Sidebar: bg-muted, nav p-1, items rounded-md p-1.5 text-13 font-medium; active bg-border shadow-sm */
+.sb { width: 240px; flex: none; display: flex; flex-direction: column; padding: 4px; }
+.sb-top { display: flex; align-items: center; gap: 4px; padding: 8px 8px 0; }
+.sb-logo { width: 32px; height: 32px; border-radius: 6px; display: grid; place-items: center; }
+.sb-logo svg { width: 20px; height: 20px; fill: hsl(var(--foreground)); }
+.sb-proj { margin-left: auto; height: 32px; display: flex; align-items: center; gap: 6px; padding: 0 8px; border: 1px solid hsl(var(--border)); border-radius: 6px; font-weight: 500; background: hsl(var(--background)); }
+.sb-body { display: flex; flex-direction: column; gap: 6px; padding: 16px 8px 0; }
+.sb-label { color: hsl(var(--muted-foreground)); font-size: 11px; line-height: 16px; font-weight: 500; padding: 4px 8px; }
+.nav { position: relative; display: flex; align-items: center; gap: 4px; padding: 6px; border-radius: 6px; font-weight: 500; }
+.nav .ib { width: 16px; height: 16px; margin-left: 1.5px; display: grid; place-items: center; color: hsl(var(--muted-foreground)); }
+.nav .ib svg { width: 14px; height: 14px; }
+.nav span.t { margin-left: 4px; }
+.nav.on { background: hsl(var(--border)); box-shadow: 0 1px 2px rgb(0 0 0 / .05); }
+.nav.on .ib { color: hsl(var(--foreground)); }
+.nav .badge-n { position: absolute; right: 4px; height: 16px; min-width: 16px; border-radius: 999px; background: hsl(var(--highlight)); color: #fff; font-size: 10px; font-weight: 600; display: grid; place-items: center; padding: 0 4px; }
+
+/* Main panel: bg-background rounded-l-xl, flush on the muted frame */
+.panel { position: relative; flex: 1; min-width: 0; background: hsl(var(--background)); border-radius: 12px 0 0 12px; overflow: hidden; display: flex; flex-direction: column; }
+.panel.both { border-radius: 12px; }
+.ph { display: flex; align-items: center; gap: 12px; padding: 16px 32px 0; }
+.ph h1 { margin: 0; font-size: 20px; line-height: 28px; font-weight: 600; letter-spacing: -.025em; }
+.ph .right { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+.tabs { display: flex; align-items: center; gap: 20px; border-bottom: 1px solid hsl(var(--border)); }
+.tab { position: relative; padding: 8px 0; font-weight: 500; color: hsl(var(--muted-foreground)); }
+.tab.on { color: hsl(var(--foreground)); }
+.tab.on::after { content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 2px; border-radius: 2px 2px 0 0; background: hsl(var(--foreground)); }
+.tab .cnt { margin-left: 6px; font-size: 12px; font-weight: 400; color: hsl(var(--muted-foreground-subtle)); }
+
+/* Buttons (ui/button) */
+.btn { height: 32px; display: inline-flex; align-items: center; gap: 6px; padding: 0 12px; border-radius: 6px; font-weight: 500; white-space: nowrap; border: 1px solid transparent; }
+.btn svg { width: 12px; height: 12px; }
+.btn.pri { background: hsl(var(--primary)); color: hsl(var(--primary-foreground)); }
+.btn.out { border-color: hsl(var(--input)); background: hsl(var(--background)); }
+.btn.ghost { background: transparent; }
+.btn.sec { background: hsl(var(--secondary)); }
+.btn.h7 { height: 28px; font-size: 12px; padding: 0 10px; }
+.btn.ico { width: 32px; padding: 0; justify-content: center; }
+.btn.round { border-radius: 999px; }
+.badge { display: inline-flex; align-items: center; gap: 4px; border-radius: 999px; border: 1px solid transparent; padding: 2px 10px; font-size: 12px; line-height: 16px; white-space: nowrap; }
+.pill { display: inline-flex; align-items: center; gap: 4px; border-radius: 999px; padding: 2px 8px; font-size: 12px; line-height: 16px; font-weight: 500; white-space: nowrap; }
+.pill svg { width: 12px; height: 12px; }
+.pill.passed { background: hsl(var(--success) / .1); color: hsl(var(--success)); }
+.pill.failed { background: hsl(var(--destructive) / .1); color: hsl(var(--destructive)); }
+.pill.running { background: hsl(var(--info) / .1); color: hsl(var(--info)); }
+.pill.ready { background: hsl(var(--muted)); color: hsl(var(--muted-foreground)); }
+.input { height: 32px; border: 1px solid hsl(var(--input)); border-radius: 6px; background: hsl(var(--background)); display: flex; align-items: center; gap: 8px; padding: 0 10px; color: hsl(var(--muted-foreground)); }
+.card { background: hsl(var(--card)); border: 1px solid hsl(var(--border)); border-radius: 12px; }
+
+/* LleverageLoader: 7x7 mark, lit cells currentColor, unlit border */
+.loader rect.off { fill: hsl(var(--border)); }
+.loader rect.on { fill: currentColor; }
