@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<title>Skills that learn from feedback</title>
+<link rel="stylesheet" href="clip.css">
+<link rel="stylesheet" href="app.css">
+<link rel="stylesheet" href="_agentchat.css">
+<link rel="stylesheet" href="chapter.css">
+<style>
+  /* context/skills/[skillId]: page header, SkillBuilder fields, skill-side-panel with the Feedback tab (skill-feedback-section.tsx,
+     agent-activity-feedback.tsx compact + showReview), improve-skill-with-agent-button.tsx; agent page with skill-change-review-widget.tsx */
+  .page { position: absolute; inset: 0; }
+  .sh { display: flex; align-items: center; gap: 12px; padding: 16px 32px; }
+  .sh .back { color: hsl(var(--muted-foreground)); }
+  .sh .back svg { width: 14px; height: 14px; }
+  .sh h1 { margin: 0; font-size: 20px; line-height: 28px; font-weight: 600; letter-spacing: -.025em; }
+  .sh .right { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+  .icb { width: 32px; height: 32px; border: 1px solid hsl(var(--input)); border-radius: 8px; background: hsl(var(--background)); display: grid; place-items: center; color: hsl(var(--foreground)); }
+  .icb svg { width: 14px; height: 14px; }
+  .icb.hot { background: hsl(var(--accent, var(--muted))); }
+  .tip { position: absolute; z-index: 30; padding: 4px 8px; border-radius: 6px; background: hsl(var(--primary)); color: hsl(var(--primary-foreground)); font-size: 12px; white-space: nowrap; }
+  .ed { position: absolute; left: 32px; top: 76px; width: 400px; display: flex; flex-direction: column; gap: 20px; }
+  .fl { font-weight: 500; color: hsl(var(--muted-foreground)); margin-bottom: 8px; }
+  .fv { border: 1px solid hsl(var(--border)); border-radius: 8px; background: hsl(var(--card)); padding: 12px 14px; line-height: 22px; }
+  .side { position: absolute; right: 12px; top: 12px; bottom: 12px; width: 560px; border: 1px solid hsl(var(--border)); border-radius: 12px; background: hsl(var(--card)); box-shadow: 0 4px 12px rgb(0 0 0 / .06); padding: 4px 16px 16px; display: flex; flex-direction: column; gap: 12px; overflow: hidden; }
+  .prevw { color: hsl(var(--muted-foreground)); font-size: 12px; line-height: 18px; }
+  .fbh { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+  .fbh h3 { margin: 0; font-size: 14px; font-weight: 500; }
+  .fbh p { margin: 0; font-size: 12px; color: hsl(var(--muted-foreground)); }
+  .flt { display: flex; flex-wrap: wrap; gap: 8px; position: relative; }
+  .sel { height: 28px; display: inline-flex; align-items: center; gap: 8px; border: 1px solid hsl(var(--input)); border-radius: 6px; padding: 0 10px; font-size: 12px; background: hsl(var(--background)); }
+  .sel svg { width: 9px; height: 9px; color: hsl(var(--muted-foreground)); }
+  .sel.open { box-shadow: 0 0 0 2px hsl(var(--ring, var(--border)) / .5); }
+  .dd { position: absolute; left: 0; top: 32px; z-index: 20; width: 160px; padding: 4px; border: 1px solid hsl(var(--border)); border-radius: 6px; background: hsl(var(--popover, var(--card))); box-shadow: 0 10px 15px -3px rgb(0 0 0 / .1); font-size: 13px; }
+  .dd div { padding: 6px 8px; border-radius: 4px; }
+  .dd div.hov { background: hsl(var(--accent, var(--muted))); }
+  .fbl { display: flex; flex-direction: column; gap: 8px; }
+  .fb { border: 1px solid hsl(var(--border)); border-radius: 8px; background: hsl(var(--background)); padding: 12px; display: flex; gap: 12px; }
+  .fb .avt { width: 24px; height: 24px; border-radius: 999px; flex: none; display: grid; place-items: center; font-size: 10px; font-weight: 600; color: #fff; }
+  .fb .bd { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+  .fb header { display: flex; align-items: center; gap: 8px; }
+  .fb header b { font-size: 14px; font-weight: 500; }
+  .fb .age { margin-left: auto; display: flex; align-items: center; gap: 6px; font-size: 10px; color: hsl(var(--muted-foreground)); }
+  .fb .age svg { width: 11px; height: 11px; }
+  .chipx { display: inline-flex; align-items: center; gap: 4px; border-radius: 999px; padding: 2px 8px; font-size: 10px; line-height: 14px; font-weight: 500; }
+  .chipx svg { width: 9px; height: 9px; }
+  .neg { background: hsl(var(--destructive) / .1); color: hsl(var(--destructive)); }
+  .pos { background: hsl(var(--success) / .1); color: hsl(var(--success)); }
+  .st-open { background: hsl(var(--info) / .1); color: hsl(var(--info)); }
+  .st-act { background: hsl(var(--success) / .1); color: hsl(var(--success)); }
+  .fb .cm { margin: 0; font-size: 12px; line-height: 17px; }
+  .fb .dt { margin: 0; font-size: 10px; color: hsl(var(--muted-foreground)); }
+  .fb.hl { border-color: hsl(var(--highlight) / .55); box-shadow: 0 0 0 3px hsl(var(--highlight) / .15); }
+  /* Agent page with the skill change review */
+  .agentpage { position: absolute; inset: 0; display: flex; flex-direction: column; }
+  .agentpage .col { width: 680px; margin: 0 auto; flex: 1; display: flex; flex-direction: column; padding: 16px 0 20px; min-height: 0; }
+  .agentpage .msgs { gap: 14px; justify-content: flex-start; padding-top: 56px; }
+  .rv { margin-top: 8px; border: 1px solid hsl(var(--border)); border-radius: 12px; background: hsl(var(--background)); padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+  .rv .kind { font-size: 12px; font-weight: 500; text-transform: uppercase; letter-spacing: .04em; color: hsl(var(--muted-foreground)); }
+  .rv .tt { display: flex; align-items: center; gap: 8px; }
+  .rv .tt h4 { margin: 0; font-size: 20px; line-height: 1.2; font-weight: 600; }
+  .rv .tt .badge { margin-left: auto; background: hsl(var(--secondary)); color: hsl(var(--secondary-foreground, var(--foreground))); }
+  .rv .ilb { font-size: 14px; font-weight: 500; color: hsl(var(--muted-foreground)); margin-bottom: 8px; }
+  .rv .ibx { border-radius: 8px; background: hsl(var(--muted)); padding: 12px; font-size: 13px; line-height: 20px; }
+  .dr { margin: 0 -4px; display: flex; gap: 8px; border-radius: 2px; padding: 0 4px; }
+  .dr .g { width: 8px; flex: none; text-align: center; color: hsl(var(--muted-foreground)); }
+  .dr.add { background: hsl(var(--success) / .1); }
+  .ev .lb { font-size: 12px; font-weight: 500; color: hsl(var(--muted-foreground)); margin-bottom: 8px; }
+  .ev .it { border: 1px solid hsl(var(--border)); border-radius: 6px; padding: 10px; display: flex; flex-direction: column; gap: 6px; }
+  .ev .it p { margin: 0; font-size: 13px; }
+  .ev .it .ch { font-weight: 500; }
+  .ev .meta { display: flex; align-items: center; gap: 8px; font-size: 12px; color: hsl(var(--muted-foreground)); }
+  .ev .meta u { text-underline-offset: 3px; }
+</style></head>
+<body>
+<div class="frame">
+  <div class="stage">
+    <div class="app" id="app">
+      <div id="sb"></div>
+      <main class="panel">
+        <div class="page" id="ovpage"><div class="ph"><h1>Overview</h1></div></div>
+        <div class="page" id="skillpage">
+          <div class="sh">
+            <span class="back" data-fa="faArrowLeft"></span>
+            <div><h1>Purchase order intake</h1><div class="xs mf">Skill • v1.4 • Edited 6 days ago • Sanne</div></div>
+            <div class="right"><span class="btn pri">Publish</span><span class="icb" id="improve" data-fa="s:faRobot"></span><span class="icb" data-fa="faTrash"></span></div>
+          </div>
+          <div class="tip" id="tip" style="display:none">Improve with agent</div>
+          <div class="ed">
+            <div><div class="fl">Description</div><div class="fv">Turns purchase orders from email into draft sales orders in Exact Online.</div></div>
+            <div><div class="fl">Instructions</div><div class="fv">
+              1. Read the order from the email or its attachment.<br>
+              2. Find the customer in Exact by name or VAT number.<br>
+              3. Match each line to an article and check the price.<br>
+              4. Create the sales order as a draft for review.</div></div>
+          </div>
+          <aside class="side">
+            <div class="tabs"><span class="tab" id="tPrev">Preview</span><span class="tab">Tests</span><span class="tab">Versions</span><span class="tab" id="tFb">Feedback</span></div>
+            <div id="prev" class="prevw">Try the skill on a sample order to see what it does.</div>
+            <div id="fbsec" style="display:none">
+              <div class="fbh"><h3 id="fbcount">Feedback (14)</h3><p>71% positive · 10 of 14 ratings</p></div>
+              <div class="flt" style="margin:10px 0 12px">
+                <span class="sel" id="selRating"><span id="ratingTx">All ratings</span><span data-fa="faChevronDown"></span></span>
+                <span class="sel">All versions<span data-fa="faChevronDown"></span></span>
+                <span class="sel">Last 30 days<span data-fa="faChevronDown"></span></span>
+                <span class="sel">All states<span data-fa="faChevronDown"></span></span>
+                <span class="sel">Any age<span data-fa="faChevronDown"></span></span>
+                <div class="dd" id="dd" style="display:none"><div>All ratings</div><div>Positive</div><div id="ddNeg">Negative</div><div>Comment only</div></div>
+              </div>
+              <div class="fbl" id="fbl"></div>
+            </div>
+          </aside>
+        </div>
+        <div class="agentpage" id="agentpage">
+          <div class="col">
+            <div class="msgs">
+              <div class="msg user"><span class="av">S</span><div class="bubble">Improve skill Purchase order intake</div></div>
+              <div class="msg" id="amsg"><span id="aav"></span><div class="prose">
+                <div class="cot-head">Worked for 9s</div>
+                <div class="step"><span class="dot" data-fa="faMessageLines"></span><span class="txt">Read feedback on Purchase order intake (14)</span></div>
+                <div class="rv" id="rv">
+                  <div class="kind">Update skill</div>
+                  <div class="tt"><h4>Purchase order intake</h4><span class="badge">Draft update</span></div>
+                  <div><div class="ilb">Instructions</div><div class="ibx">
+                    <div class="dr"><span class="g"></span><span>2. Find the customer in Exact by name or VAT number.</span></div>
+                    <div class="dr add" id="add1"><span class="g">+</span><span id="add1t"></span></div>
+                    <div class="dr add" id="add2"><span class="g">+</span><span id="add2t"></span></div>
+                    <div class="dr"><span class="g"></span><span>3. Match each line to an article and check the price.</span></div>
+                  </div></div>
+                  <div class="ev" id="ev"><div class="lb">Based on feedback</div>
+                    <div class="it"><p class="ch">Never take a PO number from the email subject.</p>
+                      <p>“Took PO 4500012877 from the email subject. That PO belongs to last week's order.”</p>
+                      <div class="meta"><span class="chipx neg"><span data-fa="s:faThumbsDown"></span>Negative</span><span>On v1.4</span><u>Joris de Vries</u></div></div>
+                  </div>
+                </div>
+              </div></div>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+</div>
+<script src="fa-icons.js"></script><script src="fa-extra.js"></script><script src="fa-ch3.js"></script>
+<script src="app.js"></script>
+<script src="clip.js"></script>
+<script src="chapter.js"></script>
+<script>
+  CHAPTER({ n: 3, total: 6, tag: "Skill feedback", kicker: "This week in Lleverage", where: true, footerLeft: "lleverage.ai · Week of 5 Oct 2026",
+    title: "Skills that learn<br><em>from feedback.</em>", line: "See every rating on runs that used a skill, and let the Agent propose the fix." });
+  const O = 3.0, D = 12.6 + O;
+  window.HOLDS = [[1.0, 0.7], [4.1, 0.6], [3.4 + O, 1.0], [6.6 + O, 1.0], [12.4 + O, 1.6]];
+  const { $, $$, p, out, io, type } = C;
+  $("#sb").outerHTML = APP.sidebar("Overview");
+  $("#aav").innerHTML = `<span style="display:block;margin-top:2px;color:hsl(var(--foreground))">${APP.loader(20)}</span>`;
+  const FB = [
+    ["Joris de Vries", "JV", "hsl(200 35% 42%)", 0, "open", "2 days ago", "Took PO 4500012877 from the email subject. That PO belongs to last week's order.", "Message feedback · Lleverage · v1.4"],
+    ["Sanne Bakker", "SB", "hsl(280 30% 42%)", 1, "act", "3 days ago", "Matched all 12 lines to Exact items, with prices from the customer's price list.", "Session feedback · Microsoft Teams · v1.4"],
+    ["Mila Jansen", "MJ", "hsl(15 45% 45%)", 0, "open", "4 days ago", "Two delivery addresses ended up on one sales order.", "Message feedback · Lleverage · v1.4"],
+    ["Bas Smit", "BS", "hsl(145 30% 32%)", 1, "open", "6 days ago", "Found Kuipers Hout by its VAT number straight away.", "Message feedback · Lleverage · v1.3"],
+  ];
+  const card = ([n, ini, col, pos, st, age, cm, dt], i) => `<article class="fb" id="fb${i}"><span class="avt" style="background:${col}">${ini}</span><div class="bd">
+    <header><b>${n}</b><span class="chipx ${pos ? "pos" : "neg"}">${fa(pos ? "s:faThumbsUp" : "s:faThumbsDown")}${pos ? "Positive" : "Negative"}</span>
+    <span class="chipx ${st === "open" ? "st-open" : "st-act"}">${st === "open" ? "Open" : "Actioned"}</span><span class="age">${age}${fa("faArrowUpRightFromSquare")}</span></header>
+    <p class="cm">${cm}</p><p class="dt">${dt}</p></div></article>`;
+  $("#fbl").innerHTML = FB.map(card).join("");
+  $$("[data-fa]").forEach((el) => (el.innerHTML = fa(el.dataset.fa)));
+
+  const app = $("#app");
+  const at = (el, fx = 0.5, fy = 0.5) => { const a = app.getBoundingClientRect(), r = el.getBoundingClientRect(), s = a.width / 1280;
+    return [(r.left - a.left + r.width * fx) / s, (r.top - a.top + r.height * fy) / s]; };
+  const navs = $$(".sb .nav"), nav = (l) => navs.find((el) => el.textContent.trim() === l);
+  const navSk = nav("Skills"), navOv = nav("Overview"), navAg = nav("Agent");
+  // Measure with every state visible.
+  $("#fbsec").style.display = ""; $("#dd").style.display = "";
+  const P = { sk: at(navSk, 0.3), fb: at($("#tFb")), rating: at($("#selRating")), neg: at($("#ddNeg")), improve: at($("#improve")) };
+  $("#fbsec").style.display = "none"; $("#dd").style.display = "none";
+  const ip = at($("#improve"), 0.5, 1);
+  $("#tip").style.left = (ip[0] - 62) + "px"; $("#tip").style.top = (ip[1] + 6) + "px";
+
+  const VW = C.STAGE_W, VH = C.STAGE_H, FIT = Math.min(VW / 1280, VH / 800) * 0.98;
+  const cam = C.camera(app, VW, VH, [[0, 640, 400, FIT], [1.9, 640, 400, FIT], [2.3, 490, 300, 1.35], [3.2, 490, 300, 1.35], [3.8, 640, 400, FIT],
+    [1.9 + O, 640, 400, FIT], [2.4 + O, 755, 280, 1.25], [6.6 + O, 755, 280, 1.25], [7.6 + O, 794, 260, 1.35], [8.3 + O, 794, 260, 1.35],
+    [8.9 + O, 640, 345, 1.0], [9.4 + O, 640, 345, 1.0], [10.0 + O, 709, 330, 1.15], [D, 709, 330, 1.15]]);
+  const F = (t, [x, y]) => { const m = cam(t).map(x, y); return [C.STAGE_X + m[0], C.STAGE_Y + m[1]]; };
+  const OFF = [C.W * 0.6, C.H + 40];
+  const cur = C.cursor([[1.9, ...OFF], [2.6, ...F(2.6, P.sk), true], [3.4, ...F(3.4, P.sk)], [2.2 + O, ...F(2.2 + O, P.fb)], [2.6 + O, ...F(2.6 + O, P.fb), true],
+    [4.9 + O, ...F(4.9 + O, P.rating)], [5.3 + O, ...F(5.3 + O, P.rating), true], [5.9 + O, ...F(5.9 + O, P.neg)], [6.2 + O, ...F(6.2 + O, P.neg), true],
+    [7.0 + O, ...F(7.0 + O, P.neg)], [7.7 + O, ...F(7.7 + O, P.improve)], [8.1 + O, ...F(8.1 + O, P.improve), true], [8.8 + O, C.W * 0.9, C.H + 40]]);
+  const where = C.where([[2.6, "Skills"], [3.1, "Purchase order intake"], [2.6 + O, "Feedback"], [8.1 + O, "Improve with agent"]]);
+  const cap = C.captions([
+    [1.9, 4.5, "Open Skills<br><em>and pick a skill.</em>"],
+    [1.9 + O, 4.5 + O, "Open the Feedback tab.<br><em>Every rating on runs that used it.</em>"],
+    [4.8 + O, 7.4 + O, "Filter to negative feedback.<br><em>See what went wrong.</em>"],
+    [7.7 + O, 10.0 + O, "Improve with agent.<br><em>It reads the feedback.</em>"],
+    [10.3 + O, 99, "It proposes a draft change.<br><em>You approve before it's published.</em>"],
+  ]);
+  cam(0);
+  C.run(D, (t) => {
+    C.hook($("#hook"), t, 1.5);
+    cap(t); cam(t); cur(t); where(t);
+    // Beat 0: Overview, then Skills, then the skill page.
+    const inSk = t >= 2.65, onAgent = t >= 8.4 + O;
+    navSk.classList.toggle("on", inSk && !onAgent); navOv.classList.toggle("on", !inSk); navAg.classList.toggle("on", onAgent);
+    $("#ovpage").style.opacity = t < 3.1 ? 1 : 0;
+    $("#skillpage").style.display = t >= 3.1 && !onAgent ? "" : "none";
+    $("#skillpage").style.opacity = out(p(t, 3.1, 3.5));
+    // Feedback tab.
+    const fbOn = t >= 2.65 + O;
+    $("#tFb").className = "tab" + (fbOn ? " on" : ""); $("#tPrev").className = "tab" + (fbOn ? "" : " on");
+    $("#prev").style.display = fbOn ? "none" : ""; $("#fbsec").style.display = fbOn ? "" : "none";
+    $("#fbsec").style.opacity = out(p(t, 2.65 + O, 3.0 + O));
+    // Rating filter: open, pick Negative, the list narrows.
+    const ddOpen = t >= 5.35 + O && t < 6.25 + O;
+    $("#dd").style.display = ddOpen ? "" : "none"; $("#selRating").classList.toggle("open", ddOpen);
+    $("#ddNeg").className = t >= 5.9 + O ? "hov" : "";
+    const neg = t >= 6.25 + O;
+    $("#ratingTx").textContent = neg ? "Negative" : "All ratings";
+    $("#fbcount").textContent = neg ? "Feedback (4)" : "Feedback (14)";
+    FB.forEach((f, i) => { $("#fb" + i).style.display = neg && f[3] ? "none" : ""; });
+    $("#fb0").classList.toggle("hl", neg);
+    // Improve with agent: tooltip, then the agent page with the review.
+    const tip = t >= 7.85 + O && t < 8.4 + O;
+    $("#tip").style.display = tip ? "" : "none"; $("#improve").classList.toggle("hot", tip);
+    $("#agentpage").style.display = onAgent ? "" : "none";
+    $("#agentpage").style.opacity = out(p(t, 8.4 + O, 8.8 + O));
+    APP.drive($("#aav"), t < 9.6 + O ? "working" : "static", t);
+    const r = out(p(t, 9.4 + O, 9.8 + O));
+    $("#rv").style.opacity = r; $("#rv").style.transform = `translateY(${(1 - r) * 10}px)`;
+    $("#add1").style.display = t >= 9.9 + O ? "" : "none"; type($("#add1t"), "If the order has no PO number, never take one from the subject. Hand it to the order desk.", t, 9.9 + O, 11.0 + O);
+    $("#add2").style.display = t >= 11.1 + O ? "" : "none"; type($("#add2t"), "Two delivery addresses: one draft order per address.", t, 11.1 + O, 11.9 + O);
+    $("#ev").style.opacity = out(p(t, 11.9 + O, 12.3 + O));
+  });
+</script>
+</body></html>

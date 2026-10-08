@@ -1,0 +1,362 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<title>Requests and app forms</title>
+<link rel="stylesheet" href="clip.css">
+<link rel="stylesheet" href="app.css">
+<link rel="stylesheet" href="chapter.css">
+<style>
+  /* Pages inside the main panel, switched on the timeline. */
+  .pg { position: absolute; inset: 0; display: none; flex-direction: column; }
+  .pg.vis { display: flex; }
+  .where .path.alt { display: none; }
+
+  /* Requests inbox (requests-inbox-page, requests-tabs, requests-list): rows on the page background. */
+  .rq-tabs { margin: 14px 32px 0; }
+  .rq-list { margin: 12px 32px 0; display: flex; flex-direction: column; border: 1px solid hsl(var(--border)); border-radius: 12px; overflow: hidden; background: hsl(var(--card)); }
+  .rq-row { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-top: 1px solid hsl(var(--border)); }
+  .rq-row:first-child { border-top: 0; }
+  .rq-row.hov { background: hsl(var(--accent)); }
+  .rq-row .ic2 { width: 28px; height: 28px; border-radius: 8px; display: grid; place-items: center; background: hsl(var(--muted)); color: hsl(var(--muted-foreground)); flex: none; }
+  .rq-row .ic2 svg { width: 13px; height: 13px; }
+  .rq-row .tt { flex: 1; min-width: 0; }
+  .rq-row .tt b { display: block; font-weight: 500; }
+  .rq-row .tt span { font-size: 12px; line-height: 16px; color: hsl(var(--muted-foreground)); }
+  .rq-row .when { font-size: 12px; color: hsl(var(--muted-foreground)); }
+  .uav { width: 22px; height: 22px; border-radius: 999px; display: grid; place-items: center; color: #fff; font-size: 11px; font-weight: 600; flex: none; }
+  .status { background: hsl(var(--warning) / .12); color: hsl(var(--warning)); }
+
+  /* Request view (request-detail-panel): main column, then the session sidebar or the attachment panel on the right. */
+  .rv { position: absolute; inset: 0; display: flex; }
+  .rv-main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+  .rv-head { display: flex; align-items: center; gap: 10px; padding: 16px 24px 0; }
+  .rv-head .back { width: 28px; height: 28px; border-radius: 6px; display: grid; place-items: center; color: hsl(var(--muted-foreground)); }
+  .rv-head .back svg { width: 12px; height: 12px; }
+  .rv-head h1 { margin: 0; font-size: 18px; line-height: 26px; font-weight: 600; letter-spacing: -.02em; }
+  .rv-body { padding: 16px 24px; display: flex; flex-direction: column; gap: 12px; }
+  .dec { border: 1px solid hsl(var(--input)); border-radius: 12px; background: hsl(var(--card)); box-shadow: 0 1px 2px rgb(0 0 0 / .05); }
+  .dec .hd { display: flex; align-items: center; gap: 8px; padding: 12px 16px; border-bottom: 1px solid hsl(var(--border)); font-weight: 600; }
+  .dec .bd { padding: 14px 16px; display: grid; grid-template-columns: 1fr 1fr; gap: 12px 16px; }
+  .dec .fl { font-size: 12px; font-weight: 500; color: hsl(var(--muted-foreground)); margin-bottom: 4px; }
+  .dec .fv { height: 32px; border: 1px solid hsl(var(--input)); border-radius: 6px; padding: 0 10px; display: flex; align-items: center; background: hsl(var(--background)); }
+  .dec .ft { display: flex; justify-content: flex-end; gap: 8px; padding: 0 16px 14px; }
+  .side { width: 320px; flex: none; padding: 0 12px 12px 0; }
+  .side .box { height: 100%; border-radius: 12px; background: hsl(var(--background)); border: 1px solid hsl(var(--border)); padding: 4px; }
+  .sc { border-radius: 10px; padding: 8px 8px 6px; }
+  .sc .st { display: flex; align-items: center; gap: 6px; padding: 4px 6px; font-size: 12px; font-weight: 600; }
+  .sc .st .n { color: hsl(var(--muted-foreground)); font-weight: 400; }
+  .sc ul { list-style: none; margin: 0; padding: 0 2px 4px; }
+  .sc li { display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-radius: 8px; font-size: 12px; line-height: 16px; font-weight: 500; }
+  .sc li.hov { background: hsl(var(--accent)); }
+  .sc li .ib2 { width: 20px; height: 20px; border-radius: 6px; display: grid; place-items: center; background: hsl(var(--muted)); color: hsl(var(--muted-foreground)); flex: none; }
+  .sc li .ib2 svg { width: 11px; height: 11px; }
+
+  /* Attachment panel: AttachmentFileBar, then ImageGalleryViewer (name row, ZoomableImage, thumbnails). */
+  .ap { position: absolute; top: 0; right: 12px; bottom: 12px; width: 560px; border-radius: 12px; background: hsl(var(--background)); box-shadow: 0 1px 3px rgb(0 0 0 / .1); border: 1px solid hsl(var(--border)); display: flex; flex-direction: column; overflow: hidden; }
+  .fbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 12px; border-bottom: 1px solid hsl(var(--border)); flex: none; }
+  .fbar .nav2 { display: flex; align-items: center; gap: 4px; font-size: 12px; }
+  .sbtn { width: 28px; height: 28px; border-radius: 6px; display: grid; place-items: center; background: hsl(var(--secondary)); box-shadow: 0 1px 2px rgb(0 0 0 / .05); color: hsl(var(--foreground)); }
+  .sbtn svg { width: 12px; height: 12px; }
+  .sbtn.off { opacity: .5; }
+  .sbtn.pr { box-shadow: 0 0 0 2px hsl(var(--ring, 230 35% 15%) / .25); }
+  .fname { padding: 8px 12px; font-size: 14px; font-weight: 500; flex: none; }
+  .zv { position: relative; flex: 1; min-height: 0; overflow: hidden; }
+  .zv.grab { cursor: grab; }
+  .zctl { position: absolute; right: 12px; bottom: 12px; z-index: 5; display: flex; gap: 4px; }
+  .thumbs { flex: none; display: flex; align-items: flex-end; gap: 8px; padding: 4px 12px 12px; }
+  .th { display: flex; flex-direction: column; align-items: center; gap: 2px; font-size: 12px; color: hsl(var(--muted-foreground)); }
+  .th .box2 { width: 64px; height: 64px; border-radius: 4px; border: 2px solid transparent; overflow: hidden; background: hsl(var(--background)); position: relative; }
+  .th.on { color: hsl(var(--foreground)); font-weight: 500; }
+  .th.on .box2 { border-color: hsl(230 35% 15%); }
+  .th .mini { position: absolute; left: 0; top: 0; transform-origin: 0 0; }
+
+  /* The scanned documents: illustrative, drawn at 520 x 700 natural size. */
+  .doc { position: absolute; left: 50%; top: 50%; width: 520px; height: 700px; transform-origin: 50% 50%; border-radius: 8px; border: 1px solid hsl(var(--border)); box-shadow: 0 1px 2px rgb(0 0 0 / .05);
+    background: linear-gradient(135deg, #f7f5ef, #eeebe2 60%, #f4f1ea); color: #2a2a28; font-family: "Public Sans", sans-serif; overflow: hidden; }
+  .doc .in { position: absolute; inset: 34px 38px; transform: rotate(-0.6deg); }
+  .doc .co { font-size: 20px; font-weight: 700; letter-spacing: -.01em; }
+  .doc .ad { font-size: 11px; line-height: 15px; color: #55534c; margin-top: 4px; }
+  .doc .kind { position: absolute; right: 0; top: 0; font-size: 26px; font-weight: 300; letter-spacing: .12em; color: #3d3b35; }
+  .doc .meta { margin-top: 34px; display: grid; grid-template-columns: 130px 1fr; gap: 5px 10px; font-size: 12px; }
+  .doc .meta b { font-weight: 600; }
+  .doc .meta .hi { background: rgba(236, 117, 35, .14); padding: 0 4px; border-radius: 3px; }
+  .doc table { margin-top: 26px; width: 100%; border-collapse: collapse; font-size: 11.5px; }
+  .doc th { text-align: left; font-weight: 600; border-bottom: 1.5px solid #3d3b35; padding: 6px 4px; }
+  .doc td { padding: 7px 4px; border-bottom: 1px solid #cfccc2; }
+  .doc td.r, .doc th.r { text-align: right; }
+  .doc .tot { margin-top: 18px; margin-left: auto; width: 240px; font-size: 12px; }
+  .doc .tot div { display: flex; justify-content: space-between; padding: 4px 0; }
+  .doc .tot .g { border-top: 1.5px solid #3d3b35; font-weight: 700; font-size: 13.5px; padding-top: 7px; }
+  .doc .foot { position: absolute; left: 0; right: 0; bottom: 0; font-size: 10px; color: #6b685f; line-height: 14px; }
+  .doc .stamp { position: absolute; right: 18px; bottom: 70px; width: 150px; height: 64px; border: 2.5px solid rgba(46, 95, 160, .55); border-radius: 6px; transform: rotate(-8deg); color: rgba(46, 95, 160, .7); font-size: 13px; font-weight: 700; display: grid; place-items: center; text-align: center; line-height: 16px; letter-spacing: .06em; }
+
+  /* Workflow app session (workflow-app-client): a centred timeline of element cards. */
+  .ws { position: absolute; inset: 0; overflow: hidden; }
+  .ws-col { position: absolute; left: 50%; top: 0; width: 640px; margin-left: -320px; transition: none; }
+  .ws-head { display: flex; align-items: center; gap: 10px; padding: 18px 0 14px; }
+  .ws-head .ic2 { width: 28px; height: 28px; border-radius: 8px; display: grid; place-items: center; background: hsl(var(--muted)); color: hsl(var(--muted-foreground)); }
+  .ws-head .ic2 svg { width: 13px; height: 13px; }
+  .ws-head b { font-size: 16px; font-weight: 600; }
+  .ws-head span { font-size: 12px; color: hsl(var(--muted-foreground)); }
+  .bub { align-self: flex-end; margin-left: auto; width: fit-content; max-width: 420px; background: hsl(var(--secondary)); border-radius: 14px; padding: 8px 12px; margin-bottom: 14px; }
+  .ec { overflow: hidden; border-radius: 12px; border: 1px solid hsl(var(--muted)); background: hsl(var(--card)); margin-bottom: 14px; }
+  .ec.live { border-color: hsl(var(--input)); box-shadow: 0 1px 2px rgb(0 0 0 / .05); }
+  .ec .bd { padding: 16px; }
+  .ec h3 { margin: 0 0 4px; font-size: 14px; font-weight: 600; }
+  .ec .sub { font-size: 12px; color: hsl(var(--muted-foreground)); margin-bottom: 12px; }
+  .ec .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 16px; }
+  .ec .fl { font-size: 12px; font-weight: 500; margin-bottom: 4px; }
+  .ec .fv { height: 32px; border: 1px solid hsl(var(--input)); border-radius: 6px; padding: 0 10px; display: flex; align-items: center; background: hsl(var(--background)); }
+  .ec .fv.ro { background: hsl(var(--muted) / .5); color: hsl(var(--muted-foreground)); }
+  .ec .fv.focus { border-color: hsl(230 35% 15% / .6); box-shadow: 0 0 0 3px hsl(230 35% 15% / .12); }
+  .ec .ftr { display: flex; align-items: center; justify-content: space-between; gap: 12px; border-top: 1px solid hsl(var(--border)); background: hsl(var(--muted)); padding: 8px 16px; font-size: 12px; color: hsl(var(--muted-foreground)); }
+  .ec .ftr .btn { color: hsl(var(--foreground)); }
+  .ec .ftr .btn.hov { background: hsl(var(--accent)); }
+  .ec .sub2 { display: flex; justify-content: flex-end; margin-top: 14px; }
+  .agt { display: flex; gap: 10px; margin-bottom: 14px; font-size: 13px; line-height: 20px; }
+  .agt .lg { width: 20px; height: 20px; flex: none; color: hsl(var(--foreground)); }
+
+  /* Dialog (ui/dialog): centred, max-w-lg, title, description, warning, footer actions. */
+  .bk { position: absolute; inset: 0; background: rgb(0 0 0 / .45); z-index: 40; display: none; }
+  .dg { position: absolute; left: 50%; top: 210px; width: 480px; margin-left: -240px; z-index: 41; display: none; background: hsl(var(--background)); border: 1px solid hsl(var(--border)); border-radius: 8px; padding: 24px;
+    box-shadow: 0 25px 50px -12px rgb(0 0 0 / .25); }
+  .dg h2 { margin: 0; font-size: 18px; line-height: 24px; font-weight: 600; }
+  .dg p { margin: 6px 0 14px; font-size: 13px; line-height: 20px; color: hsl(var(--muted-foreground)); }
+  .dg .warn { display: flex; gap: 8px; border: 1px solid hsl(var(--warning) / .3); background: hsl(var(--warning) / .1); border-radius: 6px; padding: 10px 12px; font-size: 13px; line-height: 19px; }
+  .dg .warn svg { width: 13px; height: 13px; margin-top: 3px; color: hsl(var(--warning)); }
+  .dg .acts { display: flex; justify-content: flex-end; gap: 8px; margin-top: 18px; }
+</style></head>
+<body>
+<div class="frame">
+  <div class="stage">
+    <div class="app" id="app">
+      <div id="sb"></div>
+      <main class="panel" id="panel">
+        <!-- Overview (start) -->
+        <div class="pg vis" id="pOv"><div class="ph"><h1>Overview</h1></div></div>
+
+        <!-- Requests inbox -->
+        <div class="pg" id="pIn">
+          <div class="ph"><h1>Requests</h1><div class="right"><span class="btn out h7"><span data-fa="faFilter"></span>Filter</span></div></div>
+          <div class="tabs rq-tabs"><span class="tab on">Assigned to me<span class="cnt">4</span></span><span class="tab">All<span class="cnt">27</span></span><span class="tab">Completed</span></div>
+          <div class="rq-list" id="rqList"></div>
+        </div>
+
+        <!-- Request view -->
+        <div class="pg" id="pRq">
+          <div class="rv">
+            <div class="rv-main">
+              <div class="rv-head"><span class="back" data-fa="faChevronLeft"></span><h1>Approve invoice 2026-0412 from Kuipers Hout</h1><span class="badge status">Pending</span></div>
+              <div class="rv-body">
+                <div class="dec">
+                  <div class="hd"><span data-fa="faInbox"></span>Request Decision · Invoice matching</div>
+                  <div class="bd">
+                    <div><div class="fl">Supplier</div><div class="fv">Kuipers Hout B.V.</div></div>
+                    <div><div class="fl">Invoice number</div><div class="fv">2026-0412</div></div>
+                    <div><div class="fl">PO number</div><div class="fv">4500012877</div></div>
+                    <div><div class="fl">Amount incl. VAT</div><div class="fv">€4.126,10</div></div>
+                  </div>
+                  <div class="ft"><span class="btn out">Reject</span><span class="btn pri">Approve</span></div>
+                </div>
+              </div>
+            </div>
+            <div class="side" id="side"><div class="box">
+              <div class="sc"><div class="st">Records <span class="n">1</span></div><ul><li><span class="ib2" data-fa="faFileSpreadsheet"></span>Purchase order 4500012877</li></ul></div>
+              <div class="sc"><div class="st">Attachments <span class="n">3</span></div><ul id="attList"></ul></div>
+              <div class="sc"><div class="st">History</div></div>
+            </div></div>
+            <div class="ap" id="ap" style="display:none">
+              <div class="fbar">
+                <div class="nav2"><span class="sbtn" id="prevB" data-fa="faChevronLeft"></span><span style="padding:0 4px" id="fpos">File 1 of 3</span><span class="sbtn" id="nextB" data-fa="faChevronRight"></span></div>
+                <span class="sbtn" data-fa="faTimes"></span>
+              </div>
+              <div class="fname" id="fname"></div>
+              <div class="zv" id="zv">
+                <div id="docs"></div>
+                <div class="zctl"><span class="sbtn" id="zOut" data-fa="faMagnifyingGlassMinus"></span><span class="sbtn" id="zIn" data-fa="faMagnifyingGlassPlus"></span><span class="sbtn" id="zFit" data-fa="faExpand"></span><span class="sbtn" data-fa="faDownload"></span></div>
+              </div>
+              <div class="thumbs" id="thumbs"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Workflow app session -->
+        <div class="pg" id="pWs">
+          <div class="ws"><div class="ws-col" id="wsCol">
+            <div class="ws-head"><span class="ic2" data-fa="faPaperPlane"></span><div><b>Order intake</b><br><span>Session · 6 Oct, 09:14</span></div></div>
+            <div class="bub">New order from Van Dijk Metaal, PO 4500012902, attached.</div>
+            <div class="ec" id="ec1">
+              <div class="bd"><h3>Check the order</h3><div class="sub">Confirm the details before the sales order is drafted in Exact Online.</div>
+                <div class="grid">
+                  <div><div class="fl">Customer</div><div class="fv ro">Van Dijk Metaal</div></div>
+                  <div><div class="fl">PO number</div><div class="fv ro">4500012902</div></div>
+                  <div><div class="fl">Delivery date</div><div class="fv ro">14 Oct 2026</div></div>
+                  <div><div class="fl">Warehouse</div><div class="fv ro">Tilburg</div></div>
+                </div></div>
+              <div class="ftr"><span id="attr"></span><span class="btn out h7" id="edB"><span data-fa="faPenToSquare"></span>Edit and resubmit</span></div>
+            </div>
+            <div class="agt" id="agt1"><span class="lg" id="lg1"></span><div>Sales order 10482 drafted in Exact Online for Van Dijk Metaal, delivery 14 Oct.</div></div>
+            <div class="ec live" id="ec2" style="opacity:0">
+              <div class="bd"><h3>Check the order</h3><div class="sub">Confirm the details before the sales order is drafted in Exact Online.</div>
+                <div class="grid">
+                  <div><div class="fl">Customer</div><div class="fv">Van Dijk Metaal</div></div>
+                  <div><div class="fl">PO number</div><div class="fv">4500012902</div></div>
+                  <div><div class="fl">Delivery date</div><div class="fv" id="dd">14 Oct 2026</div></div>
+                  <div><div class="fl">Warehouse</div><div class="fv">Tilburg</div></div>
+                </div>
+                <div class="sub2"><span class="btn pri" id="subB">Submit</span></div></div>
+            </div>
+          </div></div>
+          <div class="bk" id="bk"></div>
+          <div class="dg" id="dg">
+            <h2>Edit and resubmit “Check the order”?</h2>
+            <p>This creates a new response prefilled with your latest answers. Your earlier response stays in the session as it is.</p>
+            <div class="warn"><span data-fa="faTriangleExclamation"></span><div>Submitting it runs every later step again. Emails, approvals and other actions in those steps can happen again.</div></div>
+            <div class="acts"><span class="btn out">Cancel</span><span class="btn pri" id="crB">Create new response</span></div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+</div>
+<script src="fa-icons.js"></script><script src="fa-extra.js"></script><script src="fa-ch4r.js"></script>
+<script src="app.js"></script>
+<script src="clip.js"></script>
+<script src="chapter.js"></script>
+<script>
+  CHAPTER({ n: 4, total: 6, tag: "Requests and apps", kicker: "This week in Lleverage", where: true, footerLeft: "lleverage.ai · Week of 5 Oct 2026",
+    title: "Check the scan,<br><em>fix the answer.</em>", line: "Zoom into request attachments and click through them, and resubmit an answered form in an app." });
+  const E = 12.8, D = E + 6.0;
+  window.HOLDS = [[1.0, 0.7], [5.3, 0.6], [8.9, 1.1], [12.1, 0.9], [E + 2.7, 1.0], [D - 0.3, 1.3]];
+  const { $, $$, p, out, io, lerp } = C;
+  $("#sb").outerHTML = APP.sidebar("Overview");
+
+  // Inbox rows and the request's attachments.
+  const RQ = [["Approve invoice 2026-0412 from Kuipers Hout", "Invoice matching · Request Decision", "2h", "S", "hsl(280 30% 42%)"],
+    ["Check the price difference on PO 4500012888", "Invoice matching · Request Input", "3h", "J", "hsl(170 35% 35%)"],
+    ["Confirm delivery date for Van Dijk Metaal", "Order intake · Request Input", "5h", "S", "hsl(280 30% 42%)"],
+    ["Approve credit note from Noord Coatings", "Invoice matching · Request Decision", "1d", "M", "hsl(15 45% 45%)"]];
+  $("#rqList").innerHTML = RQ.map(([t, s, w, a, c], i) => `<div class="rq-row" id="rq${i}"><span class="ic2" data-fa="faInbox"></span><div class="tt"><b>${t}</b><span>${s}</span></div><span class="uav" style="background:${c}">${a}</span><span class="when">${w}</span></div>`).join("");
+  const FILES = ["scan-factuur-2026-0412.jpg", "pakbon-4500012877.jpg", "afleverbon-getekend.jpg"];
+  $("#attList").innerHTML = FILES.map((f, i) => `<li id="at${i}"><span class="ib2" data-fa="faPaperclip"></span>${f}</li>`).join("");
+
+  // Three illustrative scans: the invoice, the packing slip, the signed delivery note.
+  const rows = (r) => r.map(([a, b, c, d]) => `<tr><td>${a}</td><td>${b}</td><td class="r">${c}</td><td class="r">${d}</td></tr>`).join("");
+  const DOCS = [
+    `<div class="in"><div class="co">Kuipers Hout B.V.</div><div class="ad">Industrieweg 14 · 5047 RD Tilburg<br>KvK 18043621 · btw NL8124.66.019.B01</div><div class="kind">FACTUUR</div>
+      <div class="meta"><span>Factuurnummer</span><b>2026-0412</b><span>Factuurdatum</span><b>2 oktober 2026</b><span>Uw ordernummer</span><b><span class="hi">4500012877</span></b><span>Klant</span><b>Kuipers Trade B.V.</b></div>
+      <table><tr><th>Omschrijving</th><th>Aantal</th><th class="r">Prijs</th><th class="r">Bedrag</th></tr>${rows([["Eiken balk 70×170 mm, 4 m", "40", "€41,50", "€1.660,00"], ["Vuren plaat 18 mm, 244×122", "60", "€22,75", "€1.365,00"], ["Bevestigingsset RVS", "35", "€11,00", "€385,00"]])}</table>
+      <div class="tot"><div><span>Totaal excl. btw</span><span>€3.410,00</span></div><div><span>Btw 21%</span><span>€716,10</span></div><div class="g"><span>Totaal</span><span>€4.126,10</span></div></div>
+      <div class="foot">Betaling binnen 30 dagen op NL42 RABO 0318 4421 07 o.v.v. factuurnummer.</div></div>`,
+    `<div class="in"><div class="co">Kuipers Hout B.V.</div><div class="ad">Industrieweg 14 · 5047 RD Tilburg</div><div class="kind">PAKBON</div>
+      <div class="meta"><span>Pakbon</span><b>PB-88213</b><span>Datum</span><b>1 oktober 2026</b><span>Ordernummer</span><b>4500012877</b><span>Afleveradres</span><b>Kuipers Trade, Tilburg</b></div>
+      <table><tr><th>Artikel</th><th>Besteld</th><th class="r">Geleverd</th><th class="r">Rest</th></tr>${rows([["Eiken balk 70×170 mm, 4 m", "40", "40", "0"], ["Vuren plaat 18 mm, 244×122", "60", "60", "0"], ["Bevestigingsset RVS", "35", "35", "0"]])}</table>
+      <div class="foot">Controleer de goederen bij ontvangst. Klachten binnen 48 uur melden.</div></div>`,
+    `<div class="in"><div class="co">Kuipers Hout B.V.</div><div class="ad">Industrieweg 14 · 5047 RD Tilburg</div><div class="kind">AFLEVERBON</div>
+      <div class="meta"><span>Rit</span><b>R-1002 · 2 oktober 2026</b><span>Ordernummer</span><b>4500012877</b><span>Colli</span><b>3 pallets</b><span>Ontvangen door</span><b>B. Smit</b></div>
+      <svg width="220" height="90" viewBox="0 0 220 90" style="margin-top:60px"><path d="M8 62 C30 20, 40 80, 62 40 S96 70, 112 34 C122 18, 128 70, 150 46 S190 40, 212 30" fill="none" stroke="#24396b" stroke-width="2.4" stroke-linecap="round"/></svg>
+      <div style="font-size:11px;color:#6b685f;border-top:1px solid #cfccc2;width:220px;padding-top:4px">Handtekening ontvanger</div>
+      <div class="stamp">ONTVANGEN<br>2 OKT 2026</div></div>`];
+  $("#docs").innerHTML = DOCS.map((d, i) => `<div class="doc" id="doc${i}">${d}</div>`).join("");
+  $("#thumbs").innerHTML = DOCS.map((d, i) => `<div class="th" id="th${i}"><span class="box2"><span class="mini"><div class="doc" style="left:0;top:0;transform:none">${d}</div></span></span>${i + 1}</div>`).join("");
+  $$(".th .mini").forEach((m) => (m.style.transform = "scale(0.123) translate(0, -64px)"));
+  $$("[data-fa]").forEach((el) => (el.innerHTML = fa(el.dataset.fa)));
+  $("#lg1").innerHTML = APP.loader(20);
+
+  // Measure every target with its layer showing.
+  const app = $("#app");
+  const at = (el, fx = 0.5, fy = 0.5) => { const a = app.getBoundingClientRect(), r = el.getBoundingClientRect(), s = a.width / 1280;
+    return [(r.left - a.left + r.width * fx) / s, (r.top - a.top + r.height * fy) / s]; };
+  const navs = $$(".sb .nav"), nav = (l) => navs.find((el) => el.textContent.trim().startsWith(l));
+  const show = (id) => $$(".pg").forEach((el) => el.classList.toggle("vis", el.id === id));
+  show("pIn"); const P = { req: at(nav("Requests"), 0.3), apps: at(nav("Apps"), 0.3), row: at($("#rq0"), 0.3) };
+  show("pRq"); P.att = at($("#at0"), 0.4);
+  $("#side").style.display = "none"; $("#ap").style.display = "";
+  P.zin = at($("#zIn")); P.next = at($("#nextB")); P.th2 = at($("#th2"), 0.5, 0.35);
+  const zr = $("#zv").getBoundingClientRect(), ar = app.getBoundingClientRect(), sc0 = ar.width / 1280;
+  const ZV = { w: zr.width / sc0, h: zr.height / sc0 }; P.zc = at($("#zv"));
+  $("#side").style.display = ""; $("#ap").style.display = "none";
+  show("pWs"); P.ed = at($("#edB")); $("#bk").style.display = $("#dg").style.display = "block"; P.cr = at($("#crB")); $("#bk").style.display = $("#dg").style.display = "none";
+  $("#ec1 .ftr").style.display = "none"; P.dd = at($("#dd")); P.sub = at($("#subB")); $("#ec1 .ftr").style.display = ""; show("pOv");
+  const FITD = Math.min((ZV.w - 32) / 520, (ZV.h - 32) / 700);
+
+  const VW = C.STAGE_W, VH = C.STAGE_H, FIT = Math.min(VW / 1280, VH / 800) * 0.98;
+  const XMAX = (s) => 1280 - VW / 2 / s, YMAX = (s) => 800 - VH / 2 / s;
+  const cam = C.camera(app, VW, VH, [[0, 640, 400, FIT], [1.9, 640, 400, FIT], [2.3, 490, 300, 1.35], [3.0, 490, 300, 1.35], [3.5, 640, 400, FIT], [4.4, 640, 400, FIT], [4.8, 640, 400, FIT],
+    [5.9, 640, 400, FIT], [6.4, XMAX(1.32), 420, 1.32], [9.6, XMAX(1.32), 420, 1.32], [10.1, 640, 400, FIT], [12.4, 640, 400, FIT],
+    [E, 640, 400, FIT], [E + 0.25, 490, 520, 1.35], [E + 0.9, 490, 520, 1.35], [E + 1.4, XMAX(1.25), 290, 1.25], [E + 2.5, XMAX(1.25), 290, 1.25], [E + 3.1, XMAX(1.25), 290, 1.25], [E + 3.8, XMAX(1.25), YMAX(1.25), 1.25], [D, XMAX(1.25), YMAX(1.25), 1.25]]);
+  const F = (t, [x, y]) => { const m = cam(t).map(x, y); return [C.STAGE_X + m[0], C.STAGE_Y + m[1]]; };
+  const OFF = [C.W * 0.6, C.H + 40];
+  // The new response card sits below the agent's reply; it moves into place when it appears.
+  const cur = C.cursor([[1.9, ...OFF], [2.6, ...F(2.6, P.req), true], [3.4, ...F(3.4, P.req)], [4.0, ...F(4.0, P.row), true], [4.9, ...F(4.9, P.att), true],
+    [5.6, ...F(5.6, P.att)], [6.6, ...F(6.6, P.zin), true], [7.1, ...F(7.1, P.zin), true],
+    [7.6, ...F(7.6, [P.zc[0] + 40, P.zc[1] + 60])], [8.6, ...F(8.6, [P.zc[0] + 160, P.zc[1] + 150])], [9.6, ...F(9.6, [P.zc[0] + 160, P.zc[1] + 150])],
+    [10.4, ...F(10.4, P.next), true], [11.4, ...F(11.4, P.th2), true], [12.3, ...F(12.3, P.th2)],
+    [E + 0.2, ...F(E + 0.2, [P.apps[0], P.apps[1] - 60])], [E + 0.6, ...F(E + 0.6, P.apps), true], [E + 1.3, ...F(E + 1.3, P.apps)],
+    [E + 2.2, ...F(E + 2.2, P.ed), true], [E + 3.3, ...F(E + 3.3, P.cr), true], [E + 4.3, ...F(E + 4.3, P.dd), true], [E + 5.4, ...F(E + 5.4, P.sub)], [D, ...F(D, P.sub)]]);
+  const where = C.where([[2.6, "Requests"], [4.0, "a request"], [4.9, "Attachments"], [6.6, "Zoom in"]]);
+  // Second path for Edit and resubmit, swapped in for the last two beats.
+  const alt = document.createElement("span"); alt.className = "path alt";
+  alt.innerHTML = ["Apps", "an app", "a session", "Edit and resubmit"].map((l) => `<span class="wstep">${l}</span>`).join('<span class="sep">›</span>');
+  $(".where").appendChild(alt); const altSteps = $$(".wstep", alt), altT = [E + 0.6, E + 0.8, E + 1.0, E + 2.2];
+  const cap = C.captions([
+    [1.9, 5.5, "Open a request<br><em>and one of its attachments.</em>"],
+    [5.9, 9.4, "Zoom in on the scan.<br><em>Drag to the line you need.</em>"],
+    [9.8, E - 0.3, "Click through every attachment.<br><em>Each one opens at fit.</em>"],
+    [E + 0.1, E + 3.3, "In an app session,<br><em>edit and resubmit a form.</em>"],
+    [E + 3.7, 99, "A new response, prefilled.<br><em>The earlier one stays as it was.</em>"],
+  ]);
+  cam(0);
+  C.run(D, (t) => {
+    C.hook($("#hook"), t, 1.5);
+    cap(t); cam(t); cur(t); where(t);
+    const second = t >= E + 0.1;
+    $(".where .path:not(.alt)").style.display = second ? "none" : ""; alt.style.display = second ? "flex" : "none";
+    altSteps.forEach((el, i) => el.classList.toggle("on", t >= altT[i]));
+
+    // Pages: Overview, Requests, a request, then the app session.
+    const page = t >= E + 0.65 ? "pWs" : t >= 4.05 ? "pRq" : t >= 2.65 ? "pIn" : "pOv";
+    show(page);
+    navs.forEach((el) => el.classList.toggle("on", el === nav(page === "pWs" ? "Apps" : page === "pOv" ? "Overview" : "Requests")));
+    $("#rq0").classList.toggle("hov", t >= 3.7 && t < 4.05);
+    $("#at0").classList.toggle("hov", t >= 4.6 && t < 4.95);
+
+    // Attachment panel: opens on the first file; Next goes to 2, the thumbnail to 3.
+    const open = t >= 4.95;
+    $("#ap").style.display = open ? "" : "none"; $("#side").style.display = open ? "none" : "";
+    const sel = t >= 11.45 ? 2 : t >= 10.45 ? 1 : 0;
+    $("#fpos").textContent = `File ${sel + 1} of 3`; $("#fname").textContent = FILES[sel];
+    $("#prevB").classList.toggle("off", sel === 0); $("#nextB").classList.toggle("off", sel === 2);
+    $$(".th").forEach((el, i) => el.classList.toggle("on", i === sel));
+    // Zoom: two clicks on Zoom in (1 → 1.5 → 2), then a drag to the order number and totals. A new file starts at fit.
+    let z = 1, px = 0, py = 0;
+    if (sel === 0) {
+      z = 1 + 0.5 * out(p(t, 6.62, 6.85)) + 0.5 * out(p(t, 7.12, 7.35));
+      const d = io(p(t, 7.7, 8.6));
+      px = lerp(0, -95, d); py = lerp(0, -120, d);
+    }
+    $$(".doc[id^=doc]").forEach((el, i) => {
+      el.style.display = i === sel ? "" : "none";
+      el.style.transform = `translate(-50%, -50%) translate(${px * z}px, ${py * z}px) scale(${FITD * z})`;
+    });
+    $("#zOut").classList.toggle("off", z <= 1.001); $("#zFit").classList.toggle("off", z <= 1.001);
+    $("#zv").classList.toggle("grab", z > 1.001);
+    $("#zIn").classList.toggle("pr", (t >= 6.62 && t < 6.8) || (t >= 7.12 && t < 7.3));
+
+    // App session: Edit and resubmit, the confirmation, then the new response prefilled below.
+    $("#edB").classList.toggle("hov", t >= E + 1.9 && t < E + 2.3);
+    const dlg = t >= E + 2.25 && t < E + 3.4;
+    const dq = out(p(t, E + 2.25, E + 2.45));
+    $("#bk").style.display = $("#dg").style.display = dlg ? "block" : "none";
+    $("#bk").style.opacity = dq; $("#dg").style.opacity = dq; $("#dg").style.transform = `scale(${0.97 + 0.03 * dq})`;
+    const made = t >= E + 3.45;
+    // With a correction waiting, the earlier card loses its footer (ResponseCorrectionAction returns null).
+    $("#ec1 .ftr").style.display = made ? "none" : "";
+    const n = out(p(t, E + 3.45, E + 3.9));
+    $("#ec2").style.opacity = n; $("#ec2").style.transform = `translateY(${(1 - n) * 12}px)`;
+    $("#dd").classList.toggle("focus", t >= E + 4.3 && t < E + 5.6);
+    const typed = "16 Oct 2026", q = p(t, E + 4.45, E + 5.2);
+    $("#dd").textContent = t < E + 4.35 ? "14 Oct 2026" : typed.slice(0, Math.max(0, Math.round(typed.length * q))) || "​";
+    APP.drive($("#lg1"), "static", t);
+  });
+</script>
+</body></html>
