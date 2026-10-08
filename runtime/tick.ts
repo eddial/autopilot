@@ -208,7 +208,7 @@ async function runSignal(name: string, dry?: number) {
     const filing = dry ? config.filing_tools.filter((t: string) => !/__save_/.test(t)) : config.filing_tools;
     const started = Date.now();
     // The run's full transcript, for /autopilot:why and for debugging empty runs.
-    const out = claude(prompt, { tools: [...sig.meta.tools, ...filing], model: config.model, schema: ITEMS_SCHEMA,
+    const out = claude(prompt, { tools: [...sig.meta.tools, ...filing], model: sig.meta.model ?? config.model, schema: ITEMS_SCHEMA,
       log: `${name}-${iso(now).replace(/[:.]/g, '-')}${dry ? '-dry' : ''}` });
     let items = (typeof out === 'string' ? JSON.parse(out.replace(/^[^{]*|[^}]*$/g, '')) : out).items;
     if (!Array.isArray(items)) throw new Error(`bad output: ${JSON.stringify(out).slice(0, 500)}`);
