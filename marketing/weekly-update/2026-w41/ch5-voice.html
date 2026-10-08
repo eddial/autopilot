@@ -84,7 +84,7 @@
 <script src="chapter.js"></script>
 <script>
   CHAPTER({ n: 5, total: 6, tag: "Voice calls", kicker: "This week in Lleverage", where: true, footerLeft: "lleverage.ai · Week of 5 Oct 2026",
-    title: "Voice calls<br><em>that follow you.</em>", line: "Call the Agent, then open another page. The call keeps going." });
+    title: "Talk to the Agent<br><em>while you work.</em>", line: "Start a voice call with the Agent and keep it going as you move between pages. It tells you what it finds while it works." });
   const O = 2.8, D = 7.8 + O;
   window.HOLDS = [[1.0, 0.7], [4.3, 0.6], [3.0 + O, 1.0], [7.7 + O, 1.0]]; // title card, the call started, the page switch, the final result
   const { $, $$, p, out, io } = C;
@@ -123,8 +123,8 @@
   const where = C.where([[2.6, "Agent"], [3.9, "Call the agent"], [3.5 + O, "Open any page"]]);
   const cap = C.captions([
     [1.9, 4.5, "Open the Agent<br><em>and call it.</em>"],
-    [1.9 + O, 4.55 + O, "Open a page<br><em>from the voice call.</em>"],
-    [4.95 + O, 99, "The call stays on.<br><em>Mute or hang up anywhere.</em>"],
+    [1.9 + O, 4.55 + O, "Open any page<br><em>during the call.</em>"],
+    [4.95 + O, 99, "The call comes with you.<br><em>Mute or hang up from anywhere.</em>"],
   ]);
   cam(0);
   C.run(D, (t) => {

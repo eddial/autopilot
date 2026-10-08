@@ -224,7 +224,7 @@
 <script src="chapter.js"></script>
 <script>
   CHAPTER({ n: 4, total: 6, tag: "Requests and apps", kicker: "This week in Lleverage", where: true, footerLeft: "lleverage.ai · Week of 5 Oct 2026",
-    title: "Check the scan,<br><em>fix the answer.</em>", line: "Zoom into request attachments and click through them, and resubmit an answered form in an app." });
+    title: "Check the document<br><em>before you decide.</em>", line: "A request is where the Agent asks a person to decide. Zoom into the attached scan to check a line, and correct a form you already sent." });
   const E = 12.8, D = E + 6.0;
   window.HOLDS = [[1.0, 0.7], [5.3, 0.6], [8.9, 1.1], [12.1, 0.9], [E + 2.7, 1.0], [D - 0.3, 1.3]];
   const { $, $$, p, out, io, lerp } = C;
@@ -299,11 +299,11 @@
   alt.innerHTML = ["Apps", "an app", "a session", "Edit and resubmit"].map((l) => `<span class="wstep">${l}</span>`).join('<span class="sep">›</span>');
   $(".where").appendChild(alt); const altSteps = $$(".wstep", alt), altT = [E + 0.6, E + 0.8, E + 1.0, E + 2.2];
   const cap = C.captions([
-    [1.9, 5.5, "Open a request<br><em>and one of its attachments.</em>"],
+    [1.9, 5.5, "Open a request<br><em>and its attachments.</em>"],
     [5.9, 9.4, "Zoom in on the scan.<br><em>Drag to the line you need.</em>"],
-    [9.8, E - 0.3, "Click through every attachment.<br><em>Each one opens at fit.</em>"],
-    [E + 0.1, E + 3.3, "In an app session,<br><em>edit and resubmit a form.</em>"],
-    [E + 3.7, 99, "A new response, prefilled.<br><em>The earlier one stays as it was.</em>"],
+    [9.8, E - 0.3, "Click through every attachment<br><em>without leaving the request.</em>"],
+    [E + 0.1, E + 3.3, "Sent a form too soon?<br><em>Choose Edit and resubmit.</em>"],
+    [E + 3.7, 99, "A new response, prefilled.<br><em>Change what was wrong and send it.</em>"],
   ]);
   cam(0);
   C.run(D, (t) => {

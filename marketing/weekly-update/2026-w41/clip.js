@@ -27,7 +27,12 @@ const C = (() => {
     el.style.opacity = Math.min(i, o);
     el.style.transform = `translateY(${(1 - i) * dy}px)`;
   }
+  // Sound cues (timeline seconds): clicks, the title card leaving, typing. run() maps them to held time as
+  // window.CUES for soundtrack.py; nothing here makes a sound.
+  const SFX = (window.SFX = []), seen = new Set();
+  const cue = (kind, t, end) => { const k = kind + t + (end || ""); if (!seen.has(k)) { seen.add(k); SFX.push({ kind, t, end }); } };
   function type(el, text, t, a, b) {
+    cue("type", a, b);
     el.textContent = text.slice(0, Math.round(text.length * p(t, a, b)));
   }
   // Captions: [[start, end, html], ...] onto .caption elements built here.
@@ -48,6 +53,7 @@ const C = (() => {
     el.className = "cursor";
     el.innerHTML = `<div class="ring"></div><svg viewBox="0 0 24 24" width="44" height="44"><path d="M3 2l7 19 2.6-7.4L20 11z" fill="#141413" stroke="#fff" stroke-width="1.6" stroke-linejoin="round"/></svg>`;
     $(".frame").appendChild(el);
+    keys.forEach((k) => k[3] && cue("click", k[0]));
     const ring = $(".ring", el);
     return (t) => {
       let k = keys[0];
@@ -89,7 +95,7 @@ const C = (() => {
     return (t) => steps.forEach(([a], i) => els[i].classList.toggle("on", t >= a));
   }
   // Hook card slides up and away; end card fades in.
-  function hook(el, t, z) { const q = io(p(t, z, z + 0.6)); el.style.transform = `translateY(${-q * H}px)`; }
+  function hook(el, t, z) { cue("whoosh", z); const q = io(p(t, z, z + 0.6)); el.style.transform = `translateY(${-q * H}px)`; }
   function endcard(el, t, a) { const q = out(p(t, a, a + 0.6)); el.style.opacity = q; el.style.transform = `scale(${1.04 - 0.04 * q})`; }
 
   const LOGO = `<svg viewBox="0 0 54 54" aria-label="Lleverage"><path fill-rule="evenodd" clip-rule="evenodd" d="M32.1199 0C39.6152 0 43.3629 0 46.2257 1.45857C48.7439 2.74167 50.7915 4.78926 52.0746 7.30749C53.5333 10.1703 53.5332 13.918 53.5332 21.4133V32.1199C53.5332 39.6152 53.5333 43.3629 52.0746 46.2257C50.7915 48.7439 48.7439 50.7915 46.2257 52.0746C43.3629 53.5333 39.6152 53.5332 32.1199 53.5332H21.4133C13.918 53.5332 10.1703 53.5333 7.30749 52.0746C4.78926 50.7915 2.74167 48.7439 1.45857 46.2257C0 43.3629 0 39.6152 0 32.1199L0 21.4133C0 13.918 0 10.1703 1.45857 7.30749C2.74167 4.78926 4.78926 2.74167 7.30749 1.45857C10.1703 0 13.918 0 21.4133 0L32.1199 0ZM27.0667 11.4545C26.2351 10.0143 24.3934 9.52078 22.9531 10.3523L20.6351 11.6906C19.1949 12.5221 18.7014 14.3639 19.5328 15.8041L34.5976 41.8639C35.4291 43.3042 37.2709 43.7977 38.7111 42.9662L41.0292 41.6279C42.4694 40.7963 42.963 38.9546 42.1315 37.5143L27.0667 11.4545ZM21.619 27.5806C20.7875 26.1404 18.9457 25.6468 17.5055 26.4783L15.1874 27.8166C13.7472 28.6481 13.2537 30.4899 14.0851 31.9301L19.8536 41.9214C20.6851 43.3616 22.5268 43.8551 23.9671 43.0237L26.2851 41.6853C27.7253 40.8538 28.2189 39.012 27.3874 37.5718L21.619 27.5806Z"/></svg>`;
@@ -108,6 +114,9 @@ const C = (() => {
     duration += holds.reduce((s, [, d]) => s + d, 0);
     const inner = render; render = (t) => inner(warp(t));
     window.DURATION = duration;
+    // Timeline seconds to held seconds: every hold that starts before t pushes it later.
+    const held = (t) => t + holds.reduce((s, [at, d]) => s + (at < t ? d : 0), 0);
+    window.CUES = () => SFX.map((c) => ({ ...c, t: held(c.t), end: c.end === undefined ? undefined : held(c.end) }));
     window.seek = (t) => render(t);
     render(0);
     if (record) return;

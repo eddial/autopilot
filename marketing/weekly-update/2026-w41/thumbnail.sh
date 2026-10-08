@@ -10,7 +10,7 @@ video=$1; img=$2
 size=$(ffprobe -v error -select_streams v:0 -show_entries stream=width,height -of csv=s=x:p=0 "$video" | tr x :)
 tmp=$(mktemp -d)
 ffmpeg -loglevel error -y -i "$img" -vf "scale=$size:flags=lanczos" -q:v 2 "$tmp/cover.jpg"
-ffmpeg -loglevel error -y -i "$video" -i "$tmp/cover.jpg" -map 0:v:0 -map 1 -c copy -c:v:1 mjpeg -disposition:v:1 attached_pic -movflags +faststart "$tmp/out.mp4"
+ffmpeg -loglevel error -y -i "$video" -i "$tmp/cover.jpg" -map 0:v:0 -map "0:a?" -map 1 -c copy -c:v:1 mjpeg -disposition:v:1 attached_pic -movflags +faststart "$tmp/out.mp4"
 mv "$tmp/out.mp4" "$video"
 [ "$img" -ef "${video%.mp4}.png" ] || ffmpeg -loglevel error -y -i "$img" -vf "scale=$size:flags=lanczos" "${video%.mp4}.png"
 rm -rf "$tmp"; echo "thumbnail $img → $video"

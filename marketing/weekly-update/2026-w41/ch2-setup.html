@@ -200,7 +200,7 @@
 <script src="chapter.js"></script>
 <script>
   CHAPTER({ n: 2, total: 6, tag: "New projects", kicker: "This week in Lleverage", where: true, footerLeft: "lleverage.ai · Week of 5 Oct 2026",
-    title: "Project templates<br><em>and guided setup.</em>", line: "Start from one of six process templates or a blank project. The agent connects your systems, reads them first and works through a setup plan." });
+    title: "Start a project<br><em>from a template.</em>", line: "Pick one of six processes, from Quote & Sell to Store & Ship, or start blank. The Agent connects your systems, reads them and sets the project up with you." });
   const O = 4.1, D = 7.8 + O;
   window.HOLDS = [[1.0, 0.7], [3.75, 0.8], [4.65 + O, 1.0], [7.75 + O, 1.0]]; // title card, the template page, the first result, the final result
   const { $, $$, p, out, io, show, type } = C;
@@ -243,9 +243,9 @@
     [4.6, ...F(4.6, P.name), true], [5.3, ...F(5.3, P.create)], [5.5, ...F(5.5, P.create), true], [6.0, C.W * 0.85, C.H + 40]]);
   const where = C.where([[2.45, "Project switcher"], [3.1, "New Project"], [4.2, "Blank project"], [5.5, "Create"], [2.0 + O, "Agent · Setup"]]);
   const cap = C.captions([
-    [1.9, 5.65, "Open the project switcher.<br><em>New Project, then Blank.</em>"],
-    [1.9 + O, 4.55 + O, "Start a blank project.<br><em>The agent runs the setup.</em>"],
-    [4.95 + O, 99, "Then it builds<br><em>the Overview.</em>"],
+    [1.9, 5.65, "Open the project switcher.<br><em>Choose New Project.</em>"],
+    [1.9 + O, 4.55 + O, "The Agent runs the setup.<br><em>It reads your systems before it asks.</em>"],
+    [4.95 + O, 99, "It builds the Overview:<br><em>your process on one page.</em>"],
   ]);
   cam(0);
   const T1 = `Exact Online and Outlook are connected. I read 30 days of order emails: about 410 orders a month, and 1 in 10 arrives without the customer's PO. Next I'll set up the <a>Overview</a>.`;

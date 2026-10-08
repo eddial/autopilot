@@ -84,7 +84,7 @@
 <script src="chapter.js"></script>
 <script>
   CHAPTER({ n: 6, total: 6, tag: "Data tables", kicker: "This week in Lleverage", where: true, footerLeft: "lleverage.ai · Week of 5 Oct 2026",
-    title: "Boards that<br><em>keep their place.</em>", line: "Cards stay in the lane you drop them in, and a saved view's columns come back with one click." });
+    title: "Work through records<br><em>on a board.</em>", line: "Show a data table as a board with a lane per status. Drag a card to move a record on, and bring a saved view back with one click." });
   const O = 3.6, D = 7.8 + O;
   window.HOLDS = [[1.0, 0.7], [4.95, 0.6], [4.3 + O, 1.0], [7.7 + O, 1.0]];
   const { $, $$, p, io, out } = C;
@@ -125,9 +125,9 @@
     [2.7 + O, ...F(2.7 + O, P.vdA), true], [3.9 + O, ...F(3.9 + O, P.lA)], [4.5 + O, ...OFF2], [5.2 + O, ...OFF2], [5.8 + O, ...F(5.8 + O, P.eye), true], [6.5 + O, ...F(6.5 + O, P.reset), true], [7.4 + O, ...OFF2]]);
   const where = C.where([[2.6, "Data tables"], [3.9, "Supplier invoices"], [4.7, "By match (board view)"], [5.8 + O, "Columns"], [6.5 + O, "Reset to view"]]);
   const cap = C.captions([
-    [1.9, 5.2, "Open Data tables,<br><em>then a board view.</em>"],
-    [1.9 + O, 4.55 + O, "Drag a card to a new lane.<br><em>It stays there.</em>"],
-    [4.95 + O, 99, "Open column visibility.<br><em>Pick Reset to view.</em>"],
+    [1.9, 5.2, "Open Data tables<br><em>and a board view.</em>"],
+    [1.9 + O, 4.55 + O, "Drag a card to the next lane.<br><em>The record's status moves with it.</em>"],
+    [4.95 + O, 99, "Changed the columns?<br><em>Reset to view brings them back.</em>"],
   ]);
   cam(0);
   C.run(D, (t) => {

@@ -165,7 +165,7 @@
 <script src="chapter.js"></script>
 <script>
   CHAPTER({ n: 1, total: 6, tag: "Agent in workflows", kicker: "This week in Lleverage", where: true, footerLeft: "lleverage.ai · Week of 5 Oct 2026",
-    title: "The Agent,<br><em>in every workflow.</em>", line: "Add the Agent as a step for everyone, and open it beside the canvas to change the workflow." });
+    title: "Give a step<br><em>to the Agent.</em>", line: "Add the Agent to a workflow to read, check and draft with your tools and files. Then ask it to change the workflow beside the canvas." });
   const O = 2.7, B = 7.8 + O + 0.4, G = B + 7.3, D = B + 9.4;
   window.HOLDS = [[1.0, 0.7], [4.1, 0.6], [4.15 + O, 1.0], [7.7 + O, 1.0], [B + 2.7, 0.8], [B + 8.6, 1.2]];
   const { $, $$, p, out, io } = C;
@@ -210,10 +210,10 @@
   const where = C.where([[2.6, "Workflows"], [3.1, "Order intake"], [2.7 + O, "+ after a step"], [3.4 + O, "AI"], [4.5 + O, "Agent"]]);
   const cap = C.captions([
     [1.9, 4.3, "Open Workflows<br><em>and pick a workflow.</em>"],
-    [1.9 + O, 4.55 + O, "Add a step.<br><em>Agent is first under AI.</em>"],
-    [4.95 + O, B - 0.3, "Add it to the workflow.<br><em>Hand it the task.</em>"],
-    [B, B + 3.0, "Open the Agent<br><em>from the workflow header.</em>"],
-    [B + 3.4, 99, "Ask for a change.<br><em>The changed step glows.</em>"],
+    [1.9 + O, 4.55 + O, "Add a step, then choose AI.<br><em>The Agent is the first option.</em>"],
+    [4.95 + O, B - 0.3, "Describe the task in plain words.<br><em>The Agent does that step.</em>"],
+    [B, B + 3.0, "Open the Agent beside the canvas.<br><em>It already knows this workflow.</em>"],
+    [B + 3.4, 99, "Ask for a change.<br><em>The steps it changes light up.</em>"],
   ]);
   cam(0);
   const ASK = "Check each line's price against our price agreements before drafting the order.";

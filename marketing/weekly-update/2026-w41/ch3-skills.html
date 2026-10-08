@@ -146,7 +146,7 @@
 <script src="chapter.js"></script>
 <script>
   CHAPTER({ n: 3, total: 6, tag: "Skill feedback", kicker: "This week in Lleverage", where: true, footerLeft: "lleverage.ai · Week of 5 Oct 2026",
-    title: "Skills that learn<br><em>from feedback.</em>", line: "See every rating on runs that used a skill, and let the Agent propose the fix." });
+    title: "Improve a Skill<br><em>from real feedback.</em>", line: "A Skill is how the Agent does one job. See every rating on work where it was used, and let the Agent draft the improvement for you to approve." });
   const O = 3.0, D = 12.6 + O;
   window.HOLDS = [[1.0, 0.7], [4.1, 0.6], [3.4 + O, 1.0], [6.6 + O, 1.0], [12.4 + O, 1.6]];
   const { $, $$, p, out, io, type } = C;
@@ -189,10 +189,10 @@
   const where = C.where([[2.6, "Skills"], [3.1, "Purchase order intake"], [2.6 + O, "Feedback"], [8.1 + O, "Improve with agent"]]);
   const cap = C.captions([
     [1.9, 4.5, "Open Skills<br><em>and pick a skill.</em>"],
-    [1.9 + O, 4.5 + O, "Open the Feedback tab.<br><em>Every rating on runs that used it.</em>"],
-    [4.8 + O, 7.4 + O, "Filter to negative feedback.<br><em>See what went wrong.</em>"],
-    [7.7 + O, 10.0 + O, "Improve with agent.<br><em>It reads the feedback.</em>"],
-    [10.3 + O, 99, "It proposes a draft change.<br><em>You approve before it's published.</em>"],
+    [1.9 + O, 4.5 + O, "Open the Feedback tab.<br><em>Ratings on every run that used it.</em>"],
+    [4.8 + O, 7.4 + O, "Filter to negative feedback.<br><em>See what went wrong, and where.</em>"],
+    [7.7 + O, 10.0 + O, "Choose Improve with agent.<br><em>It reads the feedback for you.</em>"],
+    [10.3 + O, 99, "It drafts a change to the Skill.<br><em>Nothing changes until you approve.</em>"],
   ]);
   cam(0);
   C.run(D, (t) => {
