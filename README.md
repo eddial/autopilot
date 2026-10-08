@@ -242,6 +242,7 @@ branch.
 | `/autopilot:add <name>` | add a workstream or a signal (with a dry-run preview) |
 | `/autopilot:status` | signals, sessions, watchers and open health issues |
 | `/autopilot:why <issue>` | why something was filed where it was, and a one-line fix |
+| `/ticket [<status>]` | in an issue's session: show its title, status and description in a pane, or move it (`/ticket review`) |
 | `bin/autopilot tick` | what the scheduler runs every minute |
 | `bin/autopilot signal <name> [--dry=<minutes>]` | run one signal now; `--dry` previews without filing |
 | `bin/autopilot schedule <name>` · `launch` | run a schedule or the launcher now |
