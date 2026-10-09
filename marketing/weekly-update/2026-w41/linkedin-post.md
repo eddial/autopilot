@@ -1,15 +1,13 @@
-Lleverage Feature Drop Week #42
+Lleverage Feature Drop Week #42 🎁
 
-Big one. The Agent can now build most of what you'd otherwise build in Lleverage yourself.
+Big week for our team and product. The Agent can now build most of what you'd otherwise build in Lleverage yourself.
 
-What we're working towards is an autonomous back office: orders, invoices and the rest handled by agents, with people stepping in for the decisions. But every company runs those processes a bit differently, so every company needs its own system. Building each one by hand doesn't scale. So we're teaching the platform to build them itself.
+We're working towards an autonomous back office: orders, invoices and the rest handled by agents, with people stepping in for the important decisions. Every company runs those processes differently, so every company needs its own system. Building each one by hand doesn't scale, so we're teaching the platform to build them itself.
 
-That's where a lot of last week went. You can now ask the Agent to set up a new project, and it reads your systems before it asks you anything. Ask it for a dashboard and it builds one on your Overview. Ask it to change a workflow and it does, and checks with you before anything goes live. Inside a workflow it can use any Skill or integration you can, and get on with it in the background.
+Ask the Agent to set up a project and it reads your systems before it asks you anything. Ask for a dashboard and it builds one on your Overview. Hand it a bunch of docs and it builds the workflow, checking with you before anything goes live.
 
-My favourite: you can just call it. Voice mode follows you around the product, so you can talk a workflow into existence while you click through your data.
+You can also put the Agent inside a workflow: connect a trigger and it handles complex work on its own, with any skill or connection you have.
 
-Plus data tables as a board, Skills that learn from feedback, and a handful of smaller things. It's all in the two-minute video.
-
-[link to the video or the changelog]
+My favourite: you can just call it. Voice mode follows you around the product, so you can talk a workflow or skill into existence while you click through your data.
 
 Music: Muted Trumpet Jazz Study Session by Alex Morgan, CC BY 4.0
