@@ -26,5 +26,5 @@ echo "$PARTS" | while IFS= read -r spec; do
 done
 CLIP_THUMB=card-1.png ./combine.sh weekly-update-2026-w41.mp4 $(echo "$PARTS" | sed 's/=.*//')
 node cues.mjs cues.json $(echo "$PARTS")
-${SOUND_PY:-python3} soundtrack.py cues.json soundtrack.wav --music "${MUSIC:-music/a-blue-day.mp3}" --sfx "${SFX:-sfx}"
+${SOUND_PY:-python3} soundtrack.py cues.json soundtrack.wav --music "${MUSIC:-music/new-york-skyline.mp3}" --sfx "${SFX:-sfx}"
 ./add-sound.sh weekly-update-2026-w41.mp4 soundtrack.wav card-1.png
