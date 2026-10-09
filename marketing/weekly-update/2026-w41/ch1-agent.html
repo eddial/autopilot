@@ -134,7 +134,7 @@
         <div class="as-head"><span>New session</span><span class="ic2" data-fa="faChevronDown"></span><span class="r"><span class="ic2" data-fa="faPlus"></span><span class="ic2" data-fa="faXmark"></span></span></div>
         <div class="msgs" id="amsgs">
           <div class="sug" id="sug"><span>Explain what this workflow does</span><span>Add a step after the trigger</span><span>Find what could fail in this workflow</span></div>
-          <div class="msg user" id="um" style="display:none"><span class="av">S</span><div class="bubble" id="umtxt"></div></div>
+          <div class="msg user" id="um" style="display:none"><span class="av">E</span><div class="bubble" id="umtxt"></div></div>
           <div class="msg" id="am" style="display:none"><span id="amav"></span><div class="prose">
             <div class="cot" id="cot">Working…</div>
             <div class="crow" id="cr1"><span class="dot" data-fa="faBolt"></span><span>Read Order intake (draft)</span></div>
@@ -167,9 +167,9 @@
   // Two chapters from one timeline (C.run PARTS): the Agent as a step in a workflow, and the Agent beside the canvas.
   const PART = new URLSearchParams(location.search).get("part"), SIDE = PART === "sidebar";
   CHAPTER(SIDE
-    ? { n: 3, total: 7, module: "Workflows", footerLeft: "Feature Drop · Week 41",
+    ? { n: 3, total: 7, module: "Workflows", footerLeft: "Feature Drop · Week 42",
         title: "The Agent builds<br><em>and fixes workflows.</em>", line: "Open the Agent beside the canvas and ask for a change. It knows the workflow you have open, and the steps it changes light up." }
-    : { n: 5, total: 7, module: "Workflows", footerLeft: "Feature Drop · Week 41",
+    : { n: 5, total: 7, module: "Workflows", footerLeft: "Feature Drop · Week 42",
         title: "Put the Agent to work<br><em>inside a workflow.</em>", line: "The Agent step can use any Skill or integration you can use yourself, and runs it in the background, every time the workflow runs." });
   const O = 2.7, B = 7.8 + O + 0.4, G = B + 7.3, D = B + 9.4;
   // story: the Feature Drop chapter, opening on the workflow's canvas (the way there stays in the timeline, unseen).
@@ -200,7 +200,8 @@
   $("#dbody").innerHTML = allBody;
   const P = { wf: at(navWf, 0.3), h1: h1, ai: at($("#cat1")) };
   $("#dbody").innerHTML = aiBody; P.ag = at($("#agB"));
-  P.agb = at($("#agb"));
+  // The Agent button is measured with the sidebar closed, as it is when it's clicked.
+  $("#asw").style.width = "0px"; P.agb = at($("#agb"));
   // Positions once the sidebar is open and the navigation has collapsed.
   $("#sbwrap").style.width = "0px"; $("#asw").style.width = "380px"; $("#sendb").innerHTML = fa("faArrowUp");
   P.ta = at($("#ta"), 0.3); P.send = at($("#sendb"));

@@ -1,8 +1,8 @@
-{% update date="2026-10-09" tags="new,improved,fixed" %}
-## Feature Drop · Week 41
+{% update date="2026-10-12" tags="new,improved,fixed" %}
+## Feature Drop · Week 42
 
-{% embed url="feature-drop-2026-w41.mp4" %}
-Seven things you can do in Lleverage this week, 2–9 October.
+{% embed url="feature-drop-2026-w42.mp4" %}
+Seven new things in Lleverage, shipped 2–9 October.
 {% endembed %}
 
 ### Projects: the Agent sets up your project

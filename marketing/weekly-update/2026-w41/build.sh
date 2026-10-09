@@ -1,5 +1,5 @@
 #!/bin/sh
-# Build Feature Drop · Week 41 (2–9 Oct): cover, seven chapters, "Also new", end, with music and interface sounds.
+# Build Feature Drop · Week 42 (2–9 Oct): cover, seven chapters, "Also new", end, with music and interface sounds.
 # 1:1, 1440 x 1440, 30 fps, 10 Mbit/s. One continuous canvas: every part renders its background on the video's
 # clock (t0.mjs), so the cuts don't show. Each part is drawn with render-plane.mjs: the app is a flat image moved
 # by the camera, so zooms and pans don't shimmer. Parts are <clip.mp4>=<page.html>[?query].
@@ -29,7 +29,7 @@ echo "$PARTS" | while IFS= read -r spec; do
   case $q in card=3*) q="$q&credit=$CREDIT";; esac
   printf '%s\t%s\t%s\n' "$file" "${q:+$q&}t0=$t0" "$out"
 done | tr '\n' '\0' | xargs -0 -P 3 -I{} sh -c 'IFS="$(printf "\t")"; set -- $1; CLIP_QUERY="$2" CLIP_OUT="$3" node render-plane.mjs "$1"' _ {}
-CLIP_THUMB=card-1.png ./combine.sh feature-drop-2026-w41.mp4 $(echo "$PARTS" | sed 's/=.*//')
+CLIP_THUMB=card-1.png ./combine.sh feature-drop-2026-w42.mp4 $(echo "$PARTS" | sed 's/=.*//')
 node cues.mjs cues.json $(echo "$PARTS")
 ${SOUND_PY:-python3} soundtrack.py cues.json soundtrack.wav --music "$MUSIC" --sfx "${SFX:-sfx}"
-./add-sound.sh feature-drop-2026-w41.mp4 soundtrack.wav card-1.png
+./add-sound.sh feature-drop-2026-w42.mp4 soundtrack.wav card-1.png

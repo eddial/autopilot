@@ -38,7 +38,7 @@
         <div class="agentpage" id="agentpage">
           <div class="col">
             <div class="msgs">
-              <div class="msg user"><span class="av">S</span><div class="bubble">Which orders are still waiting for a PO number?</div></div>
+              <div class="msg user"><span class="av">E</span><div class="bubble">Which orders are still waiting for a PO number?</div></div>
               <div class="msg"><span id="a1av"></span><div class="prose">
                 <div class="cot-head">Worked for 2s</div>
                 <div class="step"><span class="dot" data-fa="faInbox"></span><span class="txt">Read Held orders (0.6s)</span></div>
@@ -83,7 +83,7 @@
 <script src="clip.js"></script>
 <script src="chapter.js"></script>
 <script>
-  CHAPTER({ n: 4, total: 7, module: "Agent", footerLeft: "Feature Drop · Week 41",
+  CHAPTER({ n: 4, total: 7, module: "Agent", footerLeft: "Feature Drop · Week 42",
     title: "Talk to the Agent<br><em>while it builds.</em>", line: "Start a voice call with the Agent and keep it going as you move between pages. It tells you what it finds while it works." });
   const O = 2.8, D = 7.8 + O;
   window.HOLDS = [[1.0, 0.7], [4.3, 0.6], [3.0 + O, 1.0], [7.7 + O, 1.0]]; // title card, the call started, the page switch, the final result
@@ -122,7 +122,7 @@
   const col = box($(".col")), cmp = box($(".composer")), pnl = box($(".panel"));
   const AGENT = fit(cmp[0] - 40, cmp[3] - 420, cmp[2] + 40, cmp[3] + 16), PANEL = fit(pnl[0], pnl[1], pnl[2], pnl[3]);
   const cam = C.camera(app, VW, VH, [K(0, 640, C.APP_H / 2, FIT), K(1.9, 640, C.APP_H / 2, FIT), K(2.3, 490, 300, 1.35), K(2.9, 490, 300, 1.35),
-    [3.3, ...AGENT], [1.9 + O, ...AGENT], [2.5 + O, ...PANEL], [D, ...PANEL]]);
+    [3.3, ...AGENT], [3.6 + O, ...AGENT], [4.2 + O, ...PANEL], [D, ...PANEL]]);
   const F = (t, [x, y]) => { const m = cam(t).map(x, y); return [C.STAGE_X + m[0], C.STAGE_Y + m[1]]; };
   const OFF = (fx) => [C.W * fx, C.H + 40];
   const cur = C.cursor([[1.9, ...OFF(0.55)], [2.6, ...F(2.6, P.agent), true], [3.0, ...F(3.0, P.agent)], [3.2, ...OFF(0.7)], [3.4, ...OFF(0.7)], [3.9, ...F(3.9, P.call), true], [4.6, ...OFF(0.7)],

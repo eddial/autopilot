@@ -25,7 +25,11 @@
   .also .rows li b { display: block; font: 600 25px/1.25 var(--sans); color: var(--fg); }
   .also .rows li small { display: block; margin-top: 3px; font: 400 19px/1.3 var(--sans); color: var(--muted-fg); }
   .end .line { margin: 34px 0 0; max-width: 30ch; font: 400 30px/1.42 var(--sans); color: var(--muted-fg); }
-  .end .blk .logo { margin-top: 64px; height: 56px; }
+  .endc { position: absolute; inset: 0; z-index: 5; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 30px; }
+  .endc .logo { height: 84px; }
+  .endc .line { margin: 0; font: 400 46px/1.1 var(--serif); color: var(--fg); }
+  .end .footer.endf { justify-content: center; }
+  .end .footer.endf span { font-size: 13px; text-transform: none; letter-spacing: .04em; white-space: nowrap; }
   /* Square (1080 layout): tighter rows so seven fit. */
   html.square .big { font-size: 100px; }
   html.square .cover .rows { margin-top: 48px; gap: 12px; }
@@ -44,7 +48,7 @@
   <div class="frame cover">
     <div class="brandrow"><div class="logo"><span data-logo></span></div><div class="tag">2–9 October 2026</div></div>
     <div class="blk" style="top:190px">
-      <h1 class="big">Feature Drop<br><em>Week 41.</em></h1>
+      <h1 class="big">Feature Drop<br><em>Week 42.</em></h1>
       <ul class="rows">
         <li><span class="n">01</span><span class="mod">Projects</span><span class="t">The Agent sets up your project</span></li>
         <li><span class="n">02</span><span class="mod">Overview</span><span class="t">The Agent builds your dashboards</span></li>
@@ -55,14 +59,14 @@
         <li><span class="n">07</span><span class="mod">Skills</span><span class="t">Skills that improve from how they're used</span></li>
       </ul>
     </div>
-    <div class="footer"><span>Feature Drop · Week 41</span><span>Product changelog</span></div>
+    <div class="footer"><span>Feature Drop · Week 42</span><span>Product changelog</span></div>
   </div>
 
   <!-- Also new -->
   <div class="frame also">
     <div class="brandrow"><div class="logo"><span data-logo></span></div><div class="tag">Also new</div></div>
     <div class="blk" style="top:150px">
-      <h2 class="ttl">Also new <em>in Week 41.</em></h2>
+      <h2 class="ttl">Also new <em>in Week 42.</em></h2>
       <ul class="rows">
         <li><div><b>Type while the Agent works</b><small>Send a message mid-task and it takes it into what it's doing</small></div><span class="mod">Agent</span></li>
         <li><div><b>Hand the Agent your files</b><small>Up to 50 files per message, Excel as a real spreadsheet, Google Drive folders kept in sync</small></div><span class="mod">Agent · Files</span></li>
@@ -72,19 +76,16 @@
         <li><div><b>Claude Haiku 5.5 for quick steps</b><small>Choose Fastest for steps where speed matters most</small></div><span class="mod">Model picker</span></li>
       </ul>
     </div>
-    <div class="footer"><span>Feature Drop · Week 41</span><span>Also new</span></div>
+    <div class="footer"><span>Feature Drop · Week 42</span><span>Also new</span></div>
   </div>
 
-  <!-- End -->
+  <!-- End: the logo and the line, nothing else (the music credit stays small in the footer, as the licence asks). -->
   <div class="frame end">
-    <div class="brandrow"><div class="logo"><span data-logo></span></div><div class="tag">Product changelog</div></div>
-    <div class="blk" style="top:300px">
-      <h1 class="big">Feature Drop<br><em>Week 41.</em></h1>
-      <p class="line">Every change, and where to find it, is in the product changelog in our docs.</p>
+    <div class="endc">
       <img class="logo" src="design-system/logo/logo-full-dark.svg" alt="Lleverage">
-      <p class="credit" id="credit"></p>
+      <p class="line" id="endline">The autonomous back office.</p>
     </div>
-    <div class="footer"><span>Feature Drop · Week 41</span><span>lleverage.ai</span></div>
+    <div class="footer endf"><span id="credit"></span></div>
   </div>
 
 <script src="fa-icons.js"></script><script src="fa-extra.js"></script>
@@ -104,8 +105,8 @@
   const cw = words($(".big", F[0])), crow = $$(".rows li", F[0]);
   // Also: the title springs in, the rows follow one by one from the right, then all drift off to the left.
   const aw = words($(".ttl", F[1])), arow = $$(".rows li", F[1]);
-  // End: the title, the line and the logo spring in and stay.
-  const ew = words($(".big", F[2])).concat(words($(".line", F[2])));
+  // End: the logo settles in, then the line rises under it.
+  const ew = words($("#endline"));
   const rowIn = (el, t, a, z) => {
     const s = spring(t - a, 1, 10), f = clamp((t - a) / 0.35), o = io(clamp((t - z) / 0.45));
     el.style.opacity = Math.min(clamp((t - a) / 0.2), 1 - o);
@@ -130,9 +131,9 @@
       arow.forEach((li, i) => rowIn(li, t, N ? 0.75 + i * 0.13 : -9, N ? Z + i * 0.04 : Infinity));
     }
     if (N === 3 || !N) {
-      wordsIn(ew, t, N ? 0.25 : -9, Infinity, 0.045);
-      const lg = $(".logo", $(".blk", F[2])), s = N ? spring(t - 1.0, 1, 9) : 1;
-      lg.style.opacity = N ? clamp((t - 1.0) / 0.3) : 1; lg.style.transform = `translateY(${(1 - s) * 30}px)`;
+      const lg = $(".endc .logo", F[2]), q = N ? spring(t - 0.3, 1, 9) : 1;
+      lg.style.opacity = N ? clamp((t - 0.3) / 0.35) : 1; lg.style.transform = `translateY(${(1 - q) * 24}px) scale(${0.96 + 0.04 * q})`;
+      wordsIn(ew, t, N ? 0.85 : -9, Infinity, 0.06);
     }
   });
 </script>

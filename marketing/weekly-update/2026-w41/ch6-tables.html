@@ -83,7 +83,7 @@
 <script src="clip.js"></script>
 <script src="chapter.js"></script>
 <script>
-  CHAPTER({ n: 6, total: 7, module: "Data tables", footerLeft: "Feature Drop · Week 41",
+  CHAPTER({ n: 6, total: 7, module: "Data tables", footerLeft: "Feature Drop · Week 42",
     title: "Work through records<br><em>on a data table board.</em>", line: "Show a data table as a board with a lane per status. Drag a card to move a record on, and bring a saved view back with one click." });
   const O = 3.6, D = 7.8 + O;
   window.HOLDS = [[1.0, 0.7], [4.95, 0.6], [4.3 + O, 1.0], [7.7 + O, 1.0]];
@@ -93,11 +93,11 @@
   const { $, $$, p, io, out } = C;
   $("#sb").outerHTML = APP.sidebar("Overview");
   const COL = { "To match": "#3b82f6", "Price difference": "#f59e0b", "Ready to book": "#10b981" };
-  const PEOPLE = { Sanne: "hsl(280 30% 42%)", Joris: "hsl(170 35% 35%)", Mila: "hsl(15 45% 45%)" };
+  const PEOPLE = { Eva: "hsl(280 30% 42%)", Tom: "hsl(170 35% 35%)", Mila: "hsl(15 45% 45%)" };
   const who = (n) => `<span class="who"><span class="uav" style="background:${PEOPLE[n]}">${n[0]}</span>${n}</span>`;
-  const R = [["Brouwer Verpakking", "€1,265", "To match", "Joris", "4500012902"], ["De Graaf Transport", "€860", "To match", "Mila", "4500012915"],
-    ["Van Dijk Metaal", "€4,820", "Price difference", "Sanne", "4500012877"], ["Kuipers Hout", "€3,410", "Price difference", "Joris", "4500012888"],
-    ["Rijnstaal", "€12,940", "Ready to book", "Sanne", "4500012851"], ["Noord Coatings", "€7,150", "Ready to book", "Mila", "4500012860"]];
+  const R = [["Brouwer Verpakking", "€1,265", "To match", "Tom", "4500012902"], ["De Graaf Transport", "€860", "To match", "Mila", "4500012915"],
+    ["Van Dijk Metaal", "€4,820", "Price difference", "Eva", "4500012877"], ["Kuipers Hout", "€3,410", "Price difference", "Tom", "4500012888"],
+    ["Rijnstaal", "€12,940", "Ready to book", "Eva", "4500012851"], ["Noord Coatings", "€7,150", "Ready to book", "Mila", "4500012860"]];
   const card = (r, id = "") => `<div class="kc" ${id}><p>${r[0]}</p><dl><div><dt>PO number</dt><dd class="tnum">${r[4]}</dd></div><div><dt>Amount</dt><dd class="tnum">${r[1]}</dd></div><div class="own"><dt>Owner</dt><dd>${who(r[3])}</dd></div></dl></div>`;
   const lane = (label, cards, id) => `<div class="lane"><div class="lh"><span class="grip" data-fa="faGripDotsVertical"></span><span class="dot" style="background:${COL[label]}"></span><span class="lbl">${label}</span><span class="xs mf tnum" id="${id}n">${cards.length}</span></div><div class="lb" id="${id}">${cards.join("")}</div></div>`;
   const vd = R[2];

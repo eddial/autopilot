@@ -92,7 +92,7 @@
         <div class="as-head"><span>New session</span><span class="ic2" data-fa="faChevronDown"></span><span class="r"><span class="ic2" data-fa="faPlus"></span><span class="ic2" data-fa="faXmark"></span></span></div>
         <div class="msgs">
           <div class="sug" id="sug"><span>Explain what this Overview shows</span><span>Add a widget for open requests</span><span>Make an Overview for finance</span></div>
-          <div class="msg user" id="um" style="display:none"><span class="av">S</span><div class="bubble" id="umtxt"></div></div>
+          <div class="msg user" id="um" style="display:none"><span class="av">E</span><div class="bubble" id="umtxt"></div></div>
           <div class="msg" id="am" style="display:none"><span id="amav"></span><div class="prose">
             <div class="cot" id="cot">Working…</div>
             <div class="crow" id="cr1"><span class="dot" data-fa="faFileSpreadsheet"></span><span>Read Orders and Requests</span></div>
@@ -114,7 +114,7 @@
 <script src="clip.js"></script>
 <script src="chapter.js"></script>
 <script>
-  CHAPTER({ n: 2, total: 7, module: "Overview", footerLeft: "Feature Drop · Week 41",
+  CHAPTER({ n: 2, total: 7, module: "Overview", footerLeft: "Feature Drop · Week 42",
     title: "The Agent builds<br><em>your dashboards.</em>", line: "Ask for what you need to see. The Agent adds the widgets to your Overview, and each role gets its own version." });
   const D = 13.2;
   window.HOLDS = [[1.0, 0.7], [7.0, 1.4], [D - 0.4, 1.2]];
@@ -153,7 +153,7 @@
   const at = (el, fx = 0.5, fy = 0.5) => { const a = app.getBoundingClientRect(), r = el.getBoundingClientRect(), s = a.width / 1280;
     return [(r.left - a.left + r.width * fx) / s, (r.top - a.top + r.height * fy) / s]; };
   const rp = at($("#role"), 1, 1); $("#rmenu").style.left = rp[0] - 220 + "px"; $("#rmenu").style.top = rp[1] + 6 + "px";
-  $("#rmenu").style.display = ""; const P = { ta: at($("#ta"), 0.3), send: at($("#sendb")), role: at($("#role")), fin: at($("#rm-Finance")) }; $("#rmenu").style.display = "none";
+  $("#rmenu").style.display = "block"; const P = { ta: at($("#ta"), 0.3), send: at($("#sendb")), role: at($("#role")), fin: at($("#rm-Finance")) }; $("#rmenu").style.display = "none";
   const VW = C.STAGE_W, VH = C.STAGE_H, FIT = Math.min(VW / 1280, VH / C.APP_H) * 0.98;
   const fit = (x0, y0, x1, y1) => { const s = Math.min(VW / (x1 - x0), VH / (y1 - y0)); return [(x0 + x1) / 2, (y0 + y1) / 2 + (VH / s - (y1 - y0)) / 2, s]; };
   // Shots: the Overview and the Agent together; the new widgets, from the Overview's own edge; the role switch.
@@ -203,7 +203,7 @@
     $$(".bar").forEach((b, i) => (b.style.transform = `scaleY(${out(p(t, 5.85 + i * 0.08, 6.35 + i * 0.08))})`));
     // The role switch.
     const menu = t >= 10.55 && t < 11.4;
-    $("#rmenu").style.display = menu ? "" : "none";
+    $("#rmenu").style.display = menu ? "block" : "none";
     $("#rm-Finance").className = "it" + (t >= 11.0 ? " hl" : "");
     const fin = t >= 11.4;
     if ((fin ? "fin" : "desk") !== $("#grid").dataset.r) { fill(fin ? ROLES.fin : ROLES.desk); $("#grid").dataset.r = fin ? "fin" : "desk"; }

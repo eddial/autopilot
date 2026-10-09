@@ -20,6 +20,8 @@ const C = (() => {
   if (SQUARE) document.documentElement.classList.add("square");
   const MOTION = q.get("motion") !== "0", T0 = Number(q.get("t0")) || 0;
   let RAW = 0, DRIFT = 1, POSED = 1, FADE = 1, CAPSTARTS = [];
+  // Timeline seconds to real seconds (set by run): text animates on real time, so a hold never freezes it mid-word.
+  let TL2RAW = (t) => t, PART_FROM = 0;
   const STAGE_X = 64, STAGE_Y = WIDE ? 278 : SQUARE ? 280 : 330, STAGE_W = W - 128, STAGE_H = WIDE ? H - 362 : SQUARE ? H - 364 : H - 450;
   const APP_H = Math.max(800, Math.round((1280 * (STAGE_H - 4)) / (STAGE_W - 4)));
   document.documentElement.style.setProperty("--app-h", APP_H + "px");
@@ -99,8 +101,11 @@ const C = (() => {
     });
     return (t) => list.forEach(([a, z], i) => {
       if (!MOTION) return show(els[i], t, a, z, 30);
-      els[i].style.opacity = t >= a && t < z + 0.7 ? 1 : 0;
-      wordsIn(els[i].ws, t, a, z, 0.04);
+      // A caption that ends before this part starts never shows.
+      if (z <= PART_FROM + 0.05) { els[i].style.opacity = 0; return; }
+      const ra = TL2RAW(a), rz = z >= 90 ? Infinity : TL2RAW(z);
+      els[i].style.opacity = RAW >= ra && RAW < rz + 0.7 ? 1 : 0;
+      wordsIn(els[i].ws, RAW, ra, rz, 0.04);
     });
   }
   // Cursor path: [[t, x, y, click?], ...] in frame pixels.
@@ -140,6 +145,9 @@ const C = (() => {
   // sliver of the app cut off at the window's edge (a sidebar half in view, a word cut in two).
   function camera(el, vw, vh, keys) {
     el.style.transformOrigin = "0 0";
+    // No half-hearted zooms: a shot is either the full app or a real zoom (at least 1.3x the full view).
+    const FULL = Math.min(vw / 1280, vh / APP_H) * 0.98;
+    keys = keys.map(([t, x, y, s]) => (s < FULL * 1.3 ? [t, 640, APP_H / 2, FULL] : [t, x, y, s]));
     keys = keys.map(([t, x, y, s]) => {
       const hw = vw / 2 / s, hh = vh / 2 / s, AW = 1280, AH = APP_H, SNAP = 40;
       if (hw >= AW / 2) x = AW / 2; else { x = Math.min(Math.max(x, hw), AW - hw); if (x - hw < SNAP) x = hw; if (AW - hw - x < SNAP) x = AW - hw; }
@@ -211,6 +219,7 @@ const C = (() => {
     holds = holds.sort((a, b) => a[0] - b[0]);
     const warp = (t) => { for (const [at, d] of holds) { if (t < at) return t; if (t < at + d) return at; t -= d; } return t; };
     const held = (t) => t + holds.reduce((s, [at, d]) => s + (at < t ? d : 0), 0);
+    TL2RAW = (t) => held(Math.max(0, loc(t))); PART_FROM = from;
     duration = to - from + lead + holds.reduce((s, [, d]) => s + d, 0);
     // The camera pushes in 3.5% over each hold and eases back after it.
     const rawHolds = []; let acc = 0;
