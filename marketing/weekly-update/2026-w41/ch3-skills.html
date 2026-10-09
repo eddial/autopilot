@@ -235,8 +235,8 @@
     APP.drive($("#aav"), t < 9.6 + O ? "working" : "static", t);
     const r = out(p(t, 9.4 + O, 9.8 + O));
     $("#rv").style.opacity = r; $("#rv").style.transform = `translateY(${(1 - r) * 10}px)`;
-    $("#add1").style.display = t >= 9.9 + O ? "" : "none"; type($("#add1t"), "If the order has no PO number, never take one from the subject. Hand it to the order desk.", t, 9.9 + O, 11.0 + O);
-    $("#add2").style.display = t >= 11.1 + O ? "" : "none"; type($("#add2t"), "Two delivery addresses: one draft order per address.", t, 11.1 + O, 11.9 + O);
+    $("#add1").style.display = t >= 9.9 + O ? "" : "none"; type($("#add1t"), "If the order has no PO number, never take one from the subject. Hand it to the order desk.", t, 9.9 + O, 11.0 + O, "gen");
+    $("#add2").style.display = t >= 11.1 + O ? "" : "none"; type($("#add2t"), "Two delivery addresses: one draft order per address.", t, 11.1 + O, 11.9 + O, "gen");
     $("#ev").style.opacity = out(p(t, 11.9 + O, 12.3 + O));
   });
 </script>

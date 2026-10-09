@@ -144,6 +144,7 @@ if a.sfx:
         return x / max(1e-9, np.max(np.abs(x)))
     CLICKS = [load(p) for p in sorted(glob.glob(f"{a.sfx}/click-*.wav"))]
     TYPE = load(f"{a.sfx}/type.wav")
+    GEN = load(f"{a.sfx}/gen.wav") if os.path.exists(f"{a.sfx}/gen.wav") else None
     VOICE = load(f"{a.sfx}/voice.wav") if os.path.exists(f"{a.sfx}/voice.wav") else None
     for c in spec["cues"]:
         if c["kind"] == "click" and CLICKS:
@@ -153,6 +154,11 @@ if a.sfx:
             seg = TYPE[o:o + n].copy(); r = min(len(seg) // 4, int(0.06 * SR)); env = np.ones(len(seg))
             if r: env[:r] = np.linspace(0, 1, r); env[-r:] = np.linspace(1, 0, r)
             place(fx, seg * env, c["t"], 0.75)
+        elif c["kind"] == "gen" and c.get("end") and GEN is not None:
+            n = min(len(GEN), int((c["end"] - c["t"]) * SR)); o = int(rng.integers(0, max(1, len(GEN) - n)))
+            seg = GEN[o:o + n].copy(); r = min(n // 4, int(0.08 * SR)); env = np.ones(n)
+            if r: env[:r] = np.linspace(0, 1, r); env[-r:] = np.linspace(1, 0, r)
+            place(fx, seg * env, c["t"], 0.3)
         elif c["kind"] == "voice" and c.get("end") and VOICE is not None:
             n = min(len(VOICE), int((c["end"] - c["t"]) * SR)); seg = VOICE[:n].copy(); r = min(n // 4, int(0.25 * SR)); env = np.ones(n)
             if r: env[:r] = np.linspace(0, 1, r); env[-r:] = np.linspace(1, 0, r)
