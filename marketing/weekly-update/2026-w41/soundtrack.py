@@ -158,7 +158,7 @@ if a.sfx:
             n = min(len(GEN), int((c["end"] - c["t"]) * SR)); o = int(rng.integers(0, max(1, len(GEN) - n)))
             seg = GEN[o:o + n].copy(); r = min(n // 4, int(0.08 * SR)); env = np.ones(n)
             if r: env[:r] = np.linspace(0, 1, r); env[-r:] = np.linspace(1, 0, r)
-            place(fx, seg * env, c["t"], 0.3)
+            place(fx, seg * env, c["t"], 0.11)
         elif c["kind"] == "voice" and c.get("end") and VOICE is not None:
             n = min(len(VOICE), int((c["end"] - c["t"]) * SR)); seg = VOICE[:n].copy(); r = min(n // 4, int(0.25 * SR)); env = np.ones(n)
             if r: env[:r] = np.linspace(0, 1, r); env[-r:] = np.linspace(1, 0, r)
