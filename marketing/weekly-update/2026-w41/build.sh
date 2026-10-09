@@ -8,8 +8,8 @@
 set -e
 cd "$(dirname "$0")"
 export CLIP_SIZE=1440x1440 CLIP_FPS=30 CLIP_BITRATE=10M
-MUSIC=${MUSIC:-music/jazz-for-the-solstice.mp3}
-CREDIT=${CREDIT:-"Music: Jazz For The Solstice by Ketsa · CC BY 4.0"}
+MUSIC=${MUSIC:-music/muted-trumpet-jazz.mp3}
+CREDIT=${CREDIT:-"Music: Muted Trumpet Jazz Study Session by Alex Morgan · CC BY 4.0"}
 PARTS="card-m1.mp4=weekly-cards.html?card=1
 ch1-agent.mp4=ch1-agent.html?part=step
 ch2-sidebar.mp4=ch1-agent.html?part=sidebar

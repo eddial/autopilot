@@ -57,7 +57,7 @@ while True:
         hq, wq = under.shape[:2]
         content = cv2.warpAffine(a4, M, (wq, hq), flags=cv2.INTER_CUBIC, borderMode=cv2.BORDER_CONSTANT, borderValue=(0, 0, 0, 0)).astype(np.float32)
         clip = rounded_mask((hq, wq), Q * (sL + bw), Q * (sT + bw), Q * (sW - 2 * bw), Q * (sH - 2 * bw), Q * max(0, RADIUS * s - bw))
-        m = (np.clip(content[:, :, 3], 0, 255) / 255.0 * clip)[:, :, None]
+        m = (np.clip(content[:, :, 3], 0, 255) / 255.0 * clip * meta["lay"].get("fade", 1))[:, :, None]
         comp = under * (1 - m) + np.clip(content[:, :, :3], 0, 255) * m
         if over.ndim == 3 and over.shape[2] == 4:
             a = (over[:, :, 3:4] / 255.0)

@@ -117,8 +117,15 @@
   $("#tbody").style.display = "none"; P.row = at($("#rowSI"), 0.25); $("#tbody").style.display = "";
   const tcard = at($("#tcard"), 0, 0);
   const VW = C.STAGE_W, VH = C.STAGE_H, FIT = Math.min(VW / 1280, VH / C.APP_H) * 0.98;
+  // The drag shot frames all three lanes whole, with their headers.
+  const lanes = $$("#board .lane"), lL = at(lanes[0], 0, 0), lR = at(lanes[lanes.length - 1], 1, 0);
+  const BS = Math.min(1.6, VW / (lR[0] - lL[0] + 64));
+  const BOARD = [(lL[0] + lR[0]) / 2, lL[1] - 70 + VH / 2 / BS, BS];
+  // The columns shot runs from the panel's edge (where the sidebar ends) to the app's right edge: it cuts at a
+  // boundary of the UI, never through a card or a label.
+  const pnl = at($(".panel"), 0, 0), CS = VW / (1280 - pnl[0]), COLS = [1280 - VW / 2 / CS, VH / 2 / CS, CS];
   const cam = C.camera(app, VW, VH, [[0, 640, C.APP_H / 2, FIT], [1.9, 640, C.APP_H / 2, FIT], [2.3, 490, 300, 1.35], [3.0, 490, 300, 1.35], [3.5, 640, C.APP_H / 2, FIT],
-    [1.9 + O, 640, C.APP_H / 2, FIT], [2.4 + O, 760, 320, 1.3], [4.6 + O, 760, 320, 1.3], [5.1 + O, 730, 340, 1.2], [D, 730, 340, 1.2]]);
+    [1.9 + O, 640, C.APP_H / 2, FIT], [2.4 + O, ...BOARD], [4.6 + O, ...BOARD], [5.1 + O, ...COLS], [D, ...COLS]]);
   const F = (t, [x, y]) => { const m = cam(t).map(x, y); return [C.STAGE_X + m[0], C.STAGE_Y + m[1]]; };
   const OFF = [C.W * 0.6, C.H + 40], OFF2 = [C.W * 0.75, C.H + 40];
   const cur = C.cursor([[1.9, ...OFF], [2.6, ...F(2.6, P.nav), true], [3.3, ...F(3.3, P.nav)], [3.9, ...F(3.9, P.row), true], [4.7, ...F(4.7, P.tab), true],

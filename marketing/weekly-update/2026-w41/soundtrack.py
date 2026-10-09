@@ -132,21 +132,26 @@ def chime():
 
 fx = np.zeros(N)
 if a.sfx:
-    # Recorded interface sounds, kept low under the music: a mouse click per click, a soft air movement when a
-    # chapter's window swings in, a stretch of real typing while text is typed. No chimes, no swooshes.
-    def load(name):
-        sr, x = wavfile.read(f"{a.sfx}/{name}.wav"); x = x.astype(float)
+    # Recorded interface sounds (sfx/SOURCES.txt), kept low under the music: one of several real trackpad clicks per
+    # click, so repeats never sound identical, and a stretch of real typing while text is typed. No transition
+    # sounds: the cuts carry on the music.
+    import glob
+    from scipy.signal import resample_poly
+    def load(path):
+        sr, x = wavfile.read(path); x = x.astype(float)
         x = x.mean(1) if x.ndim > 1 else x
+        if sr != SR: x = resample_poly(x, SR, sr)
         return x / max(1e-9, np.max(np.abs(x)))
-    CLICK, MOVE, TYPE = load("click"), load("move"), load("type")
+    CLICKS = [load(p) for p in sorted(glob.glob(f"{a.sfx}/click-*.wav"))]
+    TYPE = load(f"{a.sfx}/type.wav")
     for c in spec["cues"]:
-        if c["kind"] == "click": place(fx, CLICK, c["t"] - 0.01, 0.2 * (0.9 + 0.2 * rng.random()))
-        elif c["kind"] == "move": place(fx, MOVE, c["t"], 0.1)
+        if c["kind"] == "click" and CLICKS:
+            place(fx, CLICKS[int(rng.integers(len(CLICKS)))], c["t"] - 0.004, 0.24 * (0.85 + 0.3 * rng.random()))
         elif c["kind"] == "type" and c.get("end"):
             n = int((c["end"] - c["t"]) * SR); o = int(rng.integers(0, max(1, len(TYPE) - n)))
-            seg = TYPE[o:o + n].copy(); r = min(len(seg) // 4, int(0.08 * SR)); env = np.ones(len(seg))
+            seg = TYPE[o:o + n].copy(); r = min(len(seg) // 4, int(0.06 * SR)); env = np.ones(len(seg))
             if r: env[:r] = np.linspace(0, 1, r); env[-r:] = np.linspace(1, 0, r)
-            place(fx, seg * env, c["t"], 0.1)
+            place(fx, seg * env, c["t"], 0.14)
     spec["cues"] = []; spec["marks"] = []
 for c in spec["cues"]:
     if c["kind"] == "click": place(fx, click(), c["t"], 0.3)

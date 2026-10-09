@@ -88,7 +88,7 @@ html.wide .card-full { padding: 0 128px; }
 html.wide .card-full p { max-width: 34ch; }
 
 /* Motion canvas (clip.js; off with ?motion=0). The paper drifts: a faint dot grid and two soft glows behind
-   everything. A chapter opens on its intro (module chip, title, line) with the app window beside it. Words are
+   everything. A chapter opens on its intro (number, module, title) in the captions' place, over a steady window. Words are
    spans (.w) so they can spring in one by one. */
 .amb { position: absolute; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; }
 .amb .dots { position: absolute; inset: 0; opacity: .5;
@@ -99,16 +99,13 @@ html.wide .card-full p { max-width: 34ch; }
 .amb .g2 { background: radial-gradient(circle, color-mix(in srgb, var(--navy) 8%, transparent) 0%, transparent 62%); }
 .stage { will-change: transform; transform-origin: 50% 50%; }
 .w { display: inline-block; will-change: transform, filter, opacity; }
-.intro { position: absolute; left: 96px; right: 96px; top: 150px; z-index: 5; pointer-events: none; }
-.intro .chip { display: inline-flex; align-items: center; gap: 14px; height: 50px; padding: 0 22px 0 8px; border-radius: 999px;
-  background: var(--card); border: 1.5px solid var(--border); font: 600 23px/1 var(--sans); color: var(--fg);
-  box-shadow: 0 8px 24px hsl(30 20% 20% / .08); transform-origin: left center; }
-.intro .chip .n { display: grid; place-items: center; height: 34px; padding: 0 12px; border-radius: 999px; background: var(--orange);
-  color: #fff; font: 500 16px/1 var(--mono); letter-spacing: .06em; }
-.intro h1 { margin: 30px 0 0; font: 400 96px/1.02 var(--serif); color: var(--fg); }
+.wm { display: inline-block; overflow: hidden; vertical-align: bottom; padding: 0 .02em .14em; margin: 0 -.02em -.14em; }
+.intro { position: absolute; left: 64px; right: 64px; top: 112px; z-index: 5; pointer-events: none; }
+.intro .kick { font: 500 17px/1 var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--orange); }
+.intro h1 { margin: 14px 0 0; font: 400 60px/1.04 var(--serif); color: var(--fg); text-wrap: balance; }
 .intro h1 em { font-style: normal; color: var(--orange); }
-.intro p { margin: 26px 0 0; max-width: 24ch; font: 400 27px/1.42 var(--sans); color: var(--muted-fg); }
-html:not(.wide) .intro p { max-width: 30ch; }
+.cursor .ring { border-width: 2.5px; }
+.cursor { transform-origin: 3px 2px; }
 /* Layers for render-plane.mjs: the app is drawn on its own (plane) and composited between the background and
    everything above it, so zooms and pans move a still image instead of re-drawing text. */
 html.L-under .frame > :not(.amb):not(.stage) { visibility: hidden !important; }
@@ -118,7 +115,7 @@ html.L-over, html.L-over body, html.L-over .frame { background: transparent !imp
 html.L-plane .frame > :not(.stage) { display: none !important; }
 html.L-plane .stage { position: fixed !important; left: 0 !important; top: 0 !important; width: 1280px !important; height: var(--app-h, 800px) !important;
   border: 0 !important; border-radius: 0 !important; box-shadow: none !important; transform: none !important; }
-html.L-plane .stage > .app { transform: none !important; }
+html.L-plane .stage > .app { transform: none !important; opacity: 1 !important; }
 /* Square (1:1, e.g. 1440 x 1440): captions over a stage that fills the rest; the app plane is taller to match it. */
 html.square .brandrow { top: 44px; padding-bottom: 18px; }
 html.square .captions { top: 112px; height: 150px; }
@@ -126,4 +123,4 @@ html.square .caption { font-size: 54px; }
 html.square .where { display: none; }
 html.square .stage { top: 280px; height: calc(var(--frame-h) - 364px); }
 html.square .footer { bottom: 34px; }
-html.square .intro h1 { font-size: 84px; }
+html.square .intro h1 { font-size: 58px; }

@@ -1,0 +1,4 @@
+Interface sounds, all Creative Commons 0 (public domain), from Freesound:
+- click-1 … click-6.wav: six isolated clicks from "Clicking on Laptop Trackpad" by justamudkip (freesound.org/s/854747).
+- type.wav: "Apple Mac Keyboad typing close up" by khenshom (freesound.org/s/563505).
+Trimmed, faded and normalised; nothing else changed.

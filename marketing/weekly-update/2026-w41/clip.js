@@ -19,13 +19,15 @@ const C = (() => {
   if (WIDE) document.documentElement.classList.add("wide");
   if (SQUARE) document.documentElement.classList.add("square");
   const MOTION = q.get("motion") !== "0", T0 = Number(q.get("t0")) || 0;
-  let RAW = 0, DRIFT = 1, POSED = 1;
+  let RAW = 0, DRIFT = 1, POSED = 1, FADE = 1;
   const STAGE_X = 64, STAGE_Y = WIDE ? 278 : SQUARE ? 280 : 330, STAGE_W = W - 128, STAGE_H = WIDE ? H - 362 : SQUARE ? H - 364 : H - 450;
   const APP_H = Math.max(800, Math.round((1280 * (STAGE_H - 4)) / (STAGE_W - 4)));
   document.documentElement.style.setProperty("--app-h", APP_H + "px");
   const clamp = (x) => Math.max(0, Math.min(1, x));
   const p = (t, a, b) => clamp((t - a) / (b - a));
   const io = (x) => (x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2);
+  const smooth = (x) => x * x * x * (x * (6 * x - 15) + 10); // smootherstep: no jolt where a move starts or stops
+  const expo = (x) => (x >= 1 ? 1 : 1 - Math.pow(2, -10 * x));
   const out = (x) => 1 - Math.pow(1 - x, 3);
   const back = (x) => 1 + 2.2 * Math.pow(x - 1, 3) + 1.2 * Math.pow(x - 1, 2);
   const lerp = (a, b, x) => a + (b - a) * x;
@@ -54,7 +56,8 @@ const C = (() => {
         c.textContent.split(/(\s+)/).forEach((w) => {
           if (!w) return;
           if (/^\s+$/.test(w)) return f.appendChild(document.createTextNode(w));
-          const s = document.createElement("span"); s.className = "w"; s.textContent = w; f.appendChild(s);
+          const m = document.createElement("span"); m.className = "wm";
+          const s = document.createElement("span"); s.className = "w"; s.textContent = w; m.appendChild(s); f.appendChild(m);
         });
         n.replaceChild(f, c);
       } else if (c.nodeType === 1 && c.tagName !== "BR") walk(c);
@@ -62,15 +65,13 @@ const C = (() => {
     walk(el);
     return $$(".w", el);
   }
-  // Words spring up into place from a, out of focus until they land; from z they drift off to the left and blur.
-  function wordsIn(ws, t, a, z = Infinity, gap = 0.045) {
+  // Words rise into place through a mask from a, one after another; from z they rise out the same way.
+  function wordsIn(ws, t, a, z = Infinity, gap = 0.035) {
     ws.forEach((w, i) => {
-      const d = t - a - i * gap, s = spring(d, 1, 13), f = clamp(d / 0.35);
-      const o = z === Infinity ? 0 : io(clamp((t - z - i * 0.018) / 0.4));
-      w.style.opacity = Math.min(clamp(d / 0.2), 1 - o);
-      w.style.transform = `translate(${-o * 40}px, ${(1 - s) * 0.45}em)`;
-      const b = (1 - f) * 9 + o * 8;
-      w.style.filter = b > 0.05 ? `blur(${b}px)` : "none";
+      const e = expo(clamp((t - a - i * gap) / 0.75));
+      const o = z === Infinity ? 0 : io(clamp((t - z - i * 0.012) / 0.32));
+      w.style.transform = `translateY(${((1 - e) - o) * 108}%)`;
+      w.style.opacity = t < a + i * gap ? 0 : 1;
     });
   }
   // Sound cues (timeline seconds): clicks and typing. run() maps them to held time as window.CUES for
@@ -111,28 +112,42 @@ const C = (() => {
       let x = k[1], y = k[2];
       for (let i = 0; i < keys.length - 1; i++) {
         const [a, ax, ay] = keys[i], [b, bx, by] = keys[i + 1];
-        if (t >= a && t <= b) { const e = io(p(t, a, b)); x = lerp(ax, bx, e); y = lerp(ay, by, e); }
+        if (t >= a && t <= b) {
+          // A hand moves in a slight arc and eases in and out; the bow is 6% of the distance.
+          const e = smooth(p(t, a, b)), dx = bx - ax, dy = by - ay, bow = 0.06 * Math.sin(Math.PI * e);
+          x = lerp(ax, bx, e) - dy * bow; y = lerp(ay, by, e) + dx * bow;
+        }
         else if (t > b) { x = bx; y = by; }
       }
       // The cursor follows the camera's drift during holds.
       x = STAGE_X + STAGE_W / 2 + (x - STAGE_X - STAGE_W / 2) * DRIFT; y = STAGE_Y + STAGE_H / 2 + (y - STAGE_Y - STAGE_H / 2) * DRIFT;
       el.style.opacity = t < keys[0][0] || t > keys[keys.length - 1][0] + 0.4 ? 0 : 1;
-      el.style.transform = `translate(${x}px, ${y}px)`;
-      const click = keys.find((k) => k[3] && t >= k[0] && t < k[0] + 0.45);
-      if (click) { const q = p(t, click[0], click[0] + 0.45); ring.style.opacity = 1 - q; ring.style.transform = `scale(${0.4 + q})`; }
+      // A press: the pointer dips to 88% for a moment and a thin ring opens and fades.
+      const click = keys.find((k) => k[3] && t >= k[0] - 0.06 && t < k[0] + 0.5);
+      const press = click ? Math.sin(Math.PI * clamp((t - click[0] + 0.06) / 0.2)) : 0;
+      el.style.transform = `translate(${x}px, ${y}px) scale(${1 - 0.12 * press})`;
+      if (click && t >= click[0]) { const q = expo(p(t, click[0], click[0] + 0.5)); ring.style.opacity = 0.9 * (1 - q); ring.style.transform = `scale(${0.5 + 0.9 * q})`; }
       else ring.style.opacity = 0;
       return { x, y };
     };
   }
   // Camera over a real-size app window: keys [[t, x, y, scale], ...], (x, y) = UI point centred in the viewport.
+  // Keys are kept inside the app and snapped to an edge when they come within 140 UI px of it, so a zoom never shows a
+  // sliver of the app cut off at the window's edge (a sidebar half in view, a word cut in two).
   function camera(el, vw, vh, keys) {
     el.style.transformOrigin = "0 0";
+    keys = keys.map(([t, x, y, s]) => {
+      const hw = vw / 2 / s, hh = vh / 2 / s, AW = 1280, AH = APP_H, SNAP = 140;
+      if (hw >= AW / 2) x = AW / 2; else { x = Math.min(Math.max(x, hw), AW - hw); if (x - hw < SNAP) x = hw; if (AW - hw - x < SNAP) x = AW - hw; }
+      if (hh >= AH / 2) y = AH / 2; else { y = Math.min(Math.max(y, hh), AH - hh); if (y - hh < SNAP) y = hh; if (AH - hh - y < SNAP) y = AH - hh; }
+      return [t, x, y, s];
+    });
     return (t) => {
       let [, x, y, s] = keys[0];
       for (let i = 0; i < keys.length - 1; i++) {
         const [a, ax, ay, as] = keys[i], [b, bx, by, bs] = keys[i + 1];
         if (t > b) { x = bx; y = by; s = bs; continue; }
-        if (t >= a) { const e = io(p(t, a, b)); x = lerp(ax, bx, e); y = lerp(ay, by, e); s = Math.exp(lerp(Math.log(as), Math.log(bs), e)); }
+        if (t >= a) { const e = smooth(p(t, a, b)); x = lerp(ax, bx, e); y = lerp(ay, by, e); s = Math.exp(lerp(Math.log(as), Math.log(bs), e)); }
       }
       const S = s * DRIFT;
       el.style.transform = `translate(${vw / 2 - x * S}px, ${vh / 2 - y * S}px) scale(${S})`;
@@ -166,14 +181,6 @@ const C = (() => {
       dots.style.backgroundPosition = `${(-G * 9) % 28}px ${(-G * 4) % 28}px`;
     };
   }
-  // Poses of the app window (flat: translate and scale only): off to the right, beside the title, in place, off to the left.
-  const POSE = {
-    offR: { x: W * 0.95, y: 175, s: 0.6 },
-    intro: WIDE ? { x: 230, y: 175, s: 0.6 } : SQUARE ? { x: 214, y: 185, s: 0.55 } : { x: 120, y: 260, s: 0.6 },
-    full: { x: 0, y: 0, s: 1 },
-    offL: { x: -W * 0.95, y: 0, s: 0.6 },
-  };
-  const mix = (A, B, e) => Object.fromEntries(Object.keys(A).map((k) => [k, lerp(A[k], B[k], e)]));
 
   function run(duration, render) {
     // Brand logos from the design-system kit: full logo on paper, light logo on midnight.
@@ -210,12 +217,12 @@ const C = (() => {
     const amb = MOTION ? ambient(frame) : null;
     const stage = $(".stage", frame), hookEl = $("#hook"), capHost = $(".captions", frame), tag = $(".brandrow .tag", frame);
     const ZR = held(1.5); // real seconds when the intro hands over to the feature
-    const OUT = duration - 0.8; // the window starts to leave
-    let iw = [], tagW = [];
+    const CAP = held(1.9); // when the first caption arrives: the title leaves just before
+    const OUT = duration - 0.5; // the content starts to fade out
+    let iw = [], tagW = [], kick = null;
     if (intro) {
-      iw = words($("h1", hookEl)).concat(words($("p", hookEl)));
+      iw = words($("h1", hookEl)); kick = $(".kick", hookEl);
       if (tag) tagW = words(tag);
-      SFX.push({ kind: "move", t: 0.05, raw: true });
     }
     const inner = render;
     render = (r) => {
@@ -224,21 +231,17 @@ const C = (() => {
       inner(tl(u));
       if (amb) amb(r);
       if (!intro) return;
-      // The window: swing in beside the title, grow into place, fly out to the left.
-      const e1 = spring(r - 0.05, 1, 6.5), e2 = io(p(r, ZR, ZR + 0.9)), e3 = io(p(r, OUT, duration));
-      let P = mix(mix(POSE.offR, POSE.intro, e1), POSE.full, e2);
-      P = mix(P, POSE.offL, e3);
-      stage.style.transform = `translate(${P.x}px, ${P.y}px) scale(${P.s})`;
-      POSED = P.s;
-      // The title: chip, words and line spring in, then leave as the window grows.
-      const chip = $(".chip", hookEl);
-      const cs = spring(r - 0.25, 1, 12);
-      chip.style.opacity = clamp((r - 0.25) / 0.2) * (1 - io(p(r, ZR - 0.1, ZR + 0.3)));
-      chip.style.transform = `translateX(${-io(p(r, ZR - 0.1, ZR + 0.3)) * 40}px) scale(${0.6 + 0.4 * cs})`;
-      wordsIn(iw, r, 0.35, ZR - 0.15, 0.05);
-      if (tagW.length) wordsIn(tagW, r, 0.2, Infinity, 0.03);
-      // Captions arrive as the title leaves and drift off with the window.
-      if (capHost) { capHost.style.opacity = (r < ZR ? 0 : 1) * (1 - e3); capHost.style.transform = `translateX(${-e3 * 120}px)`; }
+      // The window stays put: its content fades in at the start and out at the end, so chapters change inside one
+      // steady frame.
+      FADE = Math.min(smooth(clamp(r / 0.45)), 1 - smooth(clamp((r - OUT) / (duration - OUT))));
+      stage.querySelector(".app").style.opacity = FADE;
+      // The title takes the captions' place: kicker, then the words, then it hands over to the first caption.
+      const kq = expo(clamp((r - 0.1) / 0.6)), ko = io(clamp((r - CAP + 0.32) / 0.3));
+      kick.style.opacity = kq * (1 - ko); kick.style.transform = `translateY(${(1 - kq) * 12 - ko * 12}px)`;
+      wordsIn(iw, r, 0.2, CAP - 0.36, 0.04);
+      if (tagW.length) wordsIn(tagW, r, 0.15, Infinity, 0.03);
+      const e3 = smooth(clamp((r - OUT) / (duration - OUT)));
+      if (capHost) capHost.style.opacity = r < CAP - 0.05 ? 0 : 1 - e3;
       const cur = $(".cursor", frame); if (cur && e3 > 0) cur.style.opacity = Math.min(Number(cur.style.opacity || 1), 1 - e3);
     };
     window.DURATION = duration;
@@ -248,7 +251,7 @@ const C = (() => {
     window.LAYOUT = () => {
       if (!appEl) return null;
       const a = appEl.getBoundingClientRect(), b = stage.getBoundingClientRect();
-      return { app: [a.left, a.top, a.width, a.height], stage: [b.left, b.top, b.width, b.height], s: POSED, border: stage.clientLeft };
+      return { app: [a.left, a.top, a.width, a.height], stage: [b.left, b.top, b.width, b.height], s: POSED, border: stage.clientLeft, fade: FADE };
     };
     // Cues in real seconds: those inside this part, mapped to part-local time, then to held time.
     window.CUES = () => SFX.filter((c) => c.raw || (c.t >= from - 0.001 && c.t < to)).map((c) => (c.raw ? c : { ...c, t: held(loc(c.t)), end: c.end === undefined ? undefined : held(loc(Math.min(c.end, to))) }));
