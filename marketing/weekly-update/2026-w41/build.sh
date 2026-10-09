@@ -1,5 +1,5 @@
 #!/bin/sh
-# Build Feature Drop · Week 41 (2–9 Oct): cover, five chapters, "Also new", end, with music and interface sounds.
+# Build Feature Drop · Week 41 (2–9 Oct): cover, seven chapters, "Also new", end, with music and interface sounds.
 # 1:1, 1440 x 1440, 30 fps, 10 Mbit/s. One continuous canvas: every part renders its background on the video's
 # clock (t0.mjs), so the cuts don't show. Each part is drawn with render-plane.mjs: the app is a flat image moved
 # by the camera, so zooms and pans don't shimmer. Parts are <clip.mp4>=<page.html>[?query].
@@ -13,9 +13,11 @@ CREDIT=${CREDIT:-"Music: Muted Trumpet Jazz Study Session by Alex Morgan · CC B
 PARTS="card-m1.mp4=weekly-cards.html?card=1
 fd1-setup.mp4=ch2-setup.html?part=feature
 fd2-dashboards.mp4=ch7-dashboards.html
-fd3-workflows.mp4=ch1-agent.html?part=story
-fd4-tables.mp4=ch6-tables.html?part=feature
-fd5-skills.mp4=ch3-skills.html?part=feature
+fd3-workflows.mp4=ch1-agent.html?part=sidebar
+fd4-voice.mp4=ch5-voice.html?part=feature
+fd5-agent-step.mp4=ch1-agent.html?part=step
+fd6-tables.mp4=ch6-tables.html?part=feature
+fd7-skills.mp4=ch3-skills.html?part=feature
 card-m2.mp4=weekly-cards.html?card=2
 card-m3.mp4=weekly-cards.html?card=3"
 CLIP_QUERY="credit=$CREDIT" node cards.mjs weekly-cards.html card   # card-1.png: the cover, composed, is the thumbnail

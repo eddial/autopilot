@@ -166,18 +166,15 @@
 <script>
   // Two chapters from one timeline (C.run PARTS): the Agent as a step in a workflow, and the Agent beside the canvas.
   const PART = new URLSearchParams(location.search).get("part"), SIDE = PART === "sidebar";
-  CHAPTER(PART === "story"
-    ? { n: 3, total: 5, module: "Workflows", footerLeft: "Feature Drop · Week 41",
-        title: "The Agent builds<br><em>and fixes workflows.</em>", line: "Add the Agent as a step, or ask it beside the canvas to change the workflow. The steps it changes light up." }
-    : SIDE
-    ? { n: 2, total: 7, module: "Workflows", footerLeft: "Feature Drop · Week 41",
-        title: "Change a workflow<br><em>by asking the Agent.</em>", line: "Open the Agent beside the canvas. It knows the workflow you have open, and the steps it changes light up." }
-    : { n: 1, total: 7, module: "Workflows", footerLeft: "Feature Drop · Week 41",
-        title: "Give a workflow step<br><em>to the Agent.</em>", line: "Describe the task in plain words. The Agent does that step with your tools, integrations and files." });
+  CHAPTER(SIDE
+    ? { n: 3, total: 7, module: "Workflows", footerLeft: "Feature Drop · Week 41",
+        title: "The Agent builds<br><em>and fixes workflows.</em>", line: "Open the Agent beside the canvas and ask for a change. It knows the workflow you have open, and the steps it changes light up." }
+    : { n: 5, total: 7, module: "Workflows", footerLeft: "Feature Drop · Week 41",
+        title: "Put the Agent to work<br><em>inside a workflow.</em>", line: "The Agent step can use any Skill or integration you can use yourself, and runs it in the background, every time the workflow runs." });
   const O = 2.7, B = 7.8 + O + 0.4, G = B + 7.3, D = B + 9.4;
   // story: the Feature Drop chapter, opening on the workflow's canvas (the way there stays in the timeline, unseen).
-  window.PARTS = { step: [0, B - 0.25], sidebar: [B - 0.2, D], story: [3.6, D] };
-  window.HOLDS = [[1.0, 0.7], [4.1, 0.6], [4.15 + O, 1.0], [7.7 + O, 1.0], [B + 2.7, 0.8], [B + 8.6, 1.2]];
+  window.PARTS = { step: [3.6, B - 0.25], sidebar: [B - 0.2, D] };
+  window.HOLDS = [[1.0, 0.7], [4.1, 0.6], [4.15 + O, 1.0], [B - 0.3, 2.6], [B + 2.7, 0.8], [B + 8.6, 1.2]];
   const { $, $$, p, out, io } = C;
   $("#sb").outerHTML = APP.sidebar("Overview");
   const CATS = [["All", "foreground"], ["AI", "node-coral"], ["UI", "node-mauve"], ["Data Tables", "node-slate"], ["Operator Action", "node-mauve"], ["Advanced Coding", "node-rose"],
@@ -222,11 +219,13 @@
   const where = C.where([[2.6, "Workflows"], [3.1, "Order intake"], [2.7 + O, "+ after a step"], [3.4 + O, "AI"], [4.5 + O, "Agent"]]);
   const cap = C.captions([
     [1.9, 3.4, "Open Workflows<br><em>and pick a workflow.</em>"],
-    [1.9 + O, 4.55 + O, "Add a step, then choose AI.<br><em>The Agent is the first option.</em>"],
-    [4.95 + O, B - 0.5, "Describe the task in plain words.<br><em>The Agent does that step.</em>"],
+    [1.9 + O, 4.55 + O, "Add the Agent as a step.<br><em>It's the first option under AI.</em>"],
+    [4.95 + O, 7.0 + O, "Describe the job in plain words.<br><em>It can use any Skill or integration you can.</em>"],
+    [7.15 + O, B - 0.28, "Each time the workflow runs,<br><em>the Agent does it in the background.</em>"],
     [B, B + 3.0, "Open the Agent beside the canvas.<br><em>It already knows this workflow.</em>"],
     [B + 3.4, 99, "Ask for a change.<br><em>The steps it changes light up.</em>"],
   ]);
+  C.typing(5.6 + O, 7.4 + O); C.typing(B + 4.0, B + 5.6);
   cam(0);
   const ASK = "Check each line's price against our price agreements before drafting the order.";
   const MSG = `Read the order email from <span class="ref">orderEmail</span>, match the customer and items in Exact Online, and draft the sales order. If the customer's PO number is missing, ask the order desk.`;

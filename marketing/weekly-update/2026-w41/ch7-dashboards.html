@@ -114,7 +114,7 @@
 <script src="clip.js"></script>
 <script src="chapter.js"></script>
 <script>
-  CHAPTER({ n: 2, total: 5, module: "Overview", footerLeft: "Feature Drop · Week 41",
+  CHAPTER({ n: 2, total: 7, module: "Overview", footerLeft: "Feature Drop · Week 41",
     title: "The Agent builds<br><em>your dashboards.</em>", line: "Ask for what you need to see. The Agent adds the widgets to your Overview, and each role gets its own version." });
   const D = 13.2;
   window.HOLDS = [[1.0, 0.7], [7.0, 1.4], [D - 0.4, 1.2]];
@@ -173,6 +173,7 @@
     [9.9, 99, "Each role gets its own Overview.<br><em>See it the way finance does.</em>"],
   ]);
   cam(0);
+  C.typing(2.5, 4.3);
   const ASK = "Add what the order desk needs: orders waiting on a PO and handling time per day.";
   const NEW = [["#w1", "#r1", 5.4], ["#w2", "#r2", 5.75], ["#w3", "#r3", 6.1]];
   C.run(D, (t) => {

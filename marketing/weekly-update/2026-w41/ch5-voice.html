@@ -83,10 +83,12 @@
 <script src="clip.js"></script>
 <script src="chapter.js"></script>
 <script>
-  CHAPTER({ n: 6, total: 7, module: "Agent", footerLeft: "Feature Drop · Week 41",
-    title: "Call the Agent<br><em>and keep working.</em>", line: "Start a voice call with the Agent and keep it going as you move between pages. It tells you what it finds while it works." });
+  CHAPTER({ n: 4, total: 7, module: "Agent", footerLeft: "Feature Drop · Week 41",
+    title: "Talk to the Agent<br><em>while it builds.</em>", line: "Start a voice call with the Agent and keep it going as you move between pages. It tells you what it finds while it works." });
   const O = 2.8, D = 7.8 + O;
   window.HOLDS = [[1.0, 0.7], [4.3, 0.6], [3.0 + O, 1.0], [7.7 + O, 1.0]]; // title card, the call started, the page switch, the final result
+  // Feature first: the video opens on the Agent page, about to call (the way there stays in the timeline, unseen).
+  window.PARTS = { feature: [3.3, D] };
   const { $, $$, p, out, io } = C;
   $("#sb").outerHTML = APP.sidebar("Overview");
   const navs = $$(".sb .nav"), nav = (l) => navs.find((n) => n.textContent.trim() === l);
@@ -113,18 +115,24 @@
   // Keep the camera inside the 1280 x APP_H app at scale s.
   const K = (t, x, y, s) => [t, Math.min(Math.max(x, VW / 2 / s), 1280 - VW / 2 / s), Math.min(Math.max(y, VH / 2 / s), C.APP_H - VH / 2 / s), s];
   const P = { agent: at(navAgent), call: at($("#call")), link: at($("#link")), mute: at($("#mute")) };
+  // Shots fit whole parts of the UI: the chat column during the call, then the whole panel once another page is open.
+  const fit = (x0, y0, x1, y1) => { const s = Math.min(VW / (x1 - x0), VH / (y1 - y0)); return [(x0 + x1) / 2, (y0 + y1) / 2 + (VH / s - (y1 - y0)) / 2, s]; };
+  const box = (el) => { const a = app.getBoundingClientRect(), r = el.getBoundingClientRect(), s = a.width / 1280;
+    return [(r.left - a.left) / s, (r.top - a.top) / s, (r.right - a.left) / s, (r.bottom - a.top) / s]; };
+  const col = box($(".col")), cmp = box($(".composer")), pnl = box($(".panel"));
+  const AGENT = fit(cmp[0] - 40, cmp[3] - 420, cmp[2] + 40, cmp[3] + 16), PANEL = fit(pnl[0], pnl[1], pnl[2], pnl[3]);
   const cam = C.camera(app, VW, VH, [K(0, 640, C.APP_H / 2, FIT), K(1.9, 640, C.APP_H / 2, FIT), K(2.3, 490, 300, 1.35), K(2.9, 490, 300, 1.35),
-    K(3.4, P.call[0], P.call[1], 1.5), K(1.9 + O, P.call[0], P.call[1], 1.5), K(2.5 + O, 760, 450, 1.3), K(3.9 + O, 760, 450, 1.3),
-    K(4.4 + O, 640, C.APP_H, 1.0), K(5.0 + O, 640, C.APP_H, 1.0), K(5.6 + O, P.mute[0], P.mute[1], 1.5), K(D, P.mute[0], P.mute[1], 1.5)]);
+    [3.3, ...AGENT], [1.9 + O, ...AGENT], [2.5 + O, ...PANEL], [D, ...PANEL]]);
   const F = (t, [x, y]) => { const m = cam(t).map(x, y); return [C.STAGE_X + m[0], C.STAGE_Y + m[1]]; };
   const OFF = (fx) => [C.W * fx, C.H + 40];
-  const cur = C.cursor([[1.9, ...OFF(0.55)], [2.6, ...F(2.6, P.agent), true], [3.0, ...F(3.0, P.agent)], [3.9, ...F(3.9, P.call), true], [4.6, ...OFF(0.7)],
+  const cur = C.cursor([[1.9, ...OFF(0.55)], [2.6, ...F(2.6, P.agent), true], [3.0, ...F(3.0, P.agent)], [3.2, ...OFF(0.7)], [3.4, ...OFF(0.7)], [3.9, ...F(3.9, P.call), true], [4.6, ...OFF(0.7)],
     [2.5 + O, ...OFF(0.55)], [3.5 + O, ...F(3.5 + O, P.link), true], [4.2 + O, ...OFF(0.75)], [5.7 + O, ...OFF(0.75)], [6.3 + O, ...F(6.3 + O, P.mute), true], [7.4 + O, ...F(7.4 + O, P.mute)]]);
   const where = C.where([[2.6, "Agent"], [3.9, "Call the agent"], [3.5 + O, "Open any page"]]);
   const cap = C.captions([
-    [1.9, 4.5, "Open the Agent<br><em>and call it.</em>"],
-    [1.9 + O, 4.55 + O, "Open any page<br><em>during the call.</em>"],
-    [4.95 + O, 99, "The call comes with you.<br><em>Mute or hang up from anywhere.</em>"],
+    [1.9, 3.2, "Open the Agent<br><em>and call it.</em>"],
+    [3.35, 4.5, "Call the Agent.<br><em>Talk it through while it builds.</em>"],
+    [1.9 + O, 4.55 + O, "Open any page.<br><em>The call comes with you.</em>"],
+    [4.95 + O, 99, "Build workflows, dashboards and more,<br><em>just by talking.</em>"],
   ]);
   cam(0);
   C.run(D, (t) => {

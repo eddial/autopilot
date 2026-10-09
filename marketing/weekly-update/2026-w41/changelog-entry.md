@@ -2,7 +2,7 @@
 ## Feature Drop · Week 41
 
 {% embed url="feature-drop-2026-w41.mp4" %}
-Five things you can do in Lleverage this week, 2–9 October.
+Seven things you can do in Lleverage this week, 2–9 October.
 {% endembed %}
 
 ### Projects: the Agent sets up your project
@@ -15,7 +15,15 @@ Ask the Agent for what you need to see, for example "orders waiting on a PO and 
 
 ### Workflows: the Agent builds and fixes workflows
 
-Add the Agent as a step in a workflow and describe the task in plain words; it does that step with your tools, integrations and files. Or open the Agent beside the canvas and ask for a change: it knows the workflow you have open, and the steps it changes light up. It can run the workflow again after a fix, and it asks you before it puts a workflow live. [Agent step](../build-and-improve/automate/advanced-workflow-building/agent.md)
+Open the Agent beside the canvas while you work on a workflow and ask for a change, such as "check each line's price against our price agreements". It already knows the workflow you have open, and the steps it changes light up. It can run the workflow again after a fix, and it asks you before it puts a workflow live. [Build a workflow](../build-and-improve/automate/build-a-workflow/README.md)
+
+### Agent: talk to the Agent while it builds
+
+Start a voice call with the Agent and talk it through: build a workflow, a dashboard or a whole project just by talking. Open any page in the project and the call comes with you, and the Agent tells you what it's finding while it works. It also offers a call when it needs a lot from you. [Call with Agent](../run-operations/agent/call-with-agent.md)
+
+### Workflows: put the Agent to work inside a workflow
+
+Add the Agent as a step in any workflow and describe the job in plain words. It can use any Skill or integration you can use yourself, and each time the workflow runs, it does that job in the background. When something is missing, such as a PO number, it asks a person. [Agent step](../build-and-improve/automate/advanced-workflow-building/agent.md)
 
 ### Data tables: work through records on a board
 
@@ -29,7 +37,7 @@ A Skill is how the Agent does one job, such as reading purchase orders. Its **Fe
 
 <summary>Also new</summary>
 
-* **Talk to the Agent while you work.** A voice call follows you across the project's pages and stays connected while you sign in to an integration. Type while the Agent is working and it takes your message into the task it's on.
+* **Type while the Agent works.** Send a message mid-task and the Agent takes it into the task it's on.
 * **Hand the Agent your files.** Up to 50 files per message, Excel files shown as a real spreadsheet, and Google Drive folders connected to Project Files and kept in sync.
 * **Know what the Agent made.** The Agent sidebar lists everything the Agent created in the session, and the Agent links straight to the pages it means.
 * **Decide with the full picture.** Zoom into a request's attachments and click through them; in Apps, **Edit and resubmit** corrects a form you already sent.

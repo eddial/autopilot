@@ -78,6 +78,9 @@ const C = (() => {
   // soundtrack.py; nothing here makes a sound. Raw cues (raw: true) are already in real seconds.
   const SFX = (window.SFX = []), seen = new Set();
   const cue = (kind, t, end) => { const k = kind + t + (end || ""); if (!seen.has(k)) { seen.add(k); SFX.push({ kind, t, end }); } };
+  // A typing stretch a..b (timeline seconds): registered at setup, so the soundtrack hears typing that a clip
+  // animates by hand.
+  const typing = (a, b) => cue("type", a, b);
   function type(el, text, t, a, b) {
     cue("type", a, b);
     el.textContent = text.slice(0, Math.round(text.length * p(t, a, b)));
@@ -222,7 +225,7 @@ const C = (() => {
     const firstCap = CAPSTARTS.filter((a) => a >= from - 1e-6 && a < to).sort((x, y) => x - y)[0];
     const CAP = held(firstCap === undefined ? 1.9 : loc(firstCap));
     const OUT = duration - 0.5; // the content starts to fade out
-    let iw = [], tagW = [], kick = null;
+    let iw = [], tagW = [], kick = null; const prog = $(".prog i.cur b", frame);
     if (intro) {
       iw = words($("h1", hookEl)); kick = $(".kick", hookEl);
       if (tag) tagW = words(tag);
@@ -243,6 +246,8 @@ const C = (() => {
       if (kick) { kick.style.opacity = kq * (1 - ko); kick.style.transform = `translateY(${(1 - kq) * 12 - ko * 12}px)`; }
       wordsIn(iw, r, 0.2, CAP - 0.36, 0.04);
       if (tagW.length) wordsIn(tagW, r, 0.15, Infinity, 0.03);
+      // The chapter line under the brand row: one segment per chapter, earlier ones full, this one filling as it plays.
+      if (prog) prog.style.setProperty("--f", smooth(clamp(r / duration)));
       const e3 = smooth(clamp((r - OUT) / (duration - OUT)));
       if (capHost) capHost.style.opacity = r < CAP - 0.05 ? 0 : 1 - e3;
       const cur = $(".cursor", frame); if (cur && e3 > 0) cur.style.opacity = Math.min(Number(cur.style.opacity || 1), 1 - e3);
@@ -265,5 +270,5 @@ const C = (() => {
     const loop = (now) => { render(((now - start) / 1000) % duration); requestAnimationFrame(loop); };
     document.fonts.ready.then(() => requestAnimationFrame(loop));
   }
-  return { MOTION, raw: () => RAW, spring, words, wordsIn, W, H, WIDE, SQUARE, APP_H, STAGE_X, STAGE_Y, STAGE_W, STAGE_H, clamp, p, io, out, back, lerp, $, $$, show, type, captions, where, cursor, camera, hook, endcard, run };
+  return { MOTION, raw: () => RAW, typing, spring, words, wordsIn, W, H, WIDE, SQUARE, APP_H, STAGE_X, STAGE_Y, STAGE_W, STAGE_H, clamp, p, io, out, back, lerp, $, $$, show, type, captions, where, cursor, camera, hook, endcard, run };
 })();
