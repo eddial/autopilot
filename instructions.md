@@ -35,6 +35,7 @@ One item is one thread or conversation: all its messages together. For each item
    - priority 1–4 from that workstream's Urgent line: 1 Urgent, 2 High, 3 Normal, 4 Low. Priority 1 is also assigned to {{owner}} (`assignee: "me"`, the connector's account); everything else stays unassigned;
    - description: who wants what, by when, in one or two sentences; then a blank line, `From: <sender> · <channel> · <time>` and `Source: <source URL>`;
    - attach the source URL with `save_issue` `links` (`{url, title}`, title = source and subject).
+   - `issue` is the identifier `save_issue` returned. If it returned none, or `save_issue` is not among your tools, nothing is filed: say so in `reason` and leave `issue` null; the engine checks every `created` against Linear.
 5. When unsure between two workstreams, pick one and say why in `reason`; {{owner}} re-files by changing the project.
 
 Return every item you looked at, filed or dropped, with a short `reason`, its `searches`, `note` ("" unless `updated`) and `gated` (true only when step 1 dropped it).

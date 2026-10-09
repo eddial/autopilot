@@ -255,8 +255,9 @@ branch.
 - **Signals.** A signal is due when `now − last_checked ≥ every` and its previous run is dead. The
   window is `max(last_checked − window_overlap, now − window_cap)` → start of run. One `claude -p
   --model haiku --json-schema …` call (the signal's `model:` overrides it) with the signal's read tools plus `filing_tools` files the items;
-  every item goes to `.state/decisions.jsonl`. A failed or unparseable run leaves `last_checked`, so the
-  next tick retries. The first run only sets `last_checked` (no backfill). A signal with `cron:` is a
+  every item goes to `.state/decisions.jsonl`. Each `created` item is looked up in Linear (by identifier,
+  else by its source URL); one that is not there is logged as `failed` and fails the run. A failed or
+  unparseable run leaves `last_checked`, so the next tick retries. The first run only sets `last_checked` (no backfill). A signal with `cron:` is a
   digest instead: it runs when the cron matches, over everything since its previous run (the first run
   covers its `window_cap:`, which overrides the global cap), and a failed run is retried every `every:`.
 - **Launcher.** Every tick: issues in Done/Canceled with a session are cleaned up (tmux window killed,

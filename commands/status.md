@@ -9,7 +9,7 @@ home. Read its `.state/state.json`, the tail of `.state/tick.log` and the last
 1. **Signals and schedules** — one row per `jobs` entry (and per
    `signals/*.md` in the home, marking paused ones): last success, last checked
    window end, failures and failing since, last error (one line), gaps,
-   and items in the last 24 h by action (created / updated / dropped).
+   and items in the last 24 h by action (created / updated / dropped / failed).
 2. **Launcher** — last success, last error.
 3. **Sessions** — one row per `sessions` entry: issue, branch or workstream folder, started,
    whether its tmux window is alive (`tmux list-windows -t autopilot`),
