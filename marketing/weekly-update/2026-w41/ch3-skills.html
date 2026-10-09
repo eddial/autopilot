@@ -188,7 +188,7 @@
   const AGP = fit(ag0[0], ag0[1], ag1[0], Math.min(ag1[1], ag0[1] + 520));
   const FBS = fit(tabs[0] - 24, tabs[1] - 24, 1280, tabs[1] + 300), FBS2 = fit(tabs[0] - 24, imp[1] - 60, 1280, tabs[1] + 300);
   const cam = C.camera(app, VW, VH, [[0, 640, C.APP_H / 2, FIT], [1.9, 640, C.APP_H / 2, FIT], [2.3, 490, 300, 1.35], [3.2, 490, 300, 1.35], [3.8, 640, C.APP_H / 2, FIT],
-    [1.9 + O, 640, C.APP_H / 2, FIT], [2.4 + O, ...FBS], [6.6 + O, ...FBS], [7.6 + O, ...FBS2], [8.3 + O, ...FBS2],
+    [1.9 + O, 640, C.APP_H / 2, FIT], [2.4 + O, ...FBS], [8.3 + O, ...FBS],
     [8.9 + O, ...AGP], [D, ...AGP]]);
   const F = (t, [x, y]) => { const m = cam(t).map(x, y); return [C.STAGE_X + m[0], C.STAGE_Y + m[1]]; };
   const OFF = [C.W * 0.6, C.H + 40];
@@ -235,8 +235,8 @@
     APP.drive($("#aav"), t < 9.6 + O ? "working" : "static", t);
     const r = out(p(t, 9.4 + O, 9.8 + O));
     $("#rv").style.opacity = r; $("#rv").style.transform = `translateY(${(1 - r) * 10}px)`;
-    $("#add1").style.display = t >= 9.9 + O ? "" : "none"; type($("#add1t"), "If the order has no PO number, never take one from the subject. Hand it to the order desk.", t, 9.9 + O, 11.0 + O, "gen");
-    $("#add2").style.display = t >= 11.1 + O ? "" : "none"; type($("#add2t"), "Two delivery addresses: one draft order per address.", t, 11.1 + O, 11.9 + O, "gen");
+    $("#add1").style.display = t >= 9.9 + O ? "" : "none"; type($("#add1t"), "If the order has no PO number, never take one from the subject. Hand it to the order desk.", t, 9.9 + O, 11.0 + O, null);
+    $("#add2").style.display = t >= 11.1 + O ? "" : "none"; type($("#add2t"), "Two delivery addresses: one draft order per address.", t, 11.1 + O, 11.9 + O, null);
     $("#ev").style.opacity = out(p(t, 11.9 + O, 12.3 + O));
   });
 </script>

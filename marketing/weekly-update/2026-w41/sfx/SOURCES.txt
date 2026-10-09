@@ -3,4 +3,3 @@ Interface sounds, all Creative Commons 0 (public domain), from Freesound:
 - type.wav: "Apple Mac Keyboad typing close up" by khenshom (freesound.org/s/563505).
 Trimmed, faded and normalised; nothing else changed.
 - voice.wav: a voice on a call, made from a macOS system voice (Samantha, say) cut into reversed syllables and band-passed like a phone line; no words survive. Made here, no outside source.
-- gen.wav: the Agent writing: a soft retro readout, rounded square blips through a low-pass, synthesised here (no outside source).

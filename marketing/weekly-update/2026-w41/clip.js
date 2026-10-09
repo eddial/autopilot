@@ -85,10 +85,9 @@ const C = (() => {
   const typing = (a, b) => cue("type", a, b);
   // The Agent talking on a call a..b (timeline seconds): a murmur, never words.
   const voice = (a, b) => cue("voice", a, b);
-  // The Agent writing a..b (timeline seconds): a soft digital sound, not a keyboard.
-  const gen = (a, b) => cue("gen", a, b);
+  // kind null: text that appears without a sound (the Agent writing).
   function type(el, text, t, a, b, kind = "type") {
-    cue(kind, a, b);
+    if (kind) cue(kind, a, b);
     el.textContent = text.slice(0, Math.round(text.length * p(t, a, b)));
   }
   // Captions: [[start, end, html], ...] onto .caption elements built here; word by word with MOTION.
@@ -283,5 +282,5 @@ const C = (() => {
     const loop = (now) => { render(((now - start) / 1000) % duration); requestAnimationFrame(loop); };
     document.fonts.ready.then(() => requestAnimationFrame(loop));
   }
-  return { MOTION, raw: () => RAW, typing, voice, gen, spring, words, wordsIn, W, H, WIDE, SQUARE, APP_H, STAGE_X, STAGE_Y, STAGE_W, STAGE_H, clamp, p, io, out, back, lerp, $, $$, show, type, captions, where, cursor, camera, hook, endcard, run };
+  return { MOTION, raw: () => RAW, typing, voice, spring, words, wordsIn, W, H, WIDE, SQUARE, APP_H, STAGE_X, STAGE_Y, STAGE_W, STAGE_H, clamp, p, io, out, back, lerp, $, $$, show, type, captions, where, cursor, camera, hook, endcard, run };
 })();

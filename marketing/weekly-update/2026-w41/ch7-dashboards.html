@@ -162,7 +162,7 @@
   const BOTH = fit(0, 0, 1280, g0[1] + 560), WIDGETS = fit(0, 0, pnl[0] - 6, Math.max(w3b[1] + 20, ((pnl[0] - 6) * VH) / VW));
   // The ask, close: the Agent's composer and the messages above it, from the sidebar's edge to the app's.
   const ASKS = fit(pnl[0], cp1[1] - 330, 1280, cp1[1] + 12);
-  const cam = C.camera(app, VW, VH, [[0, ...BOTH], [1.9, ...BOTH], [2.3, ...ASKS], [5.1, ...ASKS], [5.6, ...WIDGETS], [D, ...WIDGETS]]);
+  const cam = C.camera(app, VW, VH, [[0, ...BOTH], [1.9, ...BOTH], [2.3, ...ASKS], [5.1, ...ASKS], [5.6, ...BOTH], [D, ...BOTH]]);
   const F = (t, [x, y]) => { const m = cam(t).map(x, y); return [C.STAGE_X + m[0], C.STAGE_Y + m[1]]; };
   const OFF = [C.W * 0.6, C.H + 40];
   const cur = C.cursor([[1.9, ...OFF], [2.4, ...F(2.4, P.ta), true], [4.4, ...F(4.4, P.ta)], [4.6, ...F(4.6, P.send), true], [5.1, ...OFF], [9.9, ...OFF],

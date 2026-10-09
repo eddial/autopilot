@@ -8,6 +8,6 @@ Ask the Agent to set up a project and it reads your systems before it asks you a
 
 You can also put the Agent inside a workflow: connect a trigger and it handles complex work on its own, with any skill or connection you have.
 
-My favourite: you can just call it. Voice mode follows you around the product, so you can talk a workflow or skill into existence while you get on with your work.
+My favourite: you can just call it. Voice mode follows you around the product, so you can talk a workflow or skill into existence, hands off the keyboard.
 
 Music: Muted Trumpet Jazz Study Session by Alex Morgan, CC BY 4.0

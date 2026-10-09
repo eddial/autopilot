@@ -135,7 +135,7 @@
   $("#menu").style.display = ""; const mb = at($("#menu"), 1, 1); $("#menu").style.display = "none";
   const COLS = fit(l2[0] - 22, tb[1] - 16, 1280, mb[1] + 24);
   const cam = C.camera(app, VW, VH, [[0, 640, C.APP_H / 2, FIT], [1.9, 640, C.APP_H / 2, FIT], [2.3, 490, 300, 1.35], [3.0, 490, 300, 1.35], [3.5, 640, C.APP_H / 2, FIT],
-    [5.0, ...BOARD], [1.9 + O, ...BOARD], [2.5 + O, ...TWO], [4.6 + O, ...TWO], [5.2 + O, ...COLS], [D, ...COLS]]);
+    [5.0, ...BOARD], [D, ...BOARD]]);
   const F = (t, [x, y]) => { const m = cam(t).map(x, y); return [C.STAGE_X + m[0], C.STAGE_Y + m[1]]; };
   const OFF = [C.W * 0.6, C.H + 40], OFF2 = [C.W * 0.75, C.H + 40];
   const cur = C.cursor([[1.9, ...OFF], [2.6, ...F(2.6, P.nav), true], [3.3, ...F(3.3, P.nav)], [3.9, ...F(3.9, P.row), true], [4.7, ...F(4.7, P.tab), true], [4.85, ...OFF],
