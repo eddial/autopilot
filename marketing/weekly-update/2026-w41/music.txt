@@ -1,5 +1,9 @@
-Music: "Walking Away (Lofi, Peaceful, Motivating)" by HoliznaCC0, album "Public Domain Lofi".
-Source: https://freemusicarchive.org/music/holiznacc0/public-domain-lofi/walking-away-lofi-peaceful-motivating/
-Licence: CC0 1.0 (public domain dedication). Commercial use allowed; no credit required.
-Downloaded 2026-10-09 as music/walking-away.mp3.
-Alternatives auditioned (all CC0, same artist): Projector Screen (happy, ~96 bpm), Doodles (happy, ~86 bpm), Warm Fuzz (retro beats).
+Music: "A Blue Day" from Mixkit (mixkit.co, track 150).
+Source: https://assets.mixkit.co/music/150/150.mp3 (listed on https://mixkit.co/free-stock-music/tag/chill/)
+Licence: Mixkit Stock Music Free License: free for commercial projects (online video, social, ads), no attribution
+required; not for broadcast TV/radio, CDs or games; the track may not be remixed or claimed as our own. Used here
+trimmed and faded only.
+Sound effects: Mixkit Sound Effects Free License: "Classic click" (sfx 1117), "Air woosh" (sfx 1489), "Typing on a
+laptop keyboard" (sfx 2531), trimmed and filtered into sfx/.
+Alternatives auditioned (Mixkit, same licence): R&B vibes 1 (685), Your Breath (634), Autofahren (770).
+Downloaded 2026-10-09.

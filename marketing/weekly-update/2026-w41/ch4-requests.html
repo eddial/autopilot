@@ -223,9 +223,11 @@
 <script src="clip.js"></script>
 <script src="chapter.js"></script>
 <script>
-  CHAPTER({ n: 4, total: 6, tag: "Requests and apps", kicker: "This week in Lleverage", where: true, footerLeft: "lleverage.ai · Week of 5 Oct 2026",
-    title: "Check the document<br><em>before you decide.</em>", line: "A request is where the Agent asks a person to decide. Zoom into the attached scan to check a line, and correct a form you already sent." });
+  CHAPTER({ n: 5, total: 7, module: "Requests", footerLeft: "lleverage.ai · Week of 5 Oct 2026",
+    title: "Check the document<br><em>before you decide.</em>", line: "A request is where the Agent asks a person to decide. Zoom into the attached scan to check a line." });
   const E = 12.8, D = E + 6.0;
+  // Edit and resubmit (Apps) is another module: it goes on the "Also new" card, so this chapter ends before it.
+  window.PARTS = { requests: [0, E - 0.1] };
   window.HOLDS = [[1.0, 0.7], [5.3, 0.6], [8.9, 1.1], [12.1, 0.9], [E + 2.7, 1.0], [D - 0.3, 1.3]];
   const { $, $$, p, out, io, lerp } = C;
   $("#sb").outerHTML = APP.sidebar("Overview");
@@ -295,9 +297,6 @@
     [E + 2.2, ...F(E + 2.2, P.ed), true], [E + 3.3, ...F(E + 3.3, P.cr), true], [E + 4.3, ...F(E + 4.3, P.dd), true], [E + 5.4, ...F(E + 5.4, P.sub)], [D, ...F(D, P.sub)]]);
   const where = C.where([[2.6, "Requests"], [4.0, "a request"], [4.9, "Attachments"], [6.6, "Zoom in"]]);
   // Second path for Edit and resubmit, swapped in for the last two beats.
-  const alt = document.createElement("span"); alt.className = "path alt";
-  alt.innerHTML = ["Apps", "an app", "a session", "Edit and resubmit"].map((l) => `<span class="wstep">${l}</span>`).join('<span class="sep">›</span>');
-  $(".where").appendChild(alt); const altSteps = $$(".wstep", alt), altT = [E + 0.6, E + 0.8, E + 1.0, E + 2.2];
   const cap = C.captions([
     [1.9, 5.5, "Open a request<br><em>and its attachments.</em>"],
     [5.9, 9.4, "Zoom in on the scan.<br><em>Drag to the line you need.</em>"],
@@ -310,8 +309,6 @@
     C.hook($("#hook"), t, 1.5);
     cap(t); cam(t); cur(t); where(t);
     const second = t >= E + 0.1;
-    $(".where .path:not(.alt)").style.display = second ? "none" : ""; alt.style.display = second ? "flex" : "none";
-    altSteps.forEach((el, i) => el.classList.toggle("on", t >= altT[i]));
 
     // Pages: Overview, Requests, a request, then the app session.
     const page = t >= E + 0.65 ? "pWs" : t >= 4.05 ? "pRq" : t >= 2.65 ? "pIn" : "pOv";

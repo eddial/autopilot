@@ -81,21 +81,31 @@ html:not(.wide) .frame:has(.where) .footer { display: none; }
 html.wide .brandrow { top: 44px; padding-bottom: 18px; }
 html.wide .captions { top: 120px; height: 124px; }
 html.wide .caption { font-size: 56px; }
-html.wide .where { left: 64px; right: 64px; top: 258px; height: 40px; }
-html.wide .stage { top: 318px; height: calc(var(--frame-h) - 402px); }
+html.wide .where { display: none; }
+html.wide .stage { top: 278px; height: calc(var(--frame-h) - 362px); }
 html.wide .footer { bottom: 34px; }
 html.wide .card-full { padding: 0 128px; }
 html.wide .card-full p { max-width: 34ch; }
 
-/* Motion layer (clip.js, off with ?motion=0): masked lines that rise into place, a drifting glow behind dark cards,
-   an orange band trailing a card as it leaves, an orange wipe between parts, and an underline under the newest
-   "find it" step. */
-.ln { display: block; overflow: hidden; padding-bottom: .14em; margin-bottom: -.14em; }
-.ln > span { display: inline-block; will-change: transform; }
-.card-full .bgwrap { position: absolute; inset: 0; overflow: hidden; z-index: -1; background: var(--navy); }
-.card-full .glow { position: absolute; inset: 0; background: url("design-system/backgrounds/midnight-glow.png") center / cover no-repeat; }
-.card-full .trail { position: absolute; left: 0; right: 0; top: 100%; height: 90px; background: var(--orange); }
-.card-full .kicker::before { width: calc(72px * var(--bar, 1)); }
-.wipe { position: absolute; inset: 0; z-index: 200; background: var(--orange); transform: translateY(100%); }
-.where .wstep { display: inline-block; transform-origin: left center; padding-bottom: 4px;
-  background: linear-gradient(var(--orange), var(--orange)) no-repeat left bottom / var(--u, 0%) 3px; }
+/* Motion canvas (clip.js; off with ?motion=0). The paper drifts: a faint dot grid and two soft glows behind
+   everything. A chapter opens on its intro (module chip, title, line) with the app window beside it. Words are
+   spans (.w) so they can spring in one by one. */
+.amb { position: absolute; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; }
+.amb .dots { position: absolute; inset: 0; opacity: .5;
+  background-image: radial-gradient(var(--ll-color-grey-300) 1.3px, transparent 1.5px); background-size: 28px 28px;
+  -webkit-mask-image: radial-gradient(ellipse 70% 65% at 50% 55%, #000 20%, transparent 85%); mask-image: radial-gradient(ellipse 70% 65% at 50% 55%, #000 20%, transparent 85%); }
+.amb .glow { position: absolute; left: -500px; top: -500px; width: 1000px; height: 1000px; border-radius: 50%; }
+.amb .g1 { background: radial-gradient(circle, color-mix(in srgb, var(--orange) 15%, transparent) 0%, transparent 62%); }
+.amb .g2 { background: radial-gradient(circle, color-mix(in srgb, var(--navy) 8%, transparent) 0%, transparent 62%); }
+.stage { will-change: transform; transform-origin: 50% 50%; }
+.w { display: inline-block; will-change: transform, filter, opacity; }
+.intro { position: absolute; left: 96px; right: 96px; top: 150px; z-index: 5; pointer-events: none; }
+.intro .chip { display: inline-flex; align-items: center; gap: 14px; height: 50px; padding: 0 22px 0 8px; border-radius: 999px;
+  background: var(--card); border: 1.5px solid var(--border); font: 600 23px/1 var(--sans); color: var(--fg);
+  box-shadow: 0 8px 24px hsl(30 20% 20% / .08); transform-origin: left center; }
+.intro .chip .n { display: grid; place-items: center; height: 34px; padding: 0 12px; border-radius: 999px; background: var(--orange);
+  color: #fff; font: 500 16px/1 var(--mono); letter-spacing: .06em; }
+.intro h1 { margin: 30px 0 0; font: 400 96px/1.02 var(--serif); color: var(--fg); }
+.intro h1 em { font-style: normal; color: var(--orange); }
+.intro p { margin: 26px 0 0; max-width: 24ch; font: 400 27px/1.42 var(--sans); color: var(--muted-fg); }
+html:not(.wide) .intro p { max-width: 30ch; }

@@ -21,7 +21,8 @@ SR = 44100
 ap = argparse.ArgumentParser()
 ap.add_argument("cues"); ap.add_argument("out")
 ap.add_argument("--seed", type=int, default=7); ap.add_argument("--bpm", type=float, default=82)
-ap.add_argument("--music"); ap.add_argument("--music-gain", type=float, default=0.55)
+ap.add_argument("--music"); ap.add_argument("--music-gain", type=float, default=0.5)
+ap.add_argument("--sfx", help="folder with click.wav, move.wav and type.wav: recorded sounds instead of synthesised ones")
 a = ap.parse_args()
 rng = np.random.default_rng(a.seed)
 spec = json.load(open(a.cues))
@@ -130,6 +131,23 @@ def chime():
     return sum(np.sin(2 * np.pi * hz(m) * t) * np.exp(-t * 2.2) * g for m, g in [(77, 0.5), (81, 0.35), (84, 0.25)])
 
 fx = np.zeros(N)
+if a.sfx:
+    # Recorded interface sounds, kept low under the music: a mouse click per click, a soft air movement when a
+    # chapter's window swings in, a stretch of real typing while text is typed. No chimes, no swooshes.
+    def load(name):
+        sr, x = wavfile.read(f"{a.sfx}/{name}.wav"); x = x.astype(float)
+        x = x.mean(1) if x.ndim > 1 else x
+        return x / max(1e-9, np.max(np.abs(x)))
+    CLICK, MOVE, TYPE = load("click"), load("move"), load("type")
+    for c in spec["cues"]:
+        if c["kind"] == "click": place(fx, CLICK, c["t"] - 0.01, 0.2 * (0.9 + 0.2 * rng.random()))
+        elif c["kind"] == "move": place(fx, MOVE, c["t"], 0.1)
+        elif c["kind"] == "type" and c.get("end"):
+            n = int((c["end"] - c["t"]) * SR); o = int(rng.integers(0, max(1, len(TYPE) - n)))
+            seg = TYPE[o:o + n].copy(); r = min(len(seg) // 4, int(0.08 * SR)); env = np.ones(len(seg))
+            if r: env[:r] = np.linspace(0, 1, r); env[-r:] = np.linspace(1, 0, r)
+            place(fx, seg * env, c["t"], 0.1)
+    spec["cues"] = []; spec["marks"] = []
 for c in spec["cues"]:
     if c["kind"] == "click": place(fx, click(), c["t"], 0.3)
     elif c["kind"] == "whoosh": place(fx, whoosh(), c["t"] - 0.1, 0.22)

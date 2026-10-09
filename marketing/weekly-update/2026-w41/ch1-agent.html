@@ -164,9 +164,15 @@
 <script src="clip.js"></script>
 <script src="chapter.js"></script>
 <script>
-  CHAPTER({ n: 1, total: 6, tag: "Agent in workflows", kicker: "This week in Lleverage", where: true, footerLeft: "lleverage.ai · Week of 5 Oct 2026",
-    title: "Give a step<br><em>to the Agent.</em>", line: "Add the Agent to a workflow to read, check and draft with your tools and files. Then ask it to change the workflow beside the canvas." });
+  // Two chapters from one timeline (C.run PARTS): the Agent as a step in a workflow, and the Agent beside the canvas.
+  const SIDE = new URLSearchParams(location.search).get("part") === "sidebar";
+  CHAPTER(SIDE
+    ? { n: 2, total: 7, module: "Workflows", footerLeft: "lleverage.ai · Week of 5 Oct 2026",
+        title: "Change a workflow<br><em>by asking the Agent.</em>", line: "Open the Agent beside the canvas. It knows the workflow you have open, and the steps it changes light up." }
+    : { n: 1, total: 7, module: "Workflows", footerLeft: "lleverage.ai · Week of 5 Oct 2026",
+        title: "Give a workflow step<br><em>to the Agent.</em>", line: "Describe the task in plain words. The Agent does that step with your tools, integrations and files." });
   const O = 2.7, B = 7.8 + O + 0.4, G = B + 7.3, D = B + 9.4;
+  window.PARTS = { step: [0, B - 0.25], sidebar: [B - 0.2, D] };
   window.HOLDS = [[1.0, 0.7], [4.1, 0.6], [4.15 + O, 1.0], [7.7 + O, 1.0], [B + 2.7, 0.8], [B + 8.6, 1.2]];
   const { $, $$, p, out, io } = C;
   $("#sb").outerHTML = APP.sidebar("Overview");
@@ -199,9 +205,6 @@
   P.ta = at($("#ta"), 0.3); P.send = at($("#sendb"));
   $("#sbwrap").style.width = "240px"; $("#asw").style.width = "0px";
   // Second path for the Agent beside the canvas, swapped in for the second half.
-  const alt = document.createElement("span"); alt.className = "path alt"; alt.style.display = "none";
-  alt.innerHTML = ["Workflows", "Order intake", "Agent, top right", "Ask for a change"].map((l) => `<span class="wstep">${l}</span>`).join('<span class="sep">›</span>');
-  $(".where").appendChild(alt); const altSteps = $$(".wstep", alt), altT = [B, B, B + 1.2, B + 6.0];
   const VW = C.STAGE_W, VH = C.STAGE_H, FIT = Math.min(VW / 1280, VH / 800) * 0.98;
   const cam = C.camera(app, VW, VH, [[0, 640, 400, FIT], [1.9, 640, 400, FIT], [2.3, 490, 300, 1.35], [3.2, 490, 300, 1.35], [3.8, 640, 400, FIT], [1.9 + O, 640, 400, FIT], [2.4 + O, 630, 400, 1.0], [4.9 + O, 630, 400, 1.0], [5.5 + O, 700, 400, 1.15], [B + 0.1, 700, 400, 1.15], [B + 0.7, 755, 271, 1.25], [B + 1.9, 755, 271, 1.25], [B + 2.5, 640, 400, FIT], [B + 3.3, 640, 400, FIT], [B + 3.9, 843, 574, 1.5], [B + 6.1, 843, 574, 1.5], [B + 6.7, 684, 420, 1.1], [D, 700, 400, 1.15]]);
   const F = (t, [x, y]) => { const m = cam(t).map(x, y); return [C.STAGE_X + m[0], C.STAGE_Y + m[1]]; };
@@ -211,7 +214,7 @@
   const cap = C.captions([
     [1.9, 4.3, "Open Workflows<br><em>and pick a workflow.</em>"],
     [1.9 + O, 4.55 + O, "Add a step, then choose AI.<br><em>The Agent is the first option.</em>"],
-    [4.95 + O, B - 0.3, "Describe the task in plain words.<br><em>The Agent does that step.</em>"],
+    [4.95 + O, B - 0.5, "Describe the task in plain words.<br><em>The Agent does that step.</em>"],
     [B, B + 3.0, "Open the Agent beside the canvas.<br><em>It already knows this workflow.</em>"],
     [B + 3.4, 99, "Ask for a change.<br><em>The steps it changes light up.</em>"],
   ]);
@@ -261,8 +264,6 @@
     $("#agb").classList.toggle("on", t >= B + 1.2);
     APP.drive($("#agb"), t >= B + 1.2 ? "agent" : "static", t);
     const second = t >= B;
-    $(".where .path:not(.alt)").style.display = second ? "none" : ""; alt.style.display = second ? "flex" : "none";
-    altSteps.forEach((el, i) => el.classList.toggle("on", t >= altT[i]));
     // The ask, typed into the composer with the workflow chip attached.
     const sent = t >= B + 6.0;
     const tk = Math.round(ASK.length * p(t, B + 4.0, B + 5.6));

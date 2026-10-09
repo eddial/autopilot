@@ -3,118 +3,123 @@
 <title>Weekly update cards</title>
 <link rel="stylesheet" href="clip.css">
 <link rel="stylesheet" href="app.css">
-<link rel="stylesheet" href="chapter.css">
 <style>
-  /* Cover, "also this week" slide and end card for the weekly update (4:3, 1440 x 1080). */
+  /* Cover, "Also new" and end for the weekly update (4:3, 1440 x 1080), on the same moving paper as the chapters.
+     ?card=N&record renders card N as a clip; without ?card every card shows composed, for cards.mjs. */
   html, body { background: #fff; }
   .frame { page-break-after: always; break-after: page; }
-  .card-full .list { margin: 36px 0 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 16px; max-width: 980px; }
-  .card-full .list li { display: flex; gap: 28px; align-items: baseline; font-family: var(--sans); font-size: 28px; font-weight: 600; color: var(--ll-text-onDark); padding-bottom: 16px; border-bottom: 1.5px solid var(--ll-color-midnight-accent); }
-  .card-full .list li span { flex: none; width: 64px; font-size: 32px; font-weight: 700; color: var(--orange); }
-  .card-full h1.sm { font-size: 96px; }
-  .ttl { position: absolute; top: 120px; left: 64px; right: 64px; margin: 0; font-family: var(--serif); font-size: 60px; line-height: 1.04; font-weight: 400; color: var(--ll-text-primary); }
-  .ttl em { font-style: normal; color: var(--orange); }
-  .grp { position: absolute; left: 64px; right: 64px; }
-  .grp h3 { margin: 0 0 14px; font-family: var(--mono); font-size: 19px; font-weight: 400; letter-spacing: .1em; text-transform: uppercase; color: var(--ll-text-kicker); }
-  .grp h3::before { content: "/ "; color: var(--orange); }
-  .grp ul { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; }
-  .grp li { display: flex; justify-content: space-between; align-items: baseline; gap: 32px; padding: 16px 0; border-top: 1.5px solid var(--ll-color-grey-300); }
-  .grp li b { font-family: var(--sans); font-size: 27px; line-height: 1.3; font-weight: 600; color: var(--ll-text-primary); }
-  .grp li b small { display: block; margin-top: 2px; font-size: 21px; font-weight: 400; color: var(--muted-fg); }
-  .grp li span { flex: none; max-width: 440px; font-family: var(--mono); font-size: 16px; line-height: 1.5; letter-spacing: .06em; text-transform: uppercase; color: var(--ll-text-kicker); text-align: right; }
-  /* Motion: the cover's rows light in turn (--hl), the "Also" rows draw their rule as they slide in (--rule). */
-  .card-full .list li { position: relative; border-bottom-color: transparent; }
-  .card-full .list li::after { content: ""; position: absolute; left: 0; right: 0; bottom: -1.5px; height: 1.5px;
-    background: color-mix(in srgb, var(--orange) calc(var(--hl, 0) * 100%), var(--ll-color-midnight-accent)); }
-  .card-full .list li span { display: inline-block; transform: scale(calc(1 + .18 * var(--hl, 0))); transform-origin: left center; }
-  .grp li { position: relative; border-top-color: transparent; }
-  .grp li::before { content: ""; position: absolute; left: 0; right: 0; top: -1.5px; height: 1.5px; background: var(--ll-color-grey-300);
-    transform: scaleX(var(--rule, 1)); transform-origin: left; }
+  .blk { position: absolute; left: 96px; right: 96px; z-index: 5; }
+  .big { margin: 0; font: 400 112px/1.0 var(--serif); color: var(--fg); }
+  .big em, .ttl em { font-style: normal; color: var(--orange); }
+  .ttl { margin: 0; font: 400 72px/1.04 var(--serif); color: var(--fg); }
+  .mod { display: inline-flex; align-items: center; height: 38px; padding: 0 16px; border-radius: 999px; background: var(--card);
+    border: 1.5px solid var(--border); font: 600 18px/1 var(--sans); color: var(--fg); white-space: nowrap; }
+  .rows { margin: 0; padding: 0; list-style: none; }
+  .cover .rows { margin-top: 56px; display: grid; gap: 14px; }
+  .cover .rows li { display: grid; grid-template-columns: 54px 210px 1fr; align-items: center; font: 600 29px/1.2 var(--sans); color: var(--fg); }
+  .cover .rows li .n { font: 500 18px/1 var(--mono); color: var(--orange); letter-spacing: .06em; }
+  .cover .rows li .mod { justify-self: start; }
+  .also .rows { margin-top: 44px; display: grid; gap: 10px; }
+  .also .rows li { display: flex; align-items: center; justify-content: space-between; gap: 32px; padding: 14px 24px; border-radius: 16px;
+    background: color-mix(in srgb, var(--card) 80%, transparent); border: 1.5px solid var(--border); }
+  .also .rows li b { display: block; font: 600 25px/1.25 var(--sans); color: var(--fg); }
+  .also .rows li small { display: block; margin-top: 3px; font: 400 19px/1.3 var(--sans); color: var(--muted-fg); }
+  .end .line { margin: 34px 0 0; max-width: 30ch; font: 400 30px/1.42 var(--sans); color: var(--muted-fg); }
+  .end .blk .logo { margin-top: 64px; height: 56px; }
+  .mod.lit { background: var(--orange); border-color: var(--orange); color: #fff; }
 </style></head>
 <body>
   <!-- Cover -->
-  <div class="frame"><div class="card-full" style="position:absolute">
-    <div class="kicker"><span></span>Week of 5 October 2026</div>
-    <h1 class="sm">This week<br><em>in Lleverage.</em></h1>
-    <ul class="list">
-      <li><span>01</span>Give a step to the Agent</li>
-      <li><span>02</span>Start a project from a template</li>
-      <li><span>03</span>Improve a Skill from real feedback</li>
-      <li><span>04</span>Check the document before you decide</li>
-      <li><span>05</span>Talk to the Agent while you work</li>
-      <li><span>06</span>Work through records on a board</li>
-    </ul>
-    <div class="mark"><span data-logo></span></div><div class="url">Product changelog</div>
-  </div></div>
+  <div class="frame cover">
+    <div class="brandrow"><div class="logo"><span data-logo></span></div><div class="tag">Week of 5 October 2026</div></div>
+    <div class="blk" style="top:190px">
+      <h1 class="big">This week<br><em>in Lleverage.</em></h1>
+      <ul class="rows">
+        <li><span class="n">01</span><span class="mod">Workflows</span><span class="t">Give a workflow step to the Agent</span></li>
+        <li><span class="n">02</span><span class="mod">Workflows</span><span class="t">Change a workflow by asking the Agent</span></li>
+        <li><span class="n">03</span><span class="mod">Projects</span><span class="t">Start a new project from a template</span></li>
+        <li><span class="n">04</span><span class="mod">Skills</span><span class="t">Improve a Skill from its feedback</span></li>
+        <li><span class="n">05</span><span class="mod">Requests</span><span class="t">Check the document before you decide</span></li>
+        <li><span class="n">06</span><span class="mod">Agent</span><span class="t">Call the Agent and keep working</span></li>
+        <li><span class="n">07</span><span class="mod">Data tables</span><span class="t">Work through records on a board</span></li>
+      </ul>
+    </div>
+    <div class="footer"><span>lleverage.ai · Product changelog</span><span>Week of 5 Oct 2026</span></div>
+  </div>
 
-  <!-- Also this week -->
-  <div class="frame">
-    <div class="brandrow"><div class="logo"><span data-logo></span></div><div class="tag">Also this week · 07</div></div>
-    <h2 class="ttl">Also new this week,<br><em>and where to find it.</em></h2>
-    <div class="grp" style="top:300px"><h3>Also new</h3><ul>
-      <li><b>Invites that stay inside your company<small>With single sign-on, people can only be invited with an address on your company's domains</small></b><span>Organisation Settings › Members</span></li>
-      <li><b>Change a database password in one place<small>The secret behind each database connection is on the Secrets page</small></b><span>Databases › Manage credentials</span></li>
-      <li><b>Linked records by name<small>Cards, filters, previews and widgets show the name of the linked record</small></b><span>Data tables › any table</span></li>
-      <li><b>A saved view on your Overview<small>The Table widget shows a data table view, with its filters and sort</small></b><span>Overview › Edit › Table widget</span></li>
-      <li><b>Start a session from any project<small>Each project card on the organisation overview has a + button</small></b><span>Organisation overview › project card</span></li>
-      <li><b>Claude Haiku 5.5 for quick steps<small>The fastest model we offer, for steps where speed matters most</small></b><span>Any model picker › Fastest</span></li>
-    </ul></div>
-    <div class="footer"><span>lleverage.ai · Week of 5 Oct 2026</span><span>07 / 07</span></div>
+  <!-- Also new -->
+  <div class="frame also">
+    <div class="brandrow"><div class="logo"><span data-logo></span></div><div class="tag">Also new</div></div>
+    <div class="blk" style="top:150px">
+      <h2 class="ttl">Also new <em>this week.</em></h2>
+      <ul class="rows">
+        <li><div><b>Invites that stay inside your company</b><small>With single sign-on, people are invited only with an address on your domains</small></div><span class="mod">Organisation settings</span></li>
+        <li><div><b>Change a database password in one place</b><small>The secret behind each database connection is on the Secrets page</small></div><span class="mod">Databases</span></li>
+        <li><div><b>Correct a form you already sent</b><small>Edit and resubmit opens a new response with your earlier answers filled in</small></div><span class="mod">Apps</span></li>
+        <li><div><b>Linked records by name</b><small>Cards, filters, previews and widgets show the linked record's name</small></div><span class="mod">Data tables</span></li>
+        <li><div><b>A saved view on your Overview</b><small>The Table widget shows a data table view, with its filters and sort</small></div><span class="mod">Overview</span></li>
+        <li><div><b>Start a session from any project</b><small>Each project card on the organisation overview has a + button</small></div><span class="mod">Organisation overview</span></li>
+        <li><div><b>Claude Haiku 5.5 for quick steps</b><small>Choose Fastest for steps where speed matters most</small></div><span class="mod">Model picker</span></li>
+      </ul>
+    </div>
+    <div class="footer"><span>lleverage.ai · Week of 5 Oct 2026</span><span>Also new</span></div>
   </div>
 
   <!-- End -->
-  <div class="frame"><div class="card-full" style="position:absolute">
-    <div class="kicker"><span></span>Week of 5 October 2026</div>
-    <h1 class="sm">This week<br><em>in Lleverage.</em></h1>
-    <p style="max-width:40ch">Every change, and where to find it, is in the product changelog in our docs.</p>
-    <div class="mark"><span data-logo></span></div><div class="url">lleverage.ai</div>
-  </div></div>
+  <div class="frame end">
+    <div class="brandrow"><div class="logo"><span data-logo></span></div><div class="tag">Product changelog</div></div>
+    <div class="blk" style="top:300px">
+      <h1 class="big">This week<br><em>in Lleverage.</em></h1>
+      <p class="line">Every change, and where to find it, is in the product changelog in our docs.</p>
+      <img class="logo" src="design-system/logo/logo-full-dark.svg" alt="Lleverage">
+    </div>
+    <div class="footer"><span>lleverage.ai</span><span>Week of 5 Oct 2026</span></div>
+  </div>
 
 <script src="fa-icons.js"></script><script src="fa-extra.js"></script>
 <script src="app.js"></script>
 <script src="clip.js"></script>
 <script>
-  // ?card=N&record renders card N as a clip (render.mjs, CLIP_QUERY="card=N"); without ?card every card shows in
-  // its final state, for cards.mjs. The cover opens fully composed (its first frame is the thumbnail), then each
-  // title lights in turn; "Also" and the end card build themselves.
   const N = Number(new URLSearchParams(location.search).get("card")) || 0;
-  const { $, $$, p, out, io, show, rise, lines, clamp } = C;
+  const { $, $$, p, io, clamp, spring, words, wordsIn } = C;
   const F = $$(".frame");
   if (N) F.forEach((f, i) => (f.style.display = i === N - 1 ? "" : "none"));
-  F.forEach((f) => { const c = $(".card-full", f); if (c) c.insertAdjacentHTML("afterbegin", '<div class="bgwrap"><div class="glow"></div></div>'); });
-  const glow = (f, t, len) => { const g = $(".glow", f); if (g) { const d = clamp(t / len); g.style.transform = `scale(${1.14 - 0.08 * d}) translate(${-2 + 4 * d}%, ${1 - 2 * d}%)`; } };
-  const coverRows = $$(".list li", F[0]);
-  const ttl = lines($(".ttl", F[1])), rows = $$(".grp li", F[1]);
-  const endL = lines($("h1", F[2]));
-  const LEN = { 1: 3.4, 2: 8.5, 3: 3.0 }[N] || 1;
-  window.WIPE = { 1: "out", 2: "both", 3: "in" }[N] || "none";
+  const LEN = { 1: 3.4, 2: 8.5, 3: 3.2 }[N] || 1;
+  // Cover: composed from the first frame (it is the thumbnail). Each module lights in turn, then everything drifts
+  // off to the left as the first chapter swings in.
+  const cw = words($(".big", F[0])), crow = $$(".rows li", F[0]);
+  // Also: the title springs in, the rows follow one by one from the right, then all drift off to the left.
+  const aw = words($(".ttl", F[1])), arow = $$(".rows li", F[1]);
+  // End: the title, the line and the logo spring in and stay.
+  const ew = words($(".big", F[2])).concat(words($(".line", F[2])));
+  const rowIn = (el, t, a, z) => {
+    const s = spring(t - a, 0.7, 10), f = clamp((t - a) / 0.35), o = io(clamp((t - z) / 0.45));
+    el.style.opacity = Math.min(clamp((t - a) / 0.2), 1 - o);
+    el.style.transform = `translate(${(1 - s) * 90 - o * 60}px, 0)`;
+    const b = (1 - f) * 8 + o * 8; el.style.filter = b > 0.05 ? `blur(${b}px)` : "none";
+  };
+  if (N > 1) window.SFX.push({ kind: "move", t: 0.05, raw: true });
   C.run(LEN, (t) => {
-    if (!N) t = 99;
-    // Cover: each title's number and rule light orange in turn, on the beat (82 bpm).
-    glow(F[0], t, 4);
-    coverRows.forEach((li, i) => {
-      const a = 0.35 + i * 0.36, q = p(t, a, a + 0.25) * (1 - p(t, a + 0.5, a + 0.9));
-      li.style.setProperty("--hl", N ? q : 0);
-    });
-    // Also: the title rises, then the rows slide in one by one with their paths.
-    if (N === 2 || !N) {
-      rise(ttl, t, 0.45, Infinity, 0.12);
-      show($(".grp h3", F[1]), t, 0.85);
-      rows.forEach((li, i) => {
-        const a = 1.0 + i * 0.16, q = out(p(t, a, a + 0.5));
-        li.style.opacity = q; li.style.transform = `translateX(${(1 - q) * 48}px)`;
-        li.style.setProperty("--rule", out(p(t, a - 0.05, a + 0.6)));
-        show($("span", li), t, a + 0.2, Infinity, 0, 0.4);
+    if (!N) t = 1.5;
+    const Z = N ? LEN - 0.75 : Infinity;
+    if (N === 1 || !N) {
+      wordsIn(cw, t, -9, N === 1 ? Z : Infinity, 0.02);
+      crow.forEach((li, i) => {
+        rowIn(li, t, -9, N === 1 ? Z + 0.05 + i * 0.04 : Infinity);
+        const a = 0.25 + i * 0.33;
+        $(".mod", li).classList.toggle("lit", N === 1 && t >= a && t < a + 0.3);
+        $(".mod", li).style.transform = `scale(${1 + 0.08 * Math.sin(Math.PI * clamp((t - a) / 0.45)) * (N === 1 ? 1 : 0)})`;
       });
-      $(".grp", F[1]).style.scale = 1 + 0.015 * clamp(t / LEN);
     }
-    // End: the glow drifts, the bar grows, the title rises, the rest follows.
-    glow(F[2], t, 4);
-    const e = $(".card-full", F[2]);
-    e.style.setProperty("--bar", out(p(t, 0.35, 0.9)));
-    rise(endL, t, 0.45, Infinity, 0.12);
-    show($("p", e), t, 0.9); show($(".mark", e), t, 1.05); show($(".url", e), t, 1.05);
-    show($(".kicker", e), t, 0.3);
+    if (N === 2 || !N) {
+      wordsIn(aw, t, N ? 0.25 : -9, N ? Z : Infinity, 0.05);
+      arow.forEach((li, i) => rowIn(li, t, N ? 0.75 + i * 0.13 : -9, N ? Z + i * 0.04 : Infinity));
+    }
+    if (N === 3 || !N) {
+      wordsIn(ew, t, N ? 0.25 : -9, Infinity, 0.045);
+      const lg = $(".logo", $(".blk", F[2])), s = N ? spring(t - 1.0, 0.7, 9) : 1;
+      lg.style.opacity = N ? clamp((t - 1.0) / 0.3) : 1; lg.style.transform = `translateY(${(1 - s) * 30}px)`;
+    }
   });
 </script>
 </body></html>

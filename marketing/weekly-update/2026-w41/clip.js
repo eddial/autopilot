@@ -1,20 +1,21 @@
 // Deterministic clip runtime: every frame is render(t). ?record exposes seek(t) for the recorder;
 // otherwise the clip loops in the browser for preview.
+// Motion (on unless ?motion=0): one continuous canvas rather than slides. Springs instead of eases; words spring in
+// with a blur; a chapter's app window swings in from the right beside its title, grows into place and flies out
+// to the left, so the next chapter flows in. The paper background drifts on the video's own clock (?t0=, seconds
+// of the parts before this one), so it carries on across cuts.
 const C = (() => {
   // Frame size from the format (?w=<px>&h=<px>, set by the toolkit scripts; default 4:5, 1080 x 1350).
   // Portrait and square: 1080 wide, stage 952 x (H - 450) at (64, 330).
-  // Landscape (WIDE, e.g. 4:3 at 1440 x 1080): stage (W - 128) x (H - 402) at (64, 318), under the captions and
-  // the "find it" row.
+  // Landscape (WIDE, e.g. 4:3 at 1440 x 1080): stage (W - 128) x (H - 362) at (64, 278), under the captions.
   const q = new URLSearchParams(location.search);
   const H = Number(q.get("h")) || 1350, W = Number(q.get("w")) || 1080, WIDE = W > H;
   document.documentElement.style.setProperty("--frame-h", H + "px");
   document.documentElement.style.setProperty("--frame-w", W + "px");
   if (WIDE) document.documentElement.classList.add("wide");
-  // Motion layer (on unless ?motion=0): orange wipes between parts, kinetic lines on cards and captions, a drifting
-  // glow behind cards, and a slow camera push during every hold so a paused frame never stands still.
-  const MOTION = q.get("motion") !== "0";
+  const MOTION = q.get("motion") !== "0", T0 = Number(q.get("t0")) || 0;
   let RAW = 0, DRIFT = 1;
-  const STAGE_X = 64, STAGE_Y = WIDE ? 318 : 330, STAGE_W = W - 128, STAGE_H = WIDE ? H - 402 : H - 450;
+  const STAGE_X = 64, STAGE_Y = WIDE ? 278 : 330, STAGE_W = W - 128, STAGE_H = WIDE ? H - 362 : H - 450;
   const clamp = (x) => Math.max(0, Math.min(1, x));
   const p = (t, a, b) => clamp((t - a) / (b - a));
   const io = (x) => (x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2);
@@ -23,6 +24,12 @@ const C = (() => {
   const lerp = (a, b, x) => a + (b - a) * x;
   const $ = (s, r = document) => r.querySelector(s);
   const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+  // A damped spring from 0 to 1, d seconds after it starts: overshoots a little and settles. z damping, w stiffness.
+  function spring(d, z = 0.62, w = 11) {
+    if (d <= 0) return 0;
+    const wd = w * Math.sqrt(1 - z * z);
+    return 1 - Math.exp(-z * w * d) * (Math.cos(wd * d) + ((z * w) / wd) * Math.sin(wd * d));
+  }
 
   // Fade and lift in at a, optionally out at z.
   function show(el, t, a, z = Infinity, dy = 24, dur = 0.45) {
@@ -31,27 +38,42 @@ const C = (() => {
     el.style.opacity = Math.min(i, o);
     el.style.transform = `translateY(${(1 - i) * dy}px)`;
   }
-  // Sound cues (timeline seconds): clicks, the title card leaving, typing. run() maps them to held time as
-  // window.CUES for soundtrack.py; nothing here makes a sound.
+  // Wrap every word of an element in a span (keeping <em> and <br>), for word-by-word motion.
+  function words(el) {
+    const walk = (n) => [...n.childNodes].forEach((c) => {
+      if (c.nodeType === 3) {
+        const f = document.createDocumentFragment();
+        c.textContent.split(/(\s+)/).forEach((w) => {
+          if (!w) return;
+          if (/^\s+$/.test(w)) return f.appendChild(document.createTextNode(w));
+          const s = document.createElement("span"); s.className = "w"; s.textContent = w; f.appendChild(s);
+        });
+        n.replaceChild(f, c);
+      } else if (c.nodeType === 1 && c.tagName !== "BR") walk(c);
+    });
+    walk(el);
+    return $$(".w", el);
+  }
+  // Words spring up into place from a, out of focus until they land; from z they drift off to the left and blur.
+  function wordsIn(ws, t, a, z = Infinity, gap = 0.045) {
+    ws.forEach((w, i) => {
+      const d = t - a - i * gap, s = spring(d, 0.6, 12), f = clamp(d / 0.35);
+      const o = z === Infinity ? 0 : io(clamp((t - z - i * 0.018) / 0.4));
+      w.style.opacity = Math.min(clamp(d / 0.2), 1 - o);
+      w.style.transform = `translate(${-o * 40}px, ${(1 - s) * 0.55}em)`;
+      const b = (1 - f) * 9 + o * 8;
+      w.style.filter = b > 0.05 ? `blur(${b}px)` : "none";
+    });
+  }
+  // Sound cues (timeline seconds): clicks and typing. run() maps them to held time as window.CUES for
+  // soundtrack.py; nothing here makes a sound. Raw cues (raw: true) are already in real seconds.
   const SFX = (window.SFX = []), seen = new Set();
   const cue = (kind, t, end) => { const k = kind + t + (end || ""); if (!seen.has(k)) { seen.add(k); SFX.push({ kind, t, end }); } };
   function type(el, text, t, a, b) {
     cue("type", a, b);
     el.textContent = text.slice(0, Math.round(text.length * p(t, a, b)));
   }
-  // Split an element's <br>-separated lines into masked spans that can rise into place.
-  function lines(el) {
-    el.innerHTML = el.innerHTML.split(/<br\s*\/?>/i).map((l) => `<span class="ln"><span>${l}</span></span>`).join("");
-    return $$(".ln > span", el);
-  }
-  // Lines rise in one after another from a, and leave upwards from z.
-  function rise(ls, t, a, z = Infinity, gap = 0.09) {
-    ls.forEach((s, j) => {
-      const i = out(p(t, a + j * gap, a + j * gap + 0.5)), o = io(p(t, z + j * 0.05, z + j * 0.05 + 0.35));
-      s.style.transform = `translateY(${((1 - i) - o) * 110}%)`;
-    });
-  }
-  // Captions: [[start, end, html], ...] onto .caption elements built here.
+  // Captions: [[start, end, html], ...] onto .caption elements built here; word by word with MOTION.
   function captions(list) {
     const host = $(".captions");
     const els = list.map(([, , html]) => {
@@ -59,13 +81,13 @@ const C = (() => {
       d.className = "caption";
       d.innerHTML = `<div>${html}</div>`;
       host.appendChild(d);
-      d.ls = lines(d.firstChild);
+      d.ws = MOTION ? words(d.firstChild) : [];
       return d;
     });
     return (t) => list.forEach(([a, z], i) => {
       if (!MOTION) return show(els[i], t, a, z, 30);
-      els[i].style.opacity = t >= a && t < z + 0.5 ? 1 : 0;
-      rise(els[i].ls, t, a, z);
+      els[i].style.opacity = t >= a && t < z + 0.7 ? 1 : 0;
+      wordsIn(els[i].ws, t, a, z, 0.04);
     });
   }
   // Cursor path: [[t, x, y, click?], ...] in frame pixels.
@@ -109,52 +131,42 @@ const C = (() => {
       return { x, y, s, map: (ux, uy) => [vw / 2 + (ux - x) * S, vh / 2 + (uy - y) * S] };
     };
   }
-  // "Find it": the path to the feature, [[t, label], ...]. Each step lights up at its time (when the cursor
-  // gets there); until then it shows dimmed, so the whole path is readable from the first frame.
+  // "Find it" path row (portrait formats). With MOTION the module is named in the chapter title instead, and the
+  // row is not shown.
   function where(steps) {
     const host = $(".where .path");
     if (!host) return () => {};
     host.innerHTML = steps.map(([, l]) => `<span class="wstep">${l}</span>`).join('<span class="sep">›</span>');
     const els = $$(".wstep", host);
-    // Each step pops as it lights; an orange underline draws under the newest one.
-    return (t) => {
-      let cur = -1;
-      steps.forEach(([a], i) => { els[i].classList.toggle("on", t >= a); if (t >= a) cur = i; });
-      if (MOTION) els.forEach((el, i) => {
-        const q = out(p(t, steps[i][0], steps[i][0] + 0.35));
-        el.style.transform = t >= steps[i][0] ? `scale(${1 + 0.12 * (1 - q)})` : "";
-        el.style.setProperty("--u", i === cur ? q * 100 + "%" : "0%");
-      });
-    };
+    return (t) => steps.forEach(([a], i) => els[i].classList.toggle("on", t >= a));
   }
-  // Hook card slides up and away; end card fades in.
-  function hook(el, t, z) {
-    cue("whoosh", z);
-    const q = io(p(t, z, z + 0.6));
-    if (!MOTION) { el.style.transform = `translateY(${-q * H}px)`; return; }
-    // The card leaves with an orange band trailing under it; its title leaves a little faster than its background.
-    card(el, RAW);
-    el.style.transform = `translateY(${-q * (H + 90)}px)`;
-    const h = $("h1", el); if (h) h.style.translate = `0 ${-q * 160}px`;
-  }
-  // A dark card builds itself: the glow drifts, the orange bar grows, the title rises line by line, the rest
-  // follows. r is real (unheld) seconds; a is when it starts.
-  function card(el, r, a = 0.25) {
-    if (!el.ls) {
-      el.insertAdjacentHTML("afterbegin", '<div class="bgwrap"><div class="glow"></div></div>');
-      el.insertAdjacentHTML("beforeend", '<div class="trail"></div>');
-      const h = $("h1", el); el.ls = h ? lines(h) : [];
-    }
-    const d = clamp(r / 8);
-    $(".glow", el).style.transform = `scale(${1.14 - 0.08 * d}) translate(${-2 + 4 * d}%, ${1 - 2 * d}%)`;
-    el.style.setProperty("--bar", out(p(r, a, a + 0.55)));
-    rise(el.ls, r, a + 0.12, Infinity, 0.12);
-    [[".num", 0], [".kicker", 0.05], ["p", 0.55], [".extra", 0.6], [".list", 0.6], [".mark", 0.7], [".url", 0.7], [".by", 0.7]]
-      .forEach(([s, w]) => { const e = $(s, el); if (e) show(e, r, a + w, Infinity, 24, 0.5); });
-  }
+  // The chapter intro (#hook) is driven by run(); hook() keeps the old call sites working without MOTION.
+  function hook(el, t, z) { if (!MOTION) { const q = io(p(t, z, z + 0.6)); el.style.transform = `translateY(${-q * H}px)`; } }
   function endcard(el, t, a) { const q = out(p(t, a, a + 0.6)); el.style.opacity = q; el.style.transform = `scale(${1.04 - 0.04 * q})`; }
 
   const LOGO = `<svg viewBox="0 0 54 54" aria-label="Lleverage"><path fill-rule="evenodd" clip-rule="evenodd" d="M32.1199 0C39.6152 0 43.3629 0 46.2257 1.45857C48.7439 2.74167 50.7915 4.78926 52.0746 7.30749C53.5333 10.1703 53.5332 13.918 53.5332 21.4133V32.1199C53.5332 39.6152 53.5333 43.3629 52.0746 46.2257C50.7915 48.7439 48.7439 50.7915 46.2257 52.0746C43.3629 53.5333 39.6152 53.5332 32.1199 53.5332H21.4133C13.918 53.5332 10.1703 53.5333 7.30749 52.0746C4.78926 50.7915 2.74167 48.7439 1.45857 46.2257C0 43.3629 0 39.6152 0 32.1199L0 21.4133C0 13.918 0 10.1703 1.45857 7.30749C2.74167 4.78926 4.78926 2.74167 7.30749 1.45857C10.1703 0 13.918 0 21.4133 0L32.1199 0ZM27.0667 11.4545C26.2351 10.0143 24.3934 9.52078 22.9531 10.3523L20.6351 11.6906C19.1949 12.5221 18.7014 14.3639 19.5328 15.8041L34.5976 41.8639C35.4291 43.3042 37.2709 43.7977 38.7111 42.9662L41.0292 41.6279C42.4694 40.7963 42.963 38.9546 42.1315 37.5143L27.0667 11.4545ZM21.619 27.5806C20.7875 26.1404 18.9457 25.6468 17.5055 26.4783L15.1874 27.8166C13.7472 28.6481 13.2537 30.4899 14.0851 31.9301L19.8536 41.9214C20.6851 43.3616 22.5268 43.8551 23.9671 43.0237L26.2851 41.6853C27.7253 40.8538 28.2189 39.012 27.3874 37.5718L21.619 27.5806Z"/></svg>`;
+  // The paper background: two soft glows and a faint dot grid, moving on the video's clock (T0 + real seconds).
+  function ambient(frame) {
+    const a = document.createElement("div"); a.className = "amb";
+    a.innerHTML = '<div class="dots"></div><div class="glow g1"></div><div class="glow g2"></div>';
+    frame.prepend(a);
+    const g1 = $(".g1", a), g2 = $(".g2", a), dots = $(".dots", a);
+    return (r) => {
+      const G = T0 + r;
+      g1.style.transform = `translate(${W * (0.62 + 0.14 * Math.sin(G * 0.13))}px, ${H * (0.18 + 0.12 * Math.cos(G * 0.1))}px)`;
+      g2.style.transform = `translate(${W * (0.08 + 0.12 * Math.cos(G * 0.09 + 1))}px, ${H * (0.7 + 0.1 * Math.sin(G * 0.12))}px)`;
+      dots.style.backgroundPosition = `${(-G * 9) % 28}px ${(-G * 4) % 28}px`;
+    };
+  }
+  // Poses of the app window: off to the right, beside the title, in place, off to the left.
+  const POSE = {
+    offR: { x: W * 0.9, y: 160, s: 0.5, ry: -34, rx: 8, b: 10 },
+    intro: WIDE ? { x: 230, y: 175, s: 0.6, ry: -16, rx: 6, b: 0 } : { x: 120, y: 260, s: 0.6, ry: -16, rx: 6, b: 0 },
+    full: { x: 0, y: 0, s: 1, ry: 0, rx: 0, b: 0 },
+    offL: { x: -W * 0.95, y: -40, s: 0.62, ry: 30, rx: -4, b: 10 },
+  };
+  const mix = (A, B, e) => Object.fromEntries(Object.keys(A).map((k) => [k, lerp(A[k], B[k], e)]));
+
   function run(duration, render) {
     // Brand logos from the design-system kit: full logo on paper, light logo on midnight.
     $$(".brandrow [data-logo]").forEach((el) => (el.innerHTML = '<img src="design-system/logo/logo-full-dark.svg" alt="Lleverage">'));
@@ -162,37 +174,68 @@ const C = (() => {
     $$("[data-logo]:empty").forEach((el) => (el.innerHTML = LOGO));
     const params = new URLSearchParams(location.search);
     const record = params.has("record");
-    // ?chapter=<label> relabels the brand row tag when a clip is cut into a combined video.
     if (params.get("chapter")) $$(".brandrow .tag").forEach((el) => (el.textContent = params.get("chapter")));
-    // Holds: [[at, seconds], ...] freeze the timeline at `at` so a result can be read; motion keeps its speed.
-    const holds = (window.HOLDS || []).map((h) => h.slice()).sort((a, b) => a[0] - b[0]);
-    // A title card builds in about a second, so its hold grows to keep the reading time.
-    if (MOTION && $("#hook")) holds.forEach((h) => { if (h[0] >= 0.8 && h[0] < 1.5) h[1] = Math.max(h[1], 1.5); });
+    // Parts: window.PARTS = { name: [from, to] } cuts one timeline into chapters; ?part=name renders one. A part that
+    // starts later holds its first frame for 1.5 s behind its intro, as a chapter's opening does.
+    const part = (window.PARTS || {})[params.get("part")] || [0, duration];
+    const [from, to] = part, lead = from > 0 ? 1.5 : 0;
+    const tl = (u) => (u < lead ? from : from + u - lead); // part-local seconds to the clip's timeline
+    const loc = (t) => t - from + lead; // and back
+    // Holds: [[at, seconds], ...] in part-local time freeze the timeline so a result can be read.
+    const intro = MOTION && !!$("#hook");
+    let holds = (window.HOLDS || []).map(([at, d]) => [loc(at), d]).filter(([at]) => at > (from > 0 ? lead : -1) && at < to - from + lead);
+    if (intro) {
+      // The intro builds for about 3 s: its hold grows (or is added) so the title can be read.
+      const h = holds.find(([at]) => at >= 0.8 && at < 1.5);
+      if (h) h[1] = Math.max(h[1], 1.6); else holds.push([1.0, 1.6]);
+    }
+    holds = holds.sort((a, b) => a[0] - b[0]);
     const warp = (t) => { for (const [at, d] of holds) { if (t < at) return t; if (t < at + d) return at; t -= d; } return t; };
-    duration += holds.reduce((s, [, d]) => s + d, 0);
-    const inner = render;
-    // Holds in real seconds; the camera pushes in 3.5% over each one and eases back after it.
+    const held = (t) => t + holds.reduce((s, [at, d]) => s + (at < t ? d : 0), 0);
+    duration = to - from + lead + holds.reduce((s, [, d]) => s + d, 0);
+    // The camera pushes in 3.5% over each hold and eases back after it.
     const rawHolds = []; let acc = 0;
     for (const [at, d] of holds) { rawHolds.push([at + acc, d]); acc += d; }
     const drift = (r) => 1 + 0.035 * rawHolds.reduce((s, [a, d]) => s + io(p(r, a, a + d)) * (1 - io(p(r, a + d, a + d + 0.8))), 0);
-    // Wipes: an orange panel lifts off the first frame and rises over the last, so parts cut on orange.
-    // window.WIPE: "both" (default), "in", "out" or "none".
-    const frame = $$(".frame").find((f) => getComputedStyle(f).display !== "none");
-    const mode = MOTION ? window.WIPE || "both" : "none";
-    let wipe = null;
-    if (mode !== "none") { wipe = document.createElement("div"); wipe.className = "wipe"; frame.appendChild(wipe); }
-    if (mode === "both" || mode === "out") SFX.push({ kind: "whoosh", t: duration - 0.5, raw: true });
-    render = (t) => {
-      RAW = t; DRIFT = MOTION ? drift(t) : 1;
-      inner(warp(t));
-      if (!wipe) return;
-      const i = mode === "out" ? 1 : io(p(t, 0, 0.42)), o = mode === "in" ? 0 : io(p(t, duration - 0.42, duration));
-      wipe.style.transform = `translateY(${o > 0 ? (1 - o) * 100 : -i * 100}%)`;
+
+    const frame = $$(".frame").find((f) => getComputedStyle(f).display !== "none") || $(".frame");
+    const amb = MOTION ? ambient(frame) : null;
+    const stage = $(".stage", frame), hookEl = $("#hook"), capHost = $(".captions", frame), tag = $(".brandrow .tag", frame);
+    const ZR = held(1.5); // real seconds when the intro hands over to the feature
+    const OUT = duration - 0.8; // the window starts to leave
+    let iw = [], tagW = [];
+    if (intro) {
+      iw = words($("h1", hookEl)).concat(words($("p", hookEl)));
+      if (tag) tagW = words(tag);
+      SFX.push({ kind: "move", t: 0.05, raw: true });
+    }
+    const inner = render;
+    render = (r) => {
+      RAW = r; DRIFT = MOTION ? drift(r) : 1;
+      const u = warp(r);
+      inner(tl(u));
+      if (amb) amb(r);
+      if (!intro) return;
+      // The window: swing in beside the title, grow into place, fly out to the left.
+      const e1 = spring(r - 0.05, 0.72, 7.5), e2 = spring(r - ZR, 0.7, 8), e3 = io(p(r, OUT, duration));
+      let P = mix(mix(POSE.offR, POSE.intro, e1), POSE.full, e2);
+      P = mix(P, POSE.offL, e3);
+      stage.style.transform = `perspective(2400px) translate3d(${P.x}px, ${P.y}px, 0) rotateY(${P.ry}deg) rotateX(${P.rx}deg) scale(${P.s})`;
+      stage.style.filter = P.b > 0.1 ? `blur(${P.b}px)` : "none";
+      // The title: chip, words and line spring in, then leave as the window grows.
+      const chip = $(".chip", hookEl);
+      const cs = spring(r - 0.25, 0.55, 12);
+      chip.style.opacity = clamp((r - 0.25) / 0.2) * (1 - io(p(r, ZR - 0.1, ZR + 0.3)));
+      chip.style.transform = `translateX(${-io(p(r, ZR - 0.1, ZR + 0.3)) * 40}px) scale(${0.6 + 0.4 * cs})`;
+      wordsIn(iw, r, 0.35, ZR - 0.15, 0.05);
+      if (tagW.length) wordsIn(tagW, r, 0.2, Infinity, 0.03);
+      // Captions arrive as the title leaves and drift off with the window.
+      if (capHost) { capHost.style.opacity = (r < ZR ? 0 : 1) * (1 - e3); capHost.style.transform = `translateX(${-e3 * 120}px)`; }
+      const cur = $(".cursor", frame); if (cur && e3 > 0) cur.style.opacity = Math.min(Number(cur.style.opacity || 1), 1 - e3);
     };
     window.DURATION = duration;
-    // Timeline seconds to held seconds: every hold that starts before t pushes it later.
-    const held = (t) => t + holds.reduce((s, [at, d]) => s + (at < t ? d : 0), 0);
-    window.CUES = () => SFX.map((c) => (c.raw ? c : { ...c, t: held(c.t), end: c.end === undefined ? undefined : held(c.end) }));
+    // Cues in real seconds: those inside this part, mapped to part-local time, then to held time.
+    window.CUES = () => SFX.filter((c) => c.raw || (c.t >= from - 0.001 && c.t < to)).map((c) => (c.raw ? c : { ...c, t: held(loc(c.t)), end: c.end === undefined ? undefined : held(loc(Math.min(c.end, to))) }));
     window.seek = (t) => render(t);
     render(0);
     if (record) return;
@@ -200,5 +243,5 @@ const C = (() => {
     const loop = (now) => { render(((now - start) / 1000) % duration); requestAnimationFrame(loop); };
     document.fonts.ready.then(() => requestAnimationFrame(loop));
   }
-  return { MOTION, raw: () => RAW, lines, rise, card, W, H, WIDE, STAGE_X, STAGE_Y, STAGE_W, STAGE_H, clamp, p, io, out, back, lerp, $, $$, show, type, captions, where, cursor, camera, hook, endcard, run };
+  return { MOTION, raw: () => RAW, spring, words, wordsIn, W, H, WIDE, STAGE_X, STAGE_Y, STAGE_W, STAGE_H, clamp, p, io, out, back, lerp, $, $$, show, type, captions, where, cursor, camera, hook, endcard, run };
 })();
