@@ -8,7 +8,7 @@ const { chromium } = require("playwright");
 const [file, out, ...ts] = process.argv.slice(2);
 const browser = await chromium.launch();
 const page = await browser.newPage({ viewport: VIEWPORT });
-await page.goto("file://" + path.resolve(file) + query());
+await page.goto("file://" + path.resolve(file) + query(process.env.CLIP_QUERY || ""));
 await page.evaluate(() => document.fonts.ready);
 for (const t of ts) {
   await page.evaluate((t) => window.seek(t), Number(t));

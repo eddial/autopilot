@@ -86,3 +86,16 @@ html.wide .stage { top: 318px; height: calc(var(--frame-h) - 402px); }
 html.wide .footer { bottom: 34px; }
 html.wide .card-full { padding: 0 128px; }
 html.wide .card-full p { max-width: 34ch; }
+
+/* Motion layer (clip.js, off with ?motion=0): masked lines that rise into place, a drifting glow behind dark cards,
+   an orange band trailing a card as it leaves, an orange wipe between parts, and an underline under the newest
+   "find it" step. */
+.ln { display: block; overflow: hidden; padding-bottom: .14em; margin-bottom: -.14em; }
+.ln > span { display: inline-block; will-change: transform; }
+.card-full .bgwrap { position: absolute; inset: 0; overflow: hidden; z-index: -1; background: var(--navy); }
+.card-full .glow { position: absolute; inset: 0; background: url("design-system/backgrounds/midnight-glow.png") center / cover no-repeat; }
+.card-full .trail { position: absolute; left: 0; right: 0; top: 100%; height: 90px; background: var(--orange); }
+.card-full .kicker::before { width: calc(72px * var(--bar, 1)); }
+.wipe { position: absolute; inset: 0; z-index: 200; background: var(--orange); transform: translateY(100%); }
+.where .wstep { display: inline-block; transform-origin: left center; padding-bottom: 4px;
+  background: linear-gradient(var(--orange), var(--orange)) no-repeat left bottom / var(--u, 0%) 3px; }

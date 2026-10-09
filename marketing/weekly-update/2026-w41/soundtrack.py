@@ -1,12 +1,16 @@
 #!/usr/bin/env python3
 """Soundtrack for a feature video: a chill, jazzy lo-fi bed plus light interface sounds on the cues.
 
-    python soundtrack.py cues.json out.wav [--seed 7] [--bpm 82]
+    python soundtrack.py cues.json out.wav [--seed 7] [--bpm 82] [--music track.mp3]
 
 Everything is synthesised here, so there is nothing to license: an electric piano comping a ii-V-I in F,
 a walking upright-style bass, a soft kick, brushed swing hats, a rim on 2 and 4, vinyl crackle and tape
 warmth. The cues from cues.mjs add a soft click per cursor click, a short swoosh when a title card slides
 away, a light tick run while text is typed, and a low chime under every card. Needs numpy and scipy.
+
+--music puts a recorded track under the interface sounds instead of the synthesised bed (looped with a crossfade
+when it is shorter than the video, faded in and out). Use only music whose licence allows commercial use: CC0 or
+a licence the company holds. Note the source and licence next to the video (music.txt).
 """
 import json, sys, argparse
 import numpy as np
@@ -17,6 +21,7 @@ SR = 44100
 ap = argparse.ArgumentParser()
 ap.add_argument("cues"); ap.add_argument("out")
 ap.add_argument("--seed", type=int, default=7); ap.add_argument("--bpm", type=float, default=82)
+ap.add_argument("--music"); ap.add_argument("--music-gain", type=float, default=0.55)
 a = ap.parse_args()
 rng = np.random.default_rng(a.seed)
 spec = json.load(open(a.cues))
@@ -132,8 +137,20 @@ for c in spec["cues"]:
 for m in spec.get("marks", []):
     if m["kind"] == "card": place(fx, chime(), m["t"] + 0.15, 0.06)
 
-mix = bed * 0.75 + fx
-mix /= max(1e-9, np.max(np.abs(mix))) / 0.89
-stereo = np.stack([mix, np.roll(mix, 9)], 1)  # a touch of width
+if a.music:
+    import subprocess
+    raw = subprocess.run(["ffmpeg", "-v", "error", "-i", a.music, "-ac", "2", "-ar", str(SR), "-f", "f32le", "-"], capture_output=True, check=True).stdout
+    m = np.frombuffer(raw, np.float32).reshape(-1, 2).astype(float)
+    m /= max(1e-9, np.sqrt(np.mean(m ** 2))) / 0.12  # the same loudness whatever the track
+    xf = 2 * SR
+    while len(m) < N:  # loop with a two-second crossfade
+        r = np.linspace(0, 1, xf)[:, None]
+        m = np.concatenate([m[:-xf], m[-xf:] * (1 - r) + m[:xf] * r, m[xf:]])
+    m = m[:N] * (np.clip(t / 1.0, 0, 1) * np.clip((DUR - 0.3 - t) / 3.0, 0, 1))[:, None]
+    stereo = a.music_gain * m + fx[:, None]
+else:
+    mix = bed * 0.75 + fx
+    stereo = np.stack([mix, np.roll(mix, 9)], 1)  # a touch of width
+stereo /= max(1e-9, np.max(np.abs(stereo))) / 0.89
 wavfile.write(a.out, SR, (stereo * 32767).astype(np.int16))
 print(f"wrote {a.out}: {DUR:.1f}s, {len(spec['cues'])} cues")

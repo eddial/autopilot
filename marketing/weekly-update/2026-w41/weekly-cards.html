@@ -22,6 +22,14 @@
   .grp li b { font-family: var(--sans); font-size: 27px; line-height: 1.3; font-weight: 600; color: var(--ll-text-primary); }
   .grp li b small { display: block; margin-top: 2px; font-size: 21px; font-weight: 400; color: var(--muted-fg); }
   .grp li span { flex: none; max-width: 440px; font-family: var(--mono); font-size: 16px; line-height: 1.5; letter-spacing: .06em; text-transform: uppercase; color: var(--ll-text-kicker); text-align: right; }
+  /* Motion: the cover's rows light in turn (--hl), the "Also" rows draw their rule as they slide in (--rule). */
+  .card-full .list li { position: relative; border-bottom-color: transparent; }
+  .card-full .list li::after { content: ""; position: absolute; left: 0; right: 0; bottom: -1.5px; height: 1.5px;
+    background: color-mix(in srgb, var(--orange) calc(var(--hl, 0) * 100%), var(--ll-color-midnight-accent)); }
+  .card-full .list li span { display: inline-block; transform: scale(calc(1 + .18 * var(--hl, 0))); transform-origin: left center; }
+  .grp li { position: relative; border-top-color: transparent; }
+  .grp li::before { content: ""; position: absolute; left: 0; right: 0; top: -1.5px; height: 1.5px; background: var(--ll-color-grey-300);
+    transform: scaleX(var(--rule, 1)); transform-origin: left; }
 </style></head>
 <body>
   <!-- Cover -->
@@ -65,5 +73,48 @@
 <script src="fa-icons.js"></script><script src="fa-extra.js"></script>
 <script src="app.js"></script>
 <script src="clip.js"></script>
-<script>C.run(1, () => {});</script>
+<script>
+  // ?card=N&record renders card N as a clip (render.mjs, CLIP_QUERY="card=N"); without ?card every card shows in
+  // its final state, for cards.mjs. The cover opens fully composed (its first frame is the thumbnail), then each
+  // title lights in turn; "Also" and the end card build themselves.
+  const N = Number(new URLSearchParams(location.search).get("card")) || 0;
+  const { $, $$, p, out, io, show, rise, lines, clamp } = C;
+  const F = $$(".frame");
+  if (N) F.forEach((f, i) => (f.style.display = i === N - 1 ? "" : "none"));
+  F.forEach((f) => { const c = $(".card-full", f); if (c) c.insertAdjacentHTML("afterbegin", '<div class="bgwrap"><div class="glow"></div></div>'); });
+  const glow = (f, t, len) => { const g = $(".glow", f); if (g) { const d = clamp(t / len); g.style.transform = `scale(${1.14 - 0.08 * d}) translate(${-2 + 4 * d}%, ${1 - 2 * d}%)`; } };
+  const coverRows = $$(".list li", F[0]);
+  const ttl = lines($(".ttl", F[1])), rows = $$(".grp li", F[1]);
+  const endL = lines($("h1", F[2]));
+  const LEN = { 1: 3.4, 2: 8.5, 3: 3.0 }[N] || 1;
+  window.WIPE = { 1: "out", 2: "both", 3: "in" }[N] || "none";
+  C.run(LEN, (t) => {
+    if (!N) t = 99;
+    // Cover: each title's number and rule light orange in turn, on the beat (82 bpm).
+    glow(F[0], t, 4);
+    coverRows.forEach((li, i) => {
+      const a = 0.35 + i * 0.36, q = p(t, a, a + 0.25) * (1 - p(t, a + 0.5, a + 0.9));
+      li.style.setProperty("--hl", N ? q : 0);
+    });
+    // Also: the title rises, then the rows slide in one by one with their paths.
+    if (N === 2 || !N) {
+      rise(ttl, t, 0.45, Infinity, 0.12);
+      show($(".grp h3", F[1]), t, 0.85);
+      rows.forEach((li, i) => {
+        const a = 1.0 + i * 0.16, q = out(p(t, a, a + 0.5));
+        li.style.opacity = q; li.style.transform = `translateX(${(1 - q) * 48}px)`;
+        li.style.setProperty("--rule", out(p(t, a - 0.05, a + 0.6)));
+        show($("span", li), t, a + 0.2, Infinity, 0, 0.4);
+      });
+      $(".grp", F[1]).style.scale = 1 + 0.015 * clamp(t / LEN);
+    }
+    // End: the glow drifts, the bar grows, the title rises, the rest follows.
+    glow(F[2], t, 4);
+    const e = $(".card-full", F[2]);
+    e.style.setProperty("--bar", out(p(t, 0.35, 0.9)));
+    rise(endL, t, 0.45, Infinity, 0.12);
+    show($("p", e), t, 0.9); show($(".mark", e), t, 1.05); show($(".url", e), t, 1.05);
+    show($(".kicker", e), t, 0.3);
+  });
+</script>
 </body></html>

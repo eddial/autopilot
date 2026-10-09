@@ -1,5 +1,6 @@
 // Sound cues for a combined video, in output seconds: node cues.mjs out.json part part ... (the same parts, in the
-// same order, as combine.sh: card.png:N or clip.html). Each clip page reports its cues (window.CUES, held time);
+// same order, as combine.sh: card.png:N, clip.html, or clip.mp4=page.html?query for a clip rendered from a page
+// with a query, such as an animated card: card-m1.mp4=weekly-cards.html?card=1). Each clip page reports its cues (window.CUES, held time);
 // they are divided by CLIP_SPEED and offset by the parts before them. Needs playwright and ffprobe.
 import { createRequire } from "node:module"; import path from "node:path"; import fs from "node:fs";
 import { execFileSync } from "node:child_process";
@@ -11,11 +12,12 @@ const b = await chromium.launch(); const p = await b.newPage({ viewport: VIEWPOR
 let at = 0; const cues = [], marks = [];
 for (const part of parts) {
   if (/\.png:/.test(part)) { marks.push({ kind: "card", t: at }); at += Number(part.split(":").pop()); continue; }
-  const mp4 = part.replace(/\.html$/, ".mp4");
+  const [mp4, page] = part.includes("=") ? part.split(/=(.*)/) : [part.replace(/\.html$/, ".mp4"), part];
+  const [file, extra = ""] = page.split("?");
   const dur = Number(execFileSync("ffprobe", ["-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", mp4]).toString());
-  await p.goto("file://" + path.resolve(part) + query());
+  await p.goto("file://" + path.resolve(file) + query(extra));
   const list = await p.evaluate(() => (window.CUES ? window.CUES() : []));
-  marks.push({ kind: "chapter", t: at });
+  marks.push({ kind: /card=/.test(extra) ? "card" : "chapter", t: at });
   for (const c of list) cues.push({ kind: c.kind, t: at + c.t / speed, end: c.end === undefined ? undefined : at + c.end / speed });
   at += dur;
 }
