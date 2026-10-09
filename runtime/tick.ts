@@ -168,12 +168,14 @@ function followUps(name: string, items: any[], active: { text: string; ids: Set<
 // An item that belongs to an active issue becomes a NEW_SIGNAL comment on it, posted here rather than by the
 // model, so it cannot be claimed without happening. Overlapping windows can see a message twice: a comment
 // with the same source from the last hour means it is already there. (A thread the issue was filed from can
-// still get a newer reply added; the model drops one with nothing newer.)
+// still get a newer reply added; the model drops one with nothing newer.) Only the team's own issues get one:
+// a comment on another team's issue is posted under the owner's name where the rest of the company sees it.
 async function addSignal(name: string, item: any) {
   const { gql, comment, NEW_SIGNAL } = await import('./launch.ts');
-  const i = (await gql(`query($id: String!) { issue(id: $id) { id state { type }
+  const i = (await gql(`query($id: String!) { issue(id: $id) { id state { type } team { key }
       comments(first: 100) { nodes { body createdAt } } } }`, { id: item.issue })).issue;
   if (!i) return { ...item, action: 'dropped', reason: `no issue ${item.issue}: ${item.reason}` };
+  if (i.team.key !== config.linear_team) return { ...item, action: 'dropped', reason: `${item.issue} is not a ${config.linear_team} issue: ${item.reason}` };
   if (['completed', 'canceled'].includes(i.state.type)) return { ...item, action: 'dropped', reason: `${item.issue} is closed: ${item.reason}` };
   const recent = i.comments.nodes.filter((c: any) => +new Date(c.createdAt) > Date.now() - 36e5);
   if (recent.some((c: any) => c.body.includes(item.source_url))) return { ...item, action: 'dropped', reason: `already on ${item.issue}` };
