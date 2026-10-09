@@ -27,7 +27,7 @@ Add the Agent as a step in any workflow and describe the job in plain words. It 
 
 ### Data tables: work through records on a board
 
-Show a data table as a board, with a lane for each status. Drag a card to the next lane and the record's status changes with it; open a card for the full record. Linked records show by name, number columns can show as progress bars, and **Reset to view** brings back the columns a saved view was saved with. [Tables](../build-and-improve/intelligence/tables.md)
+Show a data table as a board, with a lane for each status. Drag a card to the next lane and the record's status changes with it; open a card for the full record. Linked records show by name, number columns can show as progress bars, and **Reset to view** puts the fields on a card back to how the saved view shows them. [Tables](../build-and-improve/intelligence/tables.md)
 
 ### Skills: Skills that improve from how they're used
 

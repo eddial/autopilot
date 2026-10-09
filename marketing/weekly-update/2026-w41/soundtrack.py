@@ -12,7 +12,7 @@ away, a light tick run while text is typed, and a low chime under every card. Ne
 when it is shorter than the video, faded in and out). Use only music whose licence allows commercial use: CC0 or
 a licence the company holds. Note the source and licence next to the video (music.txt).
 """
-import json, sys, argparse
+import json, sys, argparse, os
 import numpy as np
 from scipy.signal import butter, sosfilt
 from scipy.io import wavfile
@@ -144,6 +144,7 @@ if a.sfx:
         return x / max(1e-9, np.max(np.abs(x)))
     CLICKS = [load(p) for p in sorted(glob.glob(f"{a.sfx}/click-*.wav"))]
     TYPE = load(f"{a.sfx}/type.wav")
+    VOICE = load(f"{a.sfx}/voice.wav") if os.path.exists(f"{a.sfx}/voice.wav") else None
     for c in spec["cues"]:
         if c["kind"] == "click" and CLICKS:
             place(fx, CLICKS[int(rng.integers(len(CLICKS)))], c["t"] - 0.004, 0.24 * (0.85 + 0.3 * rng.random()))
@@ -152,6 +153,10 @@ if a.sfx:
             seg = TYPE[o:o + n].copy(); r = min(len(seg) // 4, int(0.06 * SR)); env = np.ones(len(seg))
             if r: env[:r] = np.linspace(0, 1, r); env[-r:] = np.linspace(1, 0, r)
             place(fx, seg * env, c["t"], 0.75)
+        elif c["kind"] == "voice" and c.get("end") and VOICE is not None:
+            n = min(len(VOICE), int((c["end"] - c["t"]) * SR)); seg = VOICE[:n].copy(); r = min(n // 4, int(0.25 * SR)); env = np.ones(n)
+            if r: env[:r] = np.linspace(0, 1, r); env[-r:] = np.linspace(1, 0, r)
+            place(fx, seg * env, c["t"], 0.32)
     spec["cues"] = []; spec["marks"] = []
 for c in spec["cues"]:
     if c["kind"] == "click": place(fx, click(), c["t"], 0.3)

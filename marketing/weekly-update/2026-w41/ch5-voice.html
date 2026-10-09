@@ -47,7 +47,7 @@
             </div>
             <div class="status" id="status"><span id="sl"></span><span>Speaking</span><span class="stop">· <u>Stop</u></span></div>
             <div class="composer">
-              <div class="ta"><div>Ask the agent anything…</div></div>
+              <div class="ta"><div id="ta">Ask the agent anything…</div></div>
               <div class="row"><span class="rb" id="plus"></span>
                 <div class="r"><span class="model">Opus 5.5 <span id="mchev"></span></span><span class="rb" id="mic"></span><span class="rb call-on" id="call"></span></div></div>
             </div>
@@ -85,8 +85,8 @@
 <script>
   CHAPTER({ n: 4, total: 7, module: "Agent", footerLeft: "Feature Drop · Week 42",
     title: "Talk to the Agent<br><em>while it builds.</em>", line: "Start a voice call with the Agent and keep it going as you move between pages. It tells you what it finds while it works." });
-  const O = 2.8, D = 7.8 + O;
-  window.HOLDS = [[1.0, 0.7], [4.3, 0.6], [3.0 + O, 1.0], [7.7 + O, 1.0]]; // title card, the call started, the page switch, the final result
+  const O = 3.8, D = 7.8 + O;
+  window.HOLDS = [[1.0, 0.7], [5.5, 0.6], [3.0 + O, 1.0], [7.7 + O, 1.0]]; // title card, the call started, the page switch, the final result
   // Feature first: the video opens on the Agent page, about to call (the way there stays in the timeline, unseen).
   window.PARTS = { feature: [3.3, D] };
   const { $, $$, p, out, io } = C;
@@ -130,10 +130,13 @@
   const where = C.where([[2.6, "Agent"], [3.9, "Call the agent"], [3.5 + O, "Open any page"]]);
   const cap = C.captions([
     [1.9, 3.2, "Open the Agent<br><em>and call it.</em>"],
-    [3.35, 4.5, "Call the Agent.<br><em>Talk it through while it builds.</em>"],
+    [3.35, 5.6, "Call the Agent.<br><em>Talk it through while it builds.</em>"],
     [1.9 + O, 4.55 + O, "Open any page.<br><em>The call comes with you.</em>"],
     [4.95 + O, 99, "Build workflows, dashboards and more,<br><em>just by talking.</em>"],
   ]);
+  // On the call, Eva types a request while the Agent talks; the Agent's voice runs until it goes quiet.
+  const ASK = "Also put the held orders on the Overview";
+  C.typing(4.15, 5.35); C.voice(4.1, 5.6 + O);
   cam(0);
   C.run(D, (t) => {
     C.hook($("#hook"), t, 1.5);
@@ -148,6 +151,9 @@
     // agent-voice-mode-button: phone-flip "Call the agent"; lit red with hang-up while the call is on.
     $("#call").className = "rb" + (inCall ? " call-on" : "");
     $("#call").innerHTML = fa(inCall ? "s:faPhoneHangup" : "s:faPhoneFlip");
+    const ta = $("#ta"), n = Math.round(ASK.length * p(t, 4.15, 5.35));
+    ta.textContent = n ? ASK.slice(0, n) : "Ask the agent anything…";
+    ta.style.color = n ? "hsl(var(--foreground))" : "";
     $("#status").style.opacity = out(p(t, 4.1, 4.4));
     // The pill shows only once no visible chat shows the call (voice-call-indicator).
     const v = out(p(t, 3.9 + O, 4.3 + O));

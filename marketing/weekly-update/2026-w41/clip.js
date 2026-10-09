@@ -83,6 +83,8 @@ const C = (() => {
   // A typing stretch a..b (timeline seconds): registered at setup, so the soundtrack hears typing that a clip
   // animates by hand.
   const typing = (a, b) => cue("type", a, b);
+  // The Agent talking on a call a..b (timeline seconds): a murmur, never words.
+  const voice = (a, b) => cue("voice", a, b);
   function type(el, text, t, a, b) {
     cue("type", a, b);
     el.textContent = text.slice(0, Math.round(text.length * p(t, a, b)));
@@ -279,5 +281,5 @@ const C = (() => {
     const loop = (now) => { render(((now - start) / 1000) % duration); requestAnimationFrame(loop); };
     document.fonts.ready.then(() => requestAnimationFrame(loop));
   }
-  return { MOTION, raw: () => RAW, typing, spring, words, wordsIn, W, H, WIDE, SQUARE, APP_H, STAGE_X, STAGE_Y, STAGE_W, STAGE_H, clamp, p, io, out, back, lerp, $, $$, show, type, captions, where, cursor, camera, hook, endcard, run };
+  return { MOTION, raw: () => RAW, typing, voice, spring, words, wordsIn, W, H, WIDE, SQUARE, APP_H, STAGE_X, STAGE_Y, STAGE_W, STAGE_H, clamp, p, io, out, back, lerp, $, $$, show, type, captions, where, cursor, camera, hook, endcard, run };
 })();

@@ -144,7 +144,7 @@
   const cap = C.captions([
     [1.9, 4.8, "Open Data tables<br><em>and a board view.</em>"],
     [1.9 + O, 4.55 + O, "Drag a card to the next lane.<br><em>The record's status moves with it.</em>"],
-    [4.95 + O, 99, "Changed the columns?<br><em>Reset to view brings them back.</em>"],
+    [4.95 + O, 99, "Changed what a card shows?<br><em>Reset to view puts it back.</em>"],
   ]);
   cam(0);
   C.run(D, (t) => {
@@ -169,7 +169,7 @@
     const d = $("#drag"); d.style.display = dragging ? "" : "none";
     if (dragging) { const m = cam(t); const ux = (c.x - C.STAGE_X - VW / 2) / m.s + m.x, uy = (c.y - C.STAGE_Y - VH / 2) / m.s + m.y;
       d.style.left = ux - tcard[0] - 128 + "px"; d.style.top = uy - tcard[1] - 30 + "px"; }
-    // Owner was hidden on this view; Reset to view brings back the view's saved fields.
+    // Owner was hidden on the cards; Reset to view brings back the fields the view saves for its cards.
     const reset = t >= 6.55 + O;
     $$(".kc .own").forEach((el) => (el.style.display = reset ? "" : "none"));
     const open = t >= 5.85 + O && t < 6.75 + O;
