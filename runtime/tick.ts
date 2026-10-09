@@ -183,6 +183,21 @@ async function addSignal(name: string, item: any) {
   return item;
 }
 
+// A filing the model reports must exist in Linear: a run without Linear write tools still answers `created`.
+// Look the issue up by its identifier, or by the source URL attached to it when the identifier is missing,
+// and only accept one made during this run; otherwise the item is `failed` and the run with it.
+async function verifyFiled(item: any, since: number) {
+  if (item.action !== 'created') return item;
+  const { gql } = await import('./launch.ts');
+  const fresh = (i: any) => i && +new Date(i.createdAt) >= since ? i.identifier : null;
+  let found = item.issue && fresh((await gql(`query($id: String!) { issue(id: $id) { identifier createdAt } }`, { id: item.issue })
+    .catch(() => null))?.issue);
+  if (!found && item.source_url) found = ((await gql(`query($u: String!) { attachmentsForURL(url: $u) { nodes { issue { identifier createdAt } } } }`,
+    { u: item.source_url }).catch(() => null))?.attachmentsForURL.nodes ?? []).map((a: any) => fresh(a.issue)).find(Boolean) ?? null;
+  return found ? { ...item, issue: found }
+    : { ...item, action: 'failed', issue: null, reason: `claimed created${item.issue ? ` (${item.issue})` : ''}, no such issue in Linear: ${item.reason}` };
+}
+
 // --dry=<minutes>: preview a window of that length; read-only Linear tools, nothing filed, no state or log written.
 async function runSignal(name: string, dry?: number) {
   const key = `signal:${name}`;
@@ -215,9 +230,14 @@ async function runSignal(name: string, dry?: number) {
     try { items = followUps(name, items, active); } catch (e) { log(key, 'follow-up check failed:', (e as Error).message.slice(0, 200)); }
     if (!dry) items = await Promise.all(items.map(i => i.action !== 'updated' || !i.issue ? i
       : addSignal(name, i).catch(e => ({ ...i, action: 'dropped', reason: `could not add to ${i.issue}: ${(e as Error).message.slice(0, 200)}` }))));
+    if (!dry) items = await Promise.all(items.map((i: any) => verifyFiled(i, started - 6e4)));
     if (dry) return console.log(JSON.stringify({ window: [iso(from), iso(end)], seconds: (Date.now() - started) / 1e3, items }, null, 2));
     fs.appendFileSync(path.join(STATE_DIR, 'decisions.jsonl'),
       items.map(i => JSON.stringify({ ts: iso(Date.now()), signal: name, window: [iso(from), iso(end)], ...i }) + '\n').join(''));
+    // Keep last_checked, so the next tick retries the window; what did get filed is found by its searches then.
+    const lost = items.filter((i: any) => i.action === 'failed');
+    if (lost.length) throw new Error(`${lost.length} filing(s) not in Linear (Linear write tools unavailable or save_issue not called): ` +
+      lost.map((i: any) => i.subject).join('; ').slice(0, 500));
     const cut = +last < +end - cap;
     withState(s => { if (cut) (job(s, key).gaps ??= []).push({ from: iso(last), to: iso(from) }); });
     succeeded(key, { last_checked: iso(end) });
