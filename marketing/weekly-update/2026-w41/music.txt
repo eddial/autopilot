@@ -1,11 +1,10 @@
-Music: "New York Skyline" by Geoff Harvey (Purple Planet Music), album "Cool Struttin'".
-Source: https://freemusicarchive.org/music/geoff-harvey-purple-planet-music/cool-struttin/new-york-skyline/
-Licence: Creative Commons Attribution 4.0 (CC BY 4.0). Commercial use allowed. Credit required: wherever the video
-is published, credit the track, artist and licence. The end card carries the credit; repeat it in post text where
-the platform allows ("Music: New York Skyline by Geoff Harvey, Purple Planet Music, CC BY 4.0").
+Music: "Jazz For The Solstice" by Ketsa, album "CC BY Free to use for anything".
+Source: https://freemusicarchive.org/music/Ketsa/cc-by-free-to-use-for-anything/
+Licence: Creative Commons Attribution 4.0 (CC BY 4.0). Commercial use allowed. Credit required: the end card carries
+"Music: Jazz For The Solstice by Ketsa · CC BY 4.0"; repeat it in post text where the platform allows.
 Used trimmed and faded, not altered.
 Sound effects: Mixkit Sound Effects Free License: "Classic click" (sfx 1117), "Air woosh" (sfx 1489), "Typing on a
 laptop keyboard" (sfx 2531), trimmed and filtered into sfx/.
-Alternatives auditioned: Ketsa "Jazz For The Soul" and "Soul Syrup" (CC BY 4.0, album "CC BY Free to use for
-anything"); "Smooth Like Jazz" (Mixkit, free licence, no credit).
+Alternatives auditioned (same licence unless noted): Ketsa "Drifting Space Jazz", "Night Jazz", "Importance";
+Purple Planet Music "City Slicker" (Geoff Harvey, CC BY 4.0, 2:08, shorter than the video).
 Downloaded 2026-10-09.

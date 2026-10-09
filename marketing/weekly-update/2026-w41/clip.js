@@ -1,21 +1,28 @@
 // Deterministic clip runtime: every frame is render(t). ?record exposes seek(t) for the recorder;
 // otherwise the clip loops in the browser for preview.
-// Motion (on unless ?motion=0): one continuous canvas rather than slides. Springs instead of eases; words spring in
-// with a blur; a chapter's app window swings in from the right beside its title, grows into place and flies out
-// to the left, so the next chapter flows in. The paper background drifts on the video's own clock (?t0=, seconds
+// Motion (on unless ?motion=0): one continuous canvas rather than slides. Critically damped motion (it settles, never
+// bounces); words rise in with a blur; a chapter's app window glides in from the right beside its title, grows into
+// place and glides out to the left, so the next chapter flows in. render-plane.mjs draws the app as a flat image
+// (window.LAYOUT says where), so zooms and pans never re-draw its text. The paper background drifts on the video's own clock (?t0=, seconds
 // of the parts before this one), so it carries on across cuts.
 const C = (() => {
   // Frame size from the format (?w=<px>&h=<px>, set by the toolkit scripts; default 4:5, 1080 x 1350).
   // Portrait and square: 1080 wide, stage 952 x (H - 450) at (64, 330).
   // Landscape (WIDE, e.g. 4:3 at 1440 x 1080): stage (W - 128) x (H - 362) at (64, 278), under the captions.
+  // Square (1:1): stage (W - 128) x (H - 364) at (64, 280).
+  // The app plane is 1280 wide and as tall as the stage's shape needs (at least 800): APP_H, set as --app-h.
   const q = new URLSearchParams(location.search);
   const H = Number(q.get("h")) || 1350, W = Number(q.get("w")) || 1080, WIDE = W > H;
   document.documentElement.style.setProperty("--frame-h", H + "px");
   document.documentElement.style.setProperty("--frame-w", W + "px");
+  const SQUARE = W === H;
   if (WIDE) document.documentElement.classList.add("wide");
+  if (SQUARE) document.documentElement.classList.add("square");
   const MOTION = q.get("motion") !== "0", T0 = Number(q.get("t0")) || 0;
-  let RAW = 0, DRIFT = 1;
-  const STAGE_X = 64, STAGE_Y = WIDE ? 278 : 330, STAGE_W = W - 128, STAGE_H = WIDE ? H - 362 : H - 450;
+  let RAW = 0, DRIFT = 1, POSED = 1;
+  const STAGE_X = 64, STAGE_Y = WIDE ? 278 : SQUARE ? 280 : 330, STAGE_W = W - 128, STAGE_H = WIDE ? H - 362 : SQUARE ? H - 364 : H - 450;
+  const APP_H = Math.max(800, Math.round((1280 * (STAGE_H - 4)) / (STAGE_W - 4)));
+  document.documentElement.style.setProperty("--app-h", APP_H + "px");
   const clamp = (x) => Math.max(0, Math.min(1, x));
   const p = (t, a, b) => clamp((t - a) / (b - a));
   const io = (x) => (x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2);
@@ -24,9 +31,10 @@ const C = (() => {
   const lerp = (a, b, x) => a + (b - a) * x;
   const $ = (s, r = document) => r.querySelector(s);
   const $$ = (s, r = document) => [...r.querySelectorAll(s)];
-  // A damped spring from 0 to 1, d seconds after it starts: overshoots a little and settles. z damping, w stiffness.
-  function spring(d, z = 0.62, w = 11) {
+  // A damped spring from 0 to 1, d seconds after it starts. z damping (1 = critically damped: no overshoot), w stiffness.
+  function spring(d, z = 1, w = 11) {
     if (d <= 0) return 0;
+    if (z >= 1) return 1 - Math.exp(-w * d) * (1 + w * d);
     const wd = w * Math.sqrt(1 - z * z);
     return 1 - Math.exp(-z * w * d) * (Math.cos(wd * d) + ((z * w) / wd) * Math.sin(wd * d));
   }
@@ -57,10 +65,10 @@ const C = (() => {
   // Words spring up into place from a, out of focus until they land; from z they drift off to the left and blur.
   function wordsIn(ws, t, a, z = Infinity, gap = 0.045) {
     ws.forEach((w, i) => {
-      const d = t - a - i * gap, s = spring(d, 0.6, 12), f = clamp(d / 0.35);
+      const d = t - a - i * gap, s = spring(d, 1, 13), f = clamp(d / 0.35);
       const o = z === Infinity ? 0 : io(clamp((t - z - i * 0.018) / 0.4));
       w.style.opacity = Math.min(clamp(d / 0.2), 1 - o);
-      w.style.transform = `translate(${-o * 40}px, ${(1 - s) * 0.55}em)`;
+      w.style.transform = `translate(${-o * 40}px, ${(1 - s) * 0.45}em)`;
       const b = (1 - f) * 9 + o * 8;
       w.style.filter = b > 0.05 ? `blur(${b}px)` : "none";
     });
@@ -158,12 +166,12 @@ const C = (() => {
       dots.style.backgroundPosition = `${(-G * 9) % 28}px ${(-G * 4) % 28}px`;
     };
   }
-  // Poses of the app window: off to the right, beside the title, in place, off to the left.
+  // Poses of the app window (flat: translate and scale only): off to the right, beside the title, in place, off to the left.
   const POSE = {
-    offR: { x: W * 0.9, y: 160, s: 0.5, ry: -34, rx: 8, b: 10 },
-    intro: WIDE ? { x: 230, y: 175, s: 0.6, ry: -16, rx: 6, b: 0 } : { x: 120, y: 260, s: 0.6, ry: -16, rx: 6, b: 0 },
-    full: { x: 0, y: 0, s: 1, ry: 0, rx: 0, b: 0 },
-    offL: { x: -W * 0.95, y: -40, s: 0.62, ry: 30, rx: -4, b: 10 },
+    offR: { x: W * 0.95, y: 175, s: 0.6 },
+    intro: WIDE ? { x: 230, y: 175, s: 0.6 } : SQUARE ? { x: 214, y: 185, s: 0.55 } : { x: 120, y: 260, s: 0.6 },
+    full: { x: 0, y: 0, s: 1 },
+    offL: { x: -W * 0.95, y: 0, s: 0.6 },
   };
   const mix = (A, B, e) => Object.fromEntries(Object.keys(A).map((k) => [k, lerp(A[k], B[k], e)]));
 
@@ -217,14 +225,14 @@ const C = (() => {
       if (amb) amb(r);
       if (!intro) return;
       // The window: swing in beside the title, grow into place, fly out to the left.
-      const e1 = spring(r - 0.05, 0.72, 7.5), e2 = spring(r - ZR, 0.7, 8), e3 = io(p(r, OUT, duration));
+      const e1 = spring(r - 0.05, 1, 6.5), e2 = io(p(r, ZR, ZR + 0.9)), e3 = io(p(r, OUT, duration));
       let P = mix(mix(POSE.offR, POSE.intro, e1), POSE.full, e2);
       P = mix(P, POSE.offL, e3);
-      stage.style.transform = `perspective(2400px) translate3d(${P.x}px, ${P.y}px, 0) rotateY(${P.ry}deg) rotateX(${P.rx}deg) scale(${P.s})`;
-      stage.style.filter = P.b > 0.1 ? `blur(${P.b}px)` : "none";
+      stage.style.transform = `translate(${P.x}px, ${P.y}px) scale(${P.s})`;
+      POSED = P.s;
       // The title: chip, words and line spring in, then leave as the window grows.
       const chip = $(".chip", hookEl);
-      const cs = spring(r - 0.25, 0.55, 12);
+      const cs = spring(r - 0.25, 1, 12);
       chip.style.opacity = clamp((r - 0.25) / 0.2) * (1 - io(p(r, ZR - 0.1, ZR + 0.3)));
       chip.style.transform = `translateX(${-io(p(r, ZR - 0.1, ZR + 0.3)) * 40}px) scale(${0.6 + 0.4 * cs})`;
       wordsIn(iw, r, 0.35, ZR - 0.15, 0.05);
@@ -234,6 +242,14 @@ const C = (() => {
       const cur = $(".cursor", frame); if (cur && e3 > 0) cur.style.opacity = Math.min(Number(cur.style.opacity || 1), 1 - e3);
     };
     window.DURATION = duration;
+    // Where the app sits this frame, for render-plane.mjs: the app's box and the window's box in frame pixels, and the
+    // window's scale (its corner radius and border scale with it).
+    const appEl = stage && $(".app", stage);
+    window.LAYOUT = () => {
+      if (!appEl) return null;
+      const a = appEl.getBoundingClientRect(), b = stage.getBoundingClientRect();
+      return { app: [a.left, a.top, a.width, a.height], stage: [b.left, b.top, b.width, b.height], s: POSED, border: stage.clientLeft };
+    };
     // Cues in real seconds: those inside this part, mapped to part-local time, then to held time.
     window.CUES = () => SFX.filter((c) => c.raw || (c.t >= from - 0.001 && c.t < to)).map((c) => (c.raw ? c : { ...c, t: held(loc(c.t)), end: c.end === undefined ? undefined : held(loc(Math.min(c.end, to))) }));
     window.seek = (t) => render(t);
@@ -243,5 +259,5 @@ const C = (() => {
     const loop = (now) => { render(((now - start) / 1000) % duration); requestAnimationFrame(loop); };
     document.fonts.ready.then(() => requestAnimationFrame(loop));
   }
-  return { MOTION, raw: () => RAW, spring, words, wordsIn, W, H, WIDE, STAGE_X, STAGE_Y, STAGE_W, STAGE_H, clamp, p, io, out, back, lerp, $, $$, show, type, captions, where, cursor, camera, hook, endcard, run };
+  return { MOTION, raw: () => RAW, spring, words, wordsIn, W, H, WIDE, SQUARE, APP_H, STAGE_X, STAGE_Y, STAGE_W, STAGE_H, clamp, p, io, out, back, lerp, $, $$, show, type, captions, where, cursor, camera, hook, endcard, run };
 })();

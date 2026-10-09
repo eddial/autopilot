@@ -177,9 +177,9 @@
   const ip = at($("#improve"), 0.5, 1);
   $("#tip").style.left = (ip[0] - 62) + "px"; $("#tip").style.top = (ip[1] + 6) + "px";
 
-  const VW = C.STAGE_W, VH = C.STAGE_H, FIT = Math.min(VW / 1280, VH / 800) * 0.98;
-  const cam = C.camera(app, VW, VH, [[0, 640, 400, FIT], [1.9, 640, 400, FIT], [2.3, 490, 300, 1.35], [3.2, 490, 300, 1.35], [3.8, 640, 400, FIT],
-    [1.9 + O, 640, 400, FIT], [2.4 + O, 755, 280, 1.25], [6.6 + O, 755, 280, 1.25], [7.6 + O, 794, 260, 1.35], [8.3 + O, 794, 260, 1.35],
+  const VW = C.STAGE_W, VH = C.STAGE_H, FIT = Math.min(VW / 1280, VH / C.APP_H) * 0.98;
+  const cam = C.camera(app, VW, VH, [[0, 640, C.APP_H / 2, FIT], [1.9, 640, C.APP_H / 2, FIT], [2.3, 490, 300, 1.35], [3.2, 490, 300, 1.35], [3.8, 640, C.APP_H / 2, FIT],
+    [1.9 + O, 640, C.APP_H / 2, FIT], [2.4 + O, 755, 280, 1.25], [6.6 + O, 755, 280, 1.25], [7.6 + O, 794, 260, 1.35], [8.3 + O, 794, 260, 1.35],
     [8.9 + O, 640, 345, 1.0], [9.4 + O, 640, 345, 1.0], [10.0 + O, 709, 330, 1.15], [D, 709, 330, 1.15]]);
   const F = (t, [x, y]) => { const m = cam(t).map(x, y); return [C.STAGE_X + m[0], C.STAGE_Y + m[1]]; };
   const OFF = [C.W * 0.6, C.H + 40];

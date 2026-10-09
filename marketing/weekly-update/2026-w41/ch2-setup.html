@@ -232,12 +232,12 @@
   const at = (el, fx = 0.5, fy = 0.5) => { const a = app.getBoundingClientRect(), r = el.getBoundingClientRect(), s = a.width / 1280;
     return [(r.left - a.left + r.width * fx) / s, (r.top - a.top + r.height * fy) / s]; };
   const P = { sw: at($(".sb-proj"), 0.4), np: at($("#np"), 0.3), blank: at($("#tile0"), 0.3, 0.4), name: at($("#pname"), 0.3), create: at($("#cbtn")) };
-  const VW = C.STAGE_W, VH = C.STAGE_H, FIT = Math.min(VW / 1280, VH / 800) * 0.98;
-  // Camera stays inside the 1280 x 800 app: x in [VW/2/s, 1280 - VW/2/s], y in [VH/2/s, 800 - VH/2/s].
+  const VW = C.STAGE_W, VH = C.STAGE_H, FIT = Math.min(VW / 1280, VH / C.APP_H) * 0.98;
+  // Camera stays inside the 1280 x APP_H app: x in [VW/2/s, 1280 - VW/2/s], y in [VH/2/s, APP_H - VH/2/s].
   const clampCam = ([t, x, y, s]) => { const hx = VW / 2 / s, hy = VH / 2 / s;
-    return [t, hx > 640 ? 640 : Math.min(Math.max(x, hx), 1280 - hx), hy > 400 ? 400 : Math.min(Math.max(y, hy), 800 - hy), s]; };
-  const cam = C.camera(app, VW, VH, [[0, 640, 400, FIT], [1.9, 640, 400, FIT], [2.3, 300, 120, 1.35], [3.15, 300, 120, 1.35], [3.45, 640, 400, FIT], [3.6, 560, 380, 1.1],
-    [4.3, 560, 380, 1.1], [4.55, 640, 330, 1.25], [5.7, 640, 330, 1.25], [5.95, 640, 400, FIT], [1.9 + O, 640, 400, FIT], [2.4 + O, 640, 370, 0.95], [5.6 + O, 640, 370, 0.95], [6.1 + O, 640, 400, 1.0], [D, 640, 400, 1.0]].map(clampCam));
+    return [t, hx > 640 ? 640 : Math.min(Math.max(x, hx), 1280 - hx), hy > C.APP_H / 2 ? C.APP_H / 2 : Math.min(Math.max(y, hy), C.APP_H - hy), s]; };
+  const cam = C.camera(app, VW, VH, [[0, 640, C.APP_H / 2, FIT], [1.9, 640, C.APP_H / 2, FIT], [2.3, 300, 120, 1.35], [3.15, 300, 120, 1.35], [3.45, 640, C.APP_H / 2, FIT], [3.6, 560, 380, 1.1],
+    [4.3, 560, 380, 1.1], [4.55, 640, 330, 1.25], [5.7, 640, 330, 1.25], [5.95, 640, C.APP_H / 2, FIT], [1.9 + O, 640, C.APP_H / 2, FIT], [2.4 + O, 640, 370, 0.95], [5.6 + O, 640, 370, 0.95], [6.1 + O, 640, 400, 1.0], [D, 640, 400, 1.0]].map(clampCam));
   const F = (t, [x, y]) => { const m = cam(t).map(x, y); return [C.STAGE_X + m[0], C.STAGE_Y + m[1]]; };
   const cur = C.cursor([[1.9, C.W * 0.5, C.H + 40], [2.45, ...F(2.45, P.sw), true], [2.9, ...F(2.9, P.np)], [3.1, ...F(3.1, P.np), true], [3.9, ...F(3.9, P.blank)], [4.2, ...F(4.2, P.blank), true],
     [4.6, ...F(4.6, P.name), true], [5.3, ...F(5.3, P.create)], [5.5, ...F(5.5, P.create), true], [6.0, C.W * 0.85, C.H + 40]]);

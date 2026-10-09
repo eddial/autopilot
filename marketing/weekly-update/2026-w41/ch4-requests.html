@@ -281,11 +281,11 @@
   $("#ec1 .ftr").style.display = "none"; P.dd = at($("#dd")); P.sub = at($("#subB")); $("#ec1 .ftr").style.display = ""; show("pOv");
   const FITD = Math.min((ZV.w - 32) / 520, (ZV.h - 32) / 700);
 
-  const VW = C.STAGE_W, VH = C.STAGE_H, FIT = Math.min(VW / 1280, VH / 800) * 0.98;
-  const XMAX = (s) => 1280 - VW / 2 / s, YMAX = (s) => 800 - VH / 2 / s;
-  const cam = C.camera(app, VW, VH, [[0, 640, 400, FIT], [1.9, 640, 400, FIT], [2.3, 490, 300, 1.35], [3.0, 490, 300, 1.35], [3.5, 640, 400, FIT], [4.4, 640, 400, FIT], [4.8, 640, 400, FIT],
-    [5.9, 640, 400, FIT], [6.4, XMAX(1.32), 420, 1.32], [9.6, XMAX(1.32), 420, 1.32], [10.1, 640, 400, FIT], [12.4, 640, 400, FIT],
-    [E, 640, 400, FIT], [E + 0.25, 490, 520, 1.35], [E + 0.9, 490, 520, 1.35], [E + 1.4, XMAX(1.25), 290, 1.25], [E + 2.5, XMAX(1.25), 290, 1.25], [E + 3.1, XMAX(1.25), 290, 1.25], [E + 3.8, XMAX(1.25), YMAX(1.25), 1.25], [D, XMAX(1.25), YMAX(1.25), 1.25]]);
+  const VW = C.STAGE_W, VH = C.STAGE_H, FIT = Math.min(VW / 1280, VH / C.APP_H) * 0.98;
+  const XMAX = (s) => 1280 - VW / 2 / s, YMAX = (s) => C.APP_H - VH / 2 / s;
+  const cam = C.camera(app, VW, VH, [[0, 640, C.APP_H / 2, FIT], [1.9, 640, C.APP_H / 2, FIT], [2.3, 490, 300, 1.35], [3.0, 490, 300, 1.35], [3.5, 640, C.APP_H / 2, FIT], [4.4, 640, C.APP_H / 2, FIT], [4.8, 640, C.APP_H / 2, FIT],
+    [5.9, 640, C.APP_H / 2, FIT], [6.4, XMAX(1.32), 420, 1.32], [9.6, XMAX(1.32), 420, 1.32], [10.1, 640, C.APP_H / 2, FIT], [12.4, 640, C.APP_H / 2, FIT],
+    [E, 640, C.APP_H / 2, FIT], [E + 0.25, 490, 520, 1.35], [E + 0.9, 490, 520, 1.35], [E + 1.4, XMAX(1.25), 290, 1.25], [E + 2.5, XMAX(1.25), 290, 1.25], [E + 3.1, XMAX(1.25), 290, 1.25], [E + 3.8, XMAX(1.25), YMAX(1.25), 1.25], [D, XMAX(1.25), YMAX(1.25), 1.25]]);
   const F = (t, [x, y]) => { const m = cam(t).map(x, y); return [C.STAGE_X + m[0], C.STAGE_Y + m[1]]; };
   const OFF = [C.W * 0.6, C.H + 40];
   // The new response card sits below the agent's reply; it moves into place when it appears.

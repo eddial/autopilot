@@ -8,7 +8,7 @@
   --destructive: 0 55% 40%; --warning: 48 65% 42%; --success: 145 35% 35%; --info: 210 45% 45%;
   --highlight: 24 84% 53.1%; --highlight-foreground: 0 0% 100%;
   --chart-2: 170 35% 35%; --chart-3: 35 50% 40%; --chart-6: 85 30% 38%; --forest: 145 30% 32%;
-  position: absolute; left: 0; top: 0; width: 1280px; height: 800px; display: flex; overflow: hidden;
+  position: absolute; left: 0; top: 0; width: 1280px; height: var(--app-h, 800px); display: flex; overflow: hidden;
   background: hsl(var(--muted)); color: hsl(var(--foreground));
   font-family: "Public Sans", ui-sans-serif, system-ui, sans-serif; font-size: 13px; line-height: 20px;
   -webkit-font-smoothing: antialiased;

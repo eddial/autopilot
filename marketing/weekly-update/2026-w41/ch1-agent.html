@@ -205,8 +205,8 @@
   P.ta = at($("#ta"), 0.3); P.send = at($("#sendb"));
   $("#sbwrap").style.width = "240px"; $("#asw").style.width = "0px";
   // Second path for the Agent beside the canvas, swapped in for the second half.
-  const VW = C.STAGE_W, VH = C.STAGE_H, FIT = Math.min(VW / 1280, VH / 800) * 0.98;
-  const cam = C.camera(app, VW, VH, [[0, 640, 400, FIT], [1.9, 640, 400, FIT], [2.3, 490, 300, 1.35], [3.2, 490, 300, 1.35], [3.8, 640, 400, FIT], [1.9 + O, 640, 400, FIT], [2.4 + O, 630, 400, 1.0], [4.9 + O, 630, 400, 1.0], [5.5 + O, 700, 400, 1.15], [B + 0.1, 700, 400, 1.15], [B + 0.7, 755, 271, 1.25], [B + 1.9, 755, 271, 1.25], [B + 2.5, 640, 400, FIT], [B + 3.3, 640, 400, FIT], [B + 3.9, 843, 574, 1.5], [B + 6.1, 843, 574, 1.5], [B + 6.7, 684, 420, 1.1], [D, 700, 400, 1.15]]);
+  const VW = C.STAGE_W, VH = C.STAGE_H, FIT = Math.min(VW / 1280, VH / C.APP_H) * 0.98;
+  const cam = C.camera(app, VW, VH, [[0, 640, C.APP_H / 2, FIT], [1.9, 640, C.APP_H / 2, FIT], [2.3, 490, 300, 1.35], [3.2, 490, 300, 1.35], [3.8, 640, C.APP_H / 2, FIT], [1.9 + O, 640, C.APP_H / 2, FIT], [2.4 + O, 630, 400, 1.0], [4.9 + O, 630, 400, 1.0], [5.5 + O, 700, 400, 1.15], [B + 0.1, 700, 400, 1.15], [B + 0.7, 755, 271, 1.25], [B + 1.9, 755, 271, 1.25], [B + 2.5, 640, C.APP_H / 2, FIT], [B + 3.3, 640, C.APP_H / 2, FIT], [B + 3.9, 843, 574, 1.5], [B + 6.1, 843, 574, 1.5], [B + 6.7, 684, 420, 1.1], [D, 700, 400, 1.15]]);
   const F = (t, [x, y]) => { const m = cam(t).map(x, y); return [C.STAGE_X + m[0], C.STAGE_Y + m[1]]; };
   const OFF = [C.W * 0.6, C.H + 40];
   const cur = C.cursor([[1.9, ...OFF], [2.6, ...F(2.6, P.wf), true], [3.3, ...F(3.3, P.wf)], [2.0 + O, ...F(2.0 + O, P.h1)], [2.7 + O, ...F(2.7 + O, P.h1), true], [3.4 + O, ...F(3.4 + O, P.ai), true], [4.2 + O, ...F(4.2 + O, P.ag)], [4.5 + O, ...F(4.5 + O, P.ag), true], [5.2 + O, C.W * 0.9, C.H + 40], [B + 0.2, C.W * 0.9, C.H + 40], [B + 1.1, ...F(B + 1.1, P.agb), true], [B + 1.9, ...F(B + 1.9, P.agb)], [B + 3.9, ...F(B + 3.9, P.ta), true], [B + 5.7, ...F(B + 5.7, P.ta)], [B + 5.95, ...F(B + 5.95, P.send), true], [B + 6.6, C.W * 0.95, C.H + 40]]);
