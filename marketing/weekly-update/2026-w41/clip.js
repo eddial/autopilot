@@ -19,7 +19,7 @@ const C = (() => {
   if (WIDE) document.documentElement.classList.add("wide");
   if (SQUARE) document.documentElement.classList.add("square");
   const MOTION = q.get("motion") !== "0", T0 = Number(q.get("t0")) || 0;
-  let RAW = 0, DRIFT = 1, POSED = 1, FADE = 1;
+  let RAW = 0, DRIFT = 1, POSED = 1, FADE = 1, CAPSTARTS = [];
   const STAGE_X = 64, STAGE_Y = WIDE ? 278 : SQUARE ? 280 : 330, STAGE_W = W - 128, STAGE_H = WIDE ? H - 362 : SQUARE ? H - 364 : H - 450;
   const APP_H = Math.max(800, Math.round((1280 * (STAGE_H - 4)) / (STAGE_W - 4)));
   document.documentElement.style.setProperty("--app-h", APP_H + "px");
@@ -84,6 +84,7 @@ const C = (() => {
   }
   // Captions: [[start, end, html], ...] onto .caption elements built here; word by word with MOTION.
   function captions(list) {
+    CAPSTARTS = list.map(([a]) => a);
     const host = $(".captions");
     const els = list.map(([, , html]) => {
       const d = document.createElement("div");
@@ -132,12 +133,12 @@ const C = (() => {
     };
   }
   // Camera over a real-size app window: keys [[t, x, y, scale], ...], (x, y) = UI point centred in the viewport.
-  // Keys are kept inside the app and snapped to an edge when they come within 140 UI px of it, so a zoom never shows a
+  // Keys are kept inside the app and snapped to an edge when they come within 40 UI px of it, so a zoom never shows a
   // sliver of the app cut off at the window's edge (a sidebar half in view, a word cut in two).
   function camera(el, vw, vh, keys) {
     el.style.transformOrigin = "0 0";
     keys = keys.map(([t, x, y, s]) => {
-      const hw = vw / 2 / s, hh = vh / 2 / s, AW = 1280, AH = APP_H, SNAP = 140;
+      const hw = vw / 2 / s, hh = vh / 2 / s, AW = 1280, AH = APP_H, SNAP = 40;
       if (hw >= AW / 2) x = AW / 2; else { x = Math.min(Math.max(x, hw), AW - hw); if (x - hw < SNAP) x = hw; if (AW - hw - x < SNAP) x = AW - hw; }
       if (hh >= AH / 2) y = AH / 2; else { y = Math.min(Math.max(y, hh), AH - hh); if (y - hh < SNAP) y = hh; if (AH - hh - y < SNAP) y = AH - hh; }
       return [t, x, y, s];
@@ -217,7 +218,9 @@ const C = (() => {
     const amb = MOTION ? ambient(frame) : null;
     const stage = $(".stage", frame), hookEl = $("#hook"), capHost = $(".captions", frame), tag = $(".brandrow .tag", frame);
     const ZR = held(1.5); // real seconds when the intro hands over to the feature
-    const CAP = held(1.9); // when the first caption arrives: the title leaves just before
+    // When this part's first caption arrives: the title leaves just before it, so there is never an empty beat.
+    const firstCap = CAPSTARTS.filter((a) => a >= from - 1e-6 && a < to).sort((x, y) => x - y)[0];
+    const CAP = held(firstCap === undefined ? 1.9 : loc(firstCap));
     const OUT = duration - 0.5; // the content starts to fade out
     let iw = [], tagW = [], kick = null;
     if (intro) {
@@ -237,7 +240,7 @@ const C = (() => {
       stage.querySelector(".app").style.opacity = FADE;
       // The title takes the captions' place: kicker, then the words, then it hands over to the first caption.
       const kq = expo(clamp((r - 0.1) / 0.6)), ko = io(clamp((r - CAP + 0.32) / 0.3));
-      kick.style.opacity = kq * (1 - ko); kick.style.transform = `translateY(${(1 - kq) * 12 - ko * 12}px)`;
+      if (kick) { kick.style.opacity = kq * (1 - ko); kick.style.transform = `translateY(${(1 - kq) * 12 - ko * 12}px)`; }
       wordsIn(iw, r, 0.2, CAP - 0.36, 0.04);
       if (tagW.length) wordsIn(tagW, r, 0.15, Infinity, 0.03);
       const e3 = smooth(clamp((r - OUT) / (duration - OUT)));

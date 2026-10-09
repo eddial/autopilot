@@ -145,10 +145,12 @@
 <script src="clip.js"></script>
 <script src="chapter.js"></script>
 <script>
-  CHAPTER({ n: 4, total: 7, module: "Skills", footerLeft: "lleverage.ai · Week of 5 Oct 2026",
-    title: "Improve a Skill<br><em>from its feedback.</em>", line: "A Skill is how the Agent does one job. See every rating on work where it was used, and let the Agent draft the improvement for you to approve." });
+  CHAPTER({ n: 5, total: 5, module: "Skills", footerLeft: "Feature Drop · Week 41",
+    title: "Skills that improve<br><em>from how they're used.</em>", line: "A Skill is how the Agent does one job. See every rating on work where it was used, and let the Agent draft the improvement for you to approve." });
   const O = 3.0, D = 12.6 + O;
   window.HOLDS = [[1.0, 0.7], [4.1, 0.6], [3.4 + O, 1.0], [6.6 + O, 1.0], [12.4 + O, 1.6]];
+  // Feature first: the video opens on the Skill's page (the way there stays in the timeline, unseen).
+  window.PARTS = { feature: [4.7, D] };
   const { $, $$, p, out, io, type } = C;
   $("#sb").outerHTML = APP.sidebar("Overview");
   $("#aav").innerHTML = `<span style="display:block;margin-top:2px;color:hsl(var(--foreground))">${APP.loader(20)}</span>`;
@@ -178,12 +180,18 @@
   $("#tip").style.left = (ip[0] - 62) + "px"; $("#tip").style.top = (ip[1] + 6) + "px";
 
   const VW = C.STAGE_W, VH = C.STAGE_H, FIT = Math.min(VW / 1280, VH / C.APP_H) * 0.98;
+  const fit = (x0, y0, x1, y1) => { const s = Math.min(VW / (x1 - x0), VH / (y1 - y0)); return [(x0 + x1) / 2, (y0 + y1) / 2 + (VH / s - (y1 - y0)) / 2, s]; };
+  // The Feedback shots frame the Skill's right-hand panel from its own edge: the tabs, the filters and the list.
+  const tabs = at($("#tPrev"), 0, 0), fbL = at($("#fbsec"), 0, 0), imp = at($("#improve"), 1, 0);
+  $("#agentpage").style.display = ""; const ag0 = at($("#agentpage"), 0, 0), ag1 = at($("#agentpage"), 1, 1); $("#agentpage").style.display = "";
+  const AGP = fit(ag0[0], ag0[1], ag1[0], Math.min(ag1[1], ag0[1] + 520));
+  const FBS = fit(tabs[0] - 24, tabs[1] - 24, 1280, tabs[1] + 300), FBS2 = fit(tabs[0] - 24, imp[1] - 30, 1280, tabs[1] + 260);
   const cam = C.camera(app, VW, VH, [[0, 640, C.APP_H / 2, FIT], [1.9, 640, C.APP_H / 2, FIT], [2.3, 490, 300, 1.35], [3.2, 490, 300, 1.35], [3.8, 640, C.APP_H / 2, FIT],
-    [1.9 + O, 640, C.APP_H / 2, FIT], [2.4 + O, 755, 280, 1.25], [6.6 + O, 755, 280, 1.25], [7.6 + O, 794, 260, 1.35], [8.3 + O, 794, 260, 1.35],
-    [8.9 + O, 640, 345, 1.0], [9.4 + O, 640, 345, 1.0], [10.0 + O, 709, 330, 1.15], [D, 709, 330, 1.15]]);
+    [1.9 + O, 640, C.APP_H / 2, FIT], [2.4 + O, ...FBS], [6.6 + O, ...FBS], [7.6 + O, ...FBS2], [8.3 + O, ...FBS2],
+    [8.9 + O, ...AGP], [D, ...AGP]]);
   const F = (t, [x, y]) => { const m = cam(t).map(x, y); return [C.STAGE_X + m[0], C.STAGE_Y + m[1]]; };
   const OFF = [C.W * 0.6, C.H + 40];
-  const cur = C.cursor([[1.9, ...OFF], [2.6, ...F(2.6, P.sk), true], [3.4, ...F(3.4, P.sk)], [2.2 + O, ...F(2.2 + O, P.fb)], [2.6 + O, ...F(2.6 + O, P.fb), true],
+  const cur = C.cursor([[1.9, ...OFF], [2.6, ...F(2.6, P.sk), true], [3.4, ...F(3.4, P.sk)], [3.6, ...OFF], [1.9 + O, ...OFF], [2.2 + O, ...F(2.2 + O, P.fb)], [2.6 + O, ...F(2.6 + O, P.fb), true],
     [4.9 + O, ...F(4.9 + O, P.rating)], [5.3 + O, ...F(5.3 + O, P.rating), true], [5.9 + O, ...F(5.9 + O, P.neg)], [6.2 + O, ...F(6.2 + O, P.neg), true],
     [7.0 + O, ...F(7.0 + O, P.neg)], [7.7 + O, ...F(7.7 + O, P.improve)], [8.1 + O, ...F(8.1 + O, P.improve), true], [8.8 + O, C.W * 0.9, C.H + 40]]);
   const where = C.where([[2.6, "Skills"], [3.1, "Purchase order intake"], [2.6 + O, "Feedback"], [8.1 + O, "Improve with agent"]]);

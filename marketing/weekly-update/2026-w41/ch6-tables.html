@@ -83,10 +83,13 @@
 <script src="clip.js"></script>
 <script src="chapter.js"></script>
 <script>
-  CHAPTER({ n: 7, total: 7, module: "Data tables", footerLeft: "lleverage.ai · Week of 5 Oct 2026",
+  CHAPTER({ n: 4, total: 5, module: "Data tables", footerLeft: "Feature Drop · Week 41",
     title: "Work through records<br><em>on a data table board.</em>", line: "Show a data table as a board with a lane per status. Drag a card to move a record on, and bring a saved view back with one click." });
   const O = 3.6, D = 7.8 + O;
   window.HOLDS = [[1.0, 0.7], [4.95, 0.6], [4.3 + O, 1.0], [7.7 + O, 1.0]];
+  // The video starts on the feature: the board is already open behind the title, framed on its lanes. The
+  // navigation beat (Overview, Data tables, the table, its board view) stays in the timeline but is not shown.
+  window.PARTS = { feature: [5.0, D] };
   const { $, $$, p, io, out } = C;
   $("#sb").outerHTML = APP.sidebar("Overview");
   const COL = { "To match": "#3b82f6", "Price difference": "#f59e0b", "Ready to book": "#10b981" };
@@ -121,18 +124,25 @@
   const lanes = $$("#board .lane"), lL = at(lanes[0], 0, 0), lR = at(lanes[lanes.length - 1], 1, 0);
   const BS = Math.min(1.6, VW / (lR[0] - lL[0] + 64));
   const BOARD = [(lL[0] + lR[0]) / 2, lL[1] - 70 + VH / 2 / BS, BS];
-  // The columns shot runs from the panel's edge (where the sidebar ends) to the app's right edge: it cuts at a
-  // boundary of the UI, never through a card or a label.
-  const pnl = at($(".panel"), 0, 0), CS = VW / (1280 - pnl[0]), COLS = [1280 - VW / 2 / CS, VH / 2 / CS, CS];
+  // Shots fit a box of the UI: the scale that fits it, centred on it. Every box edge sits in a gap between lanes or at
+  // the app's edge, so a zoom never cuts through a card or a label.
+  const fit = (x0, y0, x1, y1) => { const s = Math.min(VW / (x1 - x0), VH / (y1 - y0)); return [(x0 + x1) / 2, (y0 + y1) / 2 + (VH / s - (y1 - y0)) / 2, s]; };
+  const l2 = at(lanes[1], 0, 0), l3 = at(lanes[2], 0, 0), l3r = at(lanes[2], 1, 1), tb = at($(".tb"), 0, 0);
+  // The drag: just the two lanes involved, card to target.
+  const TWO = fit(l2[0] - 22, l2[1] - 10, l3r[0] + 22, l3r[1] + 30);
+  // The columns menu, close: from the gap before the middle lane to the app's right edge, toolbar to the menu's foot.
+  $("#fields").innerHTML = F6.map(([ic, n]) => `<div class="fr"><span class="g">${fa("faGripDotsVertical")}</span><span class="ty">${fa(ic)}</span><span class="nm">${n}</span><span class="e">${fa("faEye")}</span></div>`).join("");
+  $("#menu").style.display = ""; const mb = at($("#menu"), 1, 1); $("#menu").style.display = "none";
+  const COLS = fit(l2[0] - 22, tb[1] - 16, 1280, mb[1] + 24);
   const cam = C.camera(app, VW, VH, [[0, 640, C.APP_H / 2, FIT], [1.9, 640, C.APP_H / 2, FIT], [2.3, 490, 300, 1.35], [3.0, 490, 300, 1.35], [3.5, 640, C.APP_H / 2, FIT],
-    [1.9 + O, 640, C.APP_H / 2, FIT], [2.4 + O, ...BOARD], [4.6 + O, ...BOARD], [5.1 + O, ...COLS], [D, ...COLS]]);
+    [5.0, ...BOARD], [1.9 + O, ...BOARD], [2.5 + O, ...TWO], [4.6 + O, ...TWO], [5.2 + O, ...COLS], [D, ...COLS]]);
   const F = (t, [x, y]) => { const m = cam(t).map(x, y); return [C.STAGE_X + m[0], C.STAGE_Y + m[1]]; };
   const OFF = [C.W * 0.6, C.H + 40], OFF2 = [C.W * 0.75, C.H + 40];
-  const cur = C.cursor([[1.9, ...OFF], [2.6, ...F(2.6, P.nav), true], [3.3, ...F(3.3, P.nav)], [3.9, ...F(3.9, P.row), true], [4.7, ...F(4.7, P.tab), true],
-    [2.7 + O, ...F(2.7 + O, P.vdA), true], [3.9 + O, ...F(3.9 + O, P.lA)], [4.5 + O, ...OFF2], [5.2 + O, ...OFF2], [5.8 + O, ...F(5.8 + O, P.eye), true], [6.5 + O, ...F(6.5 + O, P.reset), true], [7.4 + O, ...OFF2]]);
+  const cur = C.cursor([[1.9, ...OFF], [2.6, ...F(2.6, P.nav), true], [3.3, ...F(3.3, P.nav)], [3.9, ...F(3.9, P.row), true], [4.7, ...F(4.7, P.tab), true], [4.85, ...OFF],
+    [1.9 + O, ...OFF], [2.7 + O, ...F(2.7 + O, P.vdA), true], [3.9 + O, ...F(3.9 + O, P.lA)], [4.5 + O, ...OFF2], [5.2 + O, ...OFF2], [5.8 + O, ...F(5.8 + O, P.eye), true], [6.5 + O, ...F(6.5 + O, P.reset), true], [7.4 + O, ...OFF2]]);
   const where = C.where([[2.6, "Data tables"], [3.9, "Supplier invoices"], [4.7, "By match (board view)"], [5.8 + O, "Columns"], [6.5 + O, "Reset to view"]]);
   const cap = C.captions([
-    [1.9, 5.2, "Open Data tables<br><em>and a board view.</em>"],
+    [1.9, 4.8, "Open Data tables<br><em>and a board view.</em>"],
     [1.9 + O, 4.55 + O, "Drag a card to the next lane.<br><em>The record's status moves with it.</em>"],
     [4.95 + O, 99, "Changed the columns?<br><em>Reset to view brings them back.</em>"],
   ]);

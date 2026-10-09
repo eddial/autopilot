@@ -151,7 +151,7 @@ if a.sfx:
             n = int((c["end"] - c["t"]) * SR); o = int(rng.integers(0, max(1, len(TYPE) - n)))
             seg = TYPE[o:o + n].copy(); r = min(len(seg) // 4, int(0.06 * SR)); env = np.ones(len(seg))
             if r: env[:r] = np.linspace(0, 1, r); env[-r:] = np.linspace(1, 0, r)
-            place(fx, seg * env, c["t"], 0.14)
+            place(fx, seg * env, c["t"], 0.5)
     spec["cues"] = []; spec["marks"] = []
 for c in spec["cues"]:
     if c["kind"] == "click": place(fx, click(), c["t"], 0.3)

@@ -165,14 +165,18 @@
 <script src="chapter.js"></script>
 <script>
   // Two chapters from one timeline (C.run PARTS): the Agent as a step in a workflow, and the Agent beside the canvas.
-  const SIDE = new URLSearchParams(location.search).get("part") === "sidebar";
-  CHAPTER(SIDE
-    ? { n: 2, total: 7, module: "Workflows", footerLeft: "lleverage.ai · Week of 5 Oct 2026",
+  const PART = new URLSearchParams(location.search).get("part"), SIDE = PART === "sidebar";
+  CHAPTER(PART === "story"
+    ? { n: 3, total: 5, module: "Workflows", footerLeft: "Feature Drop · Week 41",
+        title: "The Agent builds<br><em>and fixes workflows.</em>", line: "Add the Agent as a step, or ask it beside the canvas to change the workflow. The steps it changes light up." }
+    : SIDE
+    ? { n: 2, total: 7, module: "Workflows", footerLeft: "Feature Drop · Week 41",
         title: "Change a workflow<br><em>by asking the Agent.</em>", line: "Open the Agent beside the canvas. It knows the workflow you have open, and the steps it changes light up." }
-    : { n: 1, total: 7, module: "Workflows", footerLeft: "lleverage.ai · Week of 5 Oct 2026",
+    : { n: 1, total: 7, module: "Workflows", footerLeft: "Feature Drop · Week 41",
         title: "Give a workflow step<br><em>to the Agent.</em>", line: "Describe the task in plain words. The Agent does that step with your tools, integrations and files." });
   const O = 2.7, B = 7.8 + O + 0.4, G = B + 7.3, D = B + 9.4;
-  window.PARTS = { step: [0, B - 0.25], sidebar: [B - 0.2, D] };
+  // story: the Feature Drop chapter, opening on the workflow's canvas (the way there stays in the timeline, unseen).
+  window.PARTS = { step: [0, B - 0.25], sidebar: [B - 0.2, D], story: [3.6, D] };
   window.HOLDS = [[1.0, 0.7], [4.1, 0.6], [4.15 + O, 1.0], [7.7 + O, 1.0], [B + 2.7, 0.8], [B + 8.6, 1.2]];
   const { $, $$, p, out, io } = C;
   $("#sb").outerHTML = APP.sidebar("Overview");
@@ -203,16 +207,21 @@
   // Positions once the sidebar is open and the navigation has collapsed.
   $("#sbwrap").style.width = "0px"; $("#asw").style.width = "380px"; $("#sendb").innerHTML = fa("faArrowUp");
   P.ta = at($("#ta"), 0.3); P.send = at($("#sendb"));
+  // Shapes for the sidebar beat, measured with the navigation collapsed and the sidebar open.
+  const cpB = at($(".composer"), 1, 1), asL = at($("#asw"), 0, 0), n2a = at($("#n2"), 0, 0), n2b = at($("#n2"), 1, 1), agbR = at($("#agb"), 1, 1);
   $("#sbwrap").style.width = "240px"; $("#asw").style.width = "0px";
   // Second path for the Agent beside the canvas, swapped in for the second half.
   const VW = C.STAGE_W, VH = C.STAGE_H, FIT = Math.min(VW / 1280, VH / C.APP_H) * 0.98;
-  const cam = C.camera(app, VW, VH, [[0, 640, C.APP_H / 2, FIT], [1.9, 640, C.APP_H / 2, FIT], [2.3, 490, 300, 1.35], [3.2, 490, 300, 1.35], [3.8, 640, C.APP_H / 2, FIT], [1.9 + O, 640, C.APP_H / 2, FIT], [2.4 + O, 630, 400, 1.0], [4.9 + O, 630, 400, 1.0], [5.5 + O, 700, 400, 1.15], [B + 0.1, 700, 400, 1.15], [B + 0.7, 755, 271, 1.25], [B + 1.9, 755, 271, 1.25], [B + 2.5, 640, C.APP_H / 2, FIT], [B + 3.3, 640, C.APP_H / 2, FIT], [B + 3.9, 843, 574, 1.5], [B + 6.1, 843, 574, 1.5], [B + 6.7, 684, 420, 1.1], [D, 700, 400, 1.15]]);
+  const fit = (x0, y0, x1, y1) => { const s = Math.min(VW / (x1 - x0), VH / (y1 - y0)); return [(x0 + x1) / 2, (y0 + y1) / 2 + (VH / s - (y1 - y0)) / 2, s]; };
+  // The Agent button, close; the ask in the composer, close; then the changed step with the Agent's reply.
+  const AGBTN = fit(1280 - 560, 0, 1280, 300), ASKC = fit(asL[0], cpB[1] - 330, 1280, cpB[1] + 12), RESULT = fit(n2a[0] - 40, 40, 1280, Math.max(n2b[1] + 60, cpB[1] + 12));
+  const cam = C.camera(app, VW, VH, [[0, 640, C.APP_H / 2, FIT], [1.9, 640, C.APP_H / 2, FIT], [2.3, 490, 300, 1.35], [3.2, 490, 300, 1.35], [3.8, 640, C.APP_H / 2, FIT], [1.9 + O, 640, C.APP_H / 2, FIT], [2.4 + O, 630, 400, 1.0], [4.9 + O, 630, 400, 1.0], [5.5 + O, 700, 400, 1.15], [B + 0.1, 700, 400, 1.15], [B + 0.7, ...AGBTN], [B + 1.9, ...AGBTN], [B + 2.5, 640, C.APP_H / 2, FIT], [B + 3.3, 640, C.APP_H / 2, FIT], [B + 3.9, ...ASKC], [B + 6.1, ...ASKC], [B + 6.7, ...RESULT], [D, ...RESULT]]);
   const F = (t, [x, y]) => { const m = cam(t).map(x, y); return [C.STAGE_X + m[0], C.STAGE_Y + m[1]]; };
   const OFF = [C.W * 0.6, C.H + 40];
-  const cur = C.cursor([[1.9, ...OFF], [2.6, ...F(2.6, P.wf), true], [3.3, ...F(3.3, P.wf)], [2.0 + O, ...F(2.0 + O, P.h1)], [2.7 + O, ...F(2.7 + O, P.h1), true], [3.4 + O, ...F(3.4 + O, P.ai), true], [4.2 + O, ...F(4.2 + O, P.ag)], [4.5 + O, ...F(4.5 + O, P.ag), true], [5.2 + O, C.W * 0.9, C.H + 40], [B + 0.2, C.W * 0.9, C.H + 40], [B + 1.1, ...F(B + 1.1, P.agb), true], [B + 1.9, ...F(B + 1.9, P.agb)], [B + 3.9, ...F(B + 3.9, P.ta), true], [B + 5.7, ...F(B + 5.7, P.ta)], [B + 5.95, ...F(B + 5.95, P.send), true], [B + 6.6, C.W * 0.95, C.H + 40]]);
+  const cur = C.cursor([[1.9, ...OFF], [2.6, ...F(2.6, P.wf), true], [3.3, ...F(3.3, P.wf)], [3.45, ...OFF], [1.6 + O, ...OFF], [2.0 + O, ...F(2.0 + O, P.h1)], [2.7 + O, ...F(2.7 + O, P.h1), true], [3.4 + O, ...F(3.4 + O, P.ai), true], [4.2 + O, ...F(4.2 + O, P.ag)], [4.5 + O, ...F(4.5 + O, P.ag), true], [5.2 + O, C.W * 0.9, C.H + 40], [B + 0.2, C.W * 0.9, C.H + 40], [B + 1.1, ...F(B + 1.1, P.agb), true], [B + 1.9, ...F(B + 1.9, P.agb)], [B + 3.9, ...F(B + 3.9, P.ta), true], [B + 5.7, ...F(B + 5.7, P.ta)], [B + 5.95, ...F(B + 5.95, P.send), true], [B + 6.6, C.W * 0.95, C.H + 40]]);
   const where = C.where([[2.6, "Workflows"], [3.1, "Order intake"], [2.7 + O, "+ after a step"], [3.4 + O, "AI"], [4.5 + O, "Agent"]]);
   const cap = C.captions([
-    [1.9, 4.3, "Open Workflows<br><em>and pick a workflow.</em>"],
+    [1.9, 3.4, "Open Workflows<br><em>and pick a workflow.</em>"],
     [1.9 + O, 4.55 + O, "Add a step, then choose AI.<br><em>The Agent is the first option.</em>"],
     [4.95 + O, B - 0.5, "Describe the task in plain words.<br><em>The Agent does that step.</em>"],
     [B, B + 3.0, "Open the Agent beside the canvas.<br><em>It already knows this workflow.</em>"],

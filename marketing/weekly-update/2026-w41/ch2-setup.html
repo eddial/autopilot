@@ -199,10 +199,12 @@
 <script src="clip.js"></script>
 <script src="chapter.js"></script>
 <script>
-  CHAPTER({ n: 3, total: 7, module: "Projects", footerLeft: "lleverage.ai · Week of 5 Oct 2026",
-    title: "Start a new project<br><em>from a template.</em>", line: "Pick one of six processes, from Quote & Sell to Store & Ship, or start blank. The Agent connects your systems, reads them and sets the project up with you." });
+  CHAPTER({ n: 1, total: 5, module: "Projects", footerLeft: "Feature Drop · Week 41",
+    title: "The Agent sets up<br><em>your project.</em>", line: "Pick one of six processes, from Quote & Sell to Store & Ship, or start blank. The Agent connects your systems, reads them and sets the project up with you." });
   const O = 4.1, D = 7.8 + O;
   window.HOLDS = [[1.0, 0.7], [3.75, 0.8], [4.65 + O, 1.0], [7.75 + O, 1.0]]; // title card, the template page, the first result, the final result
+  // Feature first: the video opens on the template page (the project switcher click stays in the timeline, unseen).
+  window.PARTS = { feature: [3.5, D] };
   const { $, $$, p, out, io, show, type } = C;
   $("#sb").outerHTML = APP.sidebar("Overview");
   const nav = (l) => $$(".nav").find((n) => n.textContent.trim() === l);
@@ -236,14 +238,19 @@
   // Camera stays inside the 1280 x APP_H app: x in [VW/2/s, 1280 - VW/2/s], y in [VH/2/s, APP_H - VH/2/s].
   const clampCam = ([t, x, y, s]) => { const hx = VW / 2 / s, hy = VH / 2 / s;
     return [t, hx > 640 ? 640 : Math.min(Math.max(x, hx), 1280 - hx), hy > C.APP_H / 2 ? C.APP_H / 2 : Math.min(Math.max(y, hy), C.APP_H - hy), s]; };
+  const fit = (x0, y0, x1, y1) => { const s = Math.min(VW / (x1 - x0), VH / (y1 - y0)); return [(x0 + x1) / 2, (y0 + y1) / 2 + (VH / s - (y1 - y0)) / 2, s]; };
+  // The setup shot frames the setup plan as it ticks off, heading and progress bar included.
+  const tk = at($("#tasks"), 0, 0), tkb = at($("#tasks"), 1, 1), cc = at($(".chatcol"), 0.45, 0);
+  const PLAN = fit(tk[0] - 40, tk[1] - 110, Math.min(1280, tkb[0] + 40), tkb[1] + 60);
   const cam = C.camera(app, VW, VH, [[0, 640, C.APP_H / 2, FIT], [1.9, 640, C.APP_H / 2, FIT], [2.3, 300, 120, 1.35], [3.15, 300, 120, 1.35], [3.45, 640, C.APP_H / 2, FIT], [3.6, 560, 380, 1.1],
-    [4.3, 560, 380, 1.1], [4.55, 640, 330, 1.25], [5.7, 640, 330, 1.25], [5.95, 640, C.APP_H / 2, FIT], [1.9 + O, 640, C.APP_H / 2, FIT], [2.4 + O, 640, 370, 0.95], [5.6 + O, 640, 370, 0.95], [6.1 + O, 640, 400, 1.0], [D, 640, 400, 1.0]].map(clampCam));
+    [4.3, 560, 380, 1.1], [4.55, 640, 330, 1.25], [5.7, 640, 330, 1.25], [5.95, 640, C.APP_H / 2, FIT], [1.9 + O, 640, C.APP_H / 2, FIT], [2.4 + O, ...PLAN], [5.6 + O, ...PLAN], [6.1 + O, 640, 400, 1.0], [D, 640, 400, 1.0]].map(clampCam));
   const F = (t, [x, y]) => { const m = cam(t).map(x, y); return [C.STAGE_X + m[0], C.STAGE_Y + m[1]]; };
-  const cur = C.cursor([[1.9, C.W * 0.5, C.H + 40], [2.45, ...F(2.45, P.sw), true], [2.9, ...F(2.9, P.np)], [3.1, ...F(3.1, P.np), true], [3.9, ...F(3.9, P.blank)], [4.2, ...F(4.2, P.blank), true],
+  const cur = C.cursor([[1.9, C.W * 0.5, C.H + 40], [2.45, ...F(2.45, P.sw), true], [2.9, ...F(2.9, P.np)], [3.1, ...F(3.1, P.np), true], [3.3, C.W * 0.5, C.H + 40], [3.6, C.W * 0.5, C.H + 40], [3.9, ...F(3.9, P.blank)], [4.2, ...F(4.2, P.blank), true],
     [4.6, ...F(4.6, P.name), true], [5.3, ...F(5.3, P.create)], [5.5, ...F(5.5, P.create), true], [6.0, C.W * 0.85, C.H + 40]]);
   const where = C.where([[2.45, "Project switcher"], [3.1, "New Project"], [4.2, "Blank project"], [5.5, "Create"], [2.0 + O, "Agent · Setup"]]);
   const cap = C.captions([
-    [1.9, 5.65, "Open the project switcher.<br><em>Choose New Project.</em>"],
+    [1.9, 3.4, "Open the project switcher.<br><em>Choose New Project.</em>"],
+    [3.55, 5.65, "Start from one of six processes,<br><em>or start blank.</em>"],
     [1.9 + O, 4.55 + O, "The Agent runs the setup.<br><em>It reads your systems before it asks.</em>"],
     [4.95 + O, 99, "It builds the Overview:<br><em>your process on one page.</em>"],
   ]);

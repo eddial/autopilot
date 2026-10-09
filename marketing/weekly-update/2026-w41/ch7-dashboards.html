@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<title>The Agent builds your dashboards</title>
+<link rel="stylesheet" href="clip.css">
+<link rel="stylesheet" href="app.css">
+<link rel="stylesheet" href="chapter.css">
+<style>
+  /* Overview (dashboard-grid standard blocks) beside the Agent sidebar (agent-sidebar.tsx). The Agent adds widgets
+     with the dashboard_widget tools; each new widget gets the agent-changed-card ring. */
+  #sbwrap { flex: none; overflow: hidden; width: 0; }
+  .ph .right .btn { height: 32px; padding: 0 10px; font-size: 13px; }
+  .role { display: inline-flex; align-items: center; gap: 8px; height: 32px; padding: 0 10px; border: 1px solid hsl(var(--input)); border-radius: 6px; font-size: 13px; background: hsl(var(--background)); }
+  .role .k { color: hsl(var(--muted-foreground)); }
+  .role svg { width: 9px; height: 9px; color: hsl(var(--muted-foreground)); }
+  .rmenu { position: absolute; z-index: 30; width: 220px; background: hsl(var(--card)); border: 1px solid hsl(var(--border)); border-radius: 8px; box-shadow: 0 8px 24px rgb(0 0 0 / .1); padding: 4px; display: none; }
+  .rmenu .it { display: flex; align-items: center; justify-content: space-between; height: 32px; padding: 0 8px; border-radius: 4px; font-size: 13px; }
+  .rmenu .it.hl { background: hsl(var(--accent)); }
+  .rmenu .it svg { width: 11px; height: 11px; }
+  .grid { padding: 20px 32px; display: grid; grid-template-columns: 1fr 2fr; gap: 16px; }
+  .wcard { position: relative; background: hsl(var(--card)); border: 1px solid hsl(var(--border)); border-radius: 12px; padding: 20px; }
+  .wcard.full { grid-column: 1 / -1; }
+  .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .stat { display: flex; align-items: center; gap: 16px; }
+  .stat .ic { width: 44px; height: 44px; border-radius: 8px; background: hsl(var(--muted)); color: hsl(var(--muted-foreground)); display: grid; place-items: center; }
+  .stat .ic svg { width: 16px; height: 16px; fill: currentColor; stroke: none; }
+  .stat b { display: block; font-size: 28px; line-height: 1; font-weight: 500; }
+  .stat small { display: block; margin-top: 6px; font-size: 12px; text-transform: uppercase; letter-spacing: .05em; color: hsl(var(--muted-foreground)); }
+  .wt { font-size: 15px; font-weight: 600; }
+  .wi { font-size: 13px; color: hsl(var(--muted-foreground)); margin-top: 4px; }
+  .big { margin-top: 18px; font-size: 44px; line-height: 1; font-weight: 500; }
+  .delta { margin-top: 10px; font-size: 13px; color: hsl(var(--muted-foreground)); }
+  .delta b { color: hsl(var(--success)); font-weight: 500; }
+  .bars { display: flex; align-items: flex-end; gap: 14px; height: 150px; margin-top: 18px; padding-bottom: 22px; position: relative; border-bottom: 1px solid hsl(var(--border)); }
+  .bar { flex: 1; position: relative; border-radius: 4px 4px 0 0; background: hsl(var(--highlight) / .85); transform-origin: bottom; }
+  .bar span { position: absolute; bottom: -22px; left: 0; right: 0; text-align: center; font-size: 11px; color: hsl(var(--muted-foreground)); }
+  .bar i { position: absolute; top: -18px; left: 0; right: 0; text-align: center; font-size: 11px; font-style: normal; color: hsl(var(--foreground)); }
+  table { width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 13px; }
+  th { text-align: left; font-weight: 500; color: hsl(var(--muted-foreground)); font-size: 12px; padding: 6px 8px; border-bottom: 1px solid hsl(var(--border)); }
+  td { padding: 8px; border-bottom: 1px solid hsl(var(--border)); }
+  td.n { font-variant-numeric: tabular-nums; }
+  .pill { display: inline-flex; border-radius: 999px; padding: 1px 8px; font-size: 11px; background: hsl(var(--warning) / .14); color: hsl(var(--warning)); }
+  .new { opacity: 0; }
+  .ring { position: absolute; inset: -5px; border-radius: 16px; pointer-events: none; opacity: 0; }
+  /* Agent sidebar, as in the workflow chapter */
+  .asw { flex: none; overflow: hidden; width: 380px; }
+  .as { width: 380px; height: 100%; display: flex; flex-direction: column; padding: 8px 12px 12px; }
+  .as-head { display: flex; align-items: center; gap: 4px; height: 32px; font-size: 14px; font-weight: 500; padding: 0 6px; }
+  .as-head .ic2 { color: hsl(var(--muted-foreground)); display: grid; place-items: center; width: 24px; height: 24px; }
+  .as-head .ic2 svg { width: 12px; height: 12px; }
+  .as-head .r { margin-left: auto; display: flex; gap: 2px; }
+  .as .msgs { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; gap: 14px; padding: 8px 4px 12px; overflow: hidden; }
+  .as .msg { display: flex; gap: 8px; font-size: 13px; line-height: 19px; }
+  .as .msg.user { flex-direction: row-reverse; }
+  .as .av { width: 20px; height: 20px; border-radius: 999px; margin-top: 2px; flex: none; display: grid; place-items: center; font-size: 10px; font-weight: 600; color: #fff; background: hsl(280 30% 42%); }
+  .as .bubble { max-width: 80%; border-radius: 12px; background: hsl(var(--card)); padding: 6px 8px; }
+  .as .prose { flex: 1; min-width: 0; }
+  .as .cot { display: flex; align-items: center; gap: 6px; padding: 4px 0; font-size: 12px; line-height: 16px; color: hsl(var(--muted-foreground)); }
+  .as .crow { display: flex; gap: 8px; font-size: 12px; line-height: 16px; color: hsl(var(--muted-foreground)); padding-bottom: 8px; }
+  .as .crow .dot { width: 16px; height: 16px; border-radius: 999px; background: hsl(var(--border)); display: grid; place-items: center; flex: none; }
+  .as .crow .dot svg { width: 9px; height: 9px; }
+  .as .sug { display: flex; flex-direction: column; gap: 6px; padding: 0 4px 12px; }
+  .as .sug span { border: 1px solid hsl(var(--border)); border-radius: 8px; background: hsl(var(--background)); padding: 6px 10px; font-size: 12px; color: hsl(var(--muted-foreground)); }
+  .as .composer { border: 1px solid hsl(var(--border)); border-radius: 16px; background: hsl(var(--card)); }
+  .as .chips { display: flex; flex-wrap: wrap; gap: 6px; padding: 8px 8px 0; }
+  .as .cchip { display: inline-flex; align-items: center; gap: 6px; border: 1px dashed hsl(var(--highlight)); border-radius: 6px; padding: 2px 8px; font-size: 12px; line-height: 16px; }
+  .as .cchip svg { width: 12px; height: 12px; color: hsl(var(--muted-foreground)); }
+  .as .ta { padding: 10px 14px 4px; min-height: 44px; font-size: 13px; }
+  .as .ta .ph2 { color: hsl(var(--muted-foreground)); }
+  .as .row { display: flex; align-items: center; justify-content: space-between; padding: 0 8px 8px; }
+  .as .row .r { display: flex; align-items: center; gap: 6px; }
+  .as .model { font-size: 12px; color: hsl(var(--muted-foreground)); }
+  .as .rb { width: 32px; height: 32px; border-radius: 999px; display: grid; place-items: center; color: hsl(var(--muted-foreground)); }
+  .as .rb svg { width: 14px; height: 14px; }
+  .as .rb.send { background: hsl(var(--primary)); color: hsl(var(--primary-foreground)); }
+</style></head>
+<body>
+<div class="frame">
+  <div class="stage">
+    <div class="app" id="app">
+      <div id="sbwrap"><div id="sb"></div></div>
+      <main class="panel both">
+        <div class="ph"><h1>Overview</h1><div class="right"><span class="role" id="role"><span class="k">Viewing as</span><span id="roleName">Order desk</span><span data-fa="faChevronDown"></span></span><span class="btn out" data-fa="faPen"></span></div></div>
+        <div class="grid" id="grid">
+          <div class="wcard full"><div class="stats" id="stats"></div></div>
+          <div class="wcard new" id="w1"><div class="ring" id="r1"></div><div class="wt" id="w1t"></div><div class="wi" id="w1i"></div><div class="big tnum" id="w1n"></div><div class="delta" id="w1d"></div></div>
+          <div class="wcard new" id="w2"><div class="ring" id="r2"></div><div class="wt" id="w2t"></div><div class="wi" id="w2i"></div><div class="bars" id="bars"></div></div>
+          <div class="wcard full new" id="w3"><div class="ring" id="r3"></div><div class="wt" id="w3t"></div><div class="wi" id="w3i"></div><table id="tbl"></table></div>
+        </div>
+        <div class="rmenu" id="rmenu"></div>
+      </main>
+      <div class="asw"><div class="as">
+        <div class="as-head"><span>New session</span><span class="ic2" data-fa="faChevronDown"></span><span class="r"><span class="ic2" data-fa="faPlus"></span><span class="ic2" data-fa="faXmark"></span></span></div>
+        <div class="msgs">
+          <div class="sug" id="sug"><span>Explain what this Overview shows</span><span>Add a widget for open requests</span><span>Make an Overview for finance</span></div>
+          <div class="msg user" id="um" style="display:none"><span class="av">S</span><div class="bubble" id="umtxt"></div></div>
+          <div class="msg" id="am" style="display:none"><span id="amav"></span><div class="prose">
+            <div class="cot" id="cot">Working…</div>
+            <div class="crow" id="cr1"><span class="dot" data-fa="faFileSpreadsheet"></span><span>Read Orders and Requests</span></div>
+            <div class="crow" id="cr2"><span class="dot" data-fa="faCheck"></span><span>Added 3 widgets to the Overview</span></div>
+            <div id="areply">I added three widgets for the order desk: orders waiting on a PO, handling time per day, and the list of orders that are waiting.</div>
+          </div></div>
+        </div>
+        <div class="composer">
+          <div class="chips"><span class="cchip"><span data-fa="faInbox"></span>Overview<span data-fa="faXmark"></span></span></div>
+          <div class="ta" id="ta"><span class="ph2">Ask the agent anything…</span></div>
+          <div class="row"><span class="rb" data-fa="faPlus"></span><div class="r"><span class="model">Opus 5.5</span><span class="rb" data-fa="faMicrophone"></span><span class="rb send" id="sendb" data-fa="faArrowUp"></span></div></div>
+        </div>
+      </div></div>
+    </div>
+  </div>
+</div>
+<script src="fa-icons.js"></script><script src="fa-extra.js"></script><script src="fa-ch2.js"></script>
+<script src="app.js"></script>
+<script src="clip.js"></script>
+<script src="chapter.js"></script>
+<script>
+  CHAPTER({ n: 2, total: 5, module: "Overview", footerLeft: "Feature Drop · Week 41",
+    title: "The Agent builds<br><em>your dashboards.</em>", line: "Ask for what you need to see. The Agent adds the widgets to your Overview, and each role gets its own version." });
+  const D = 13.2;
+  window.HOLDS = [[1.0, 0.7], [7.0, 1.4], [D - 0.4, 1.2]];
+  const { $, $$, p, out, io, type } = C;
+  $("#sb").outerHTML = APP.sidebar("Overview");
+  $$("[data-fa]").forEach((el) => (el.innerHTML = fa(el.dataset.fa)));
+  $("#amav").innerHTML = APP.loader(16);
+  // Two roles' versions of the same Overview (role preview, LLE-13655).
+  const ROLES = {
+    desk: { name: "Order desk",
+      stats: [["faInbox", "412", "Orders this month"], ["faCheck", "371", "Drafted in Exact"], ["faClock", "41", "With the order desk"]],
+      w1: ["Waiting on a PO", "Orders the Agent can't draft yet", "14", "<b>−6</b> since Monday"],
+      w2: ["Handling time per day", "Minutes from email to draft, this week", [["Mon", 3.1], ["Tue", 2.6], ["Wed", 2.4], ["Thu", 2.0], ["Fri", 1.8]], "m"],
+      w3: ["Orders waiting on a PO", "Saved view · Orders", ["Customer", "Order", "Amount", "Waiting"],
+        [["Brouwer Verpakking", "SO-24811", "€1,265", "2 h"], ["Van Dijk Metaal", "SO-24806", "€4,820", "5 h"], ["Noord Coatings", "SO-24799", "€7,150", "1 d"]]] },
+    fin: { name: "Finance",
+      stats: [["faFileInvoiceDollar", "286", "Invoices this month"], ["faCheck", "241", "Matched to an order"], ["faTriangleExclamation", "23", "To approve"]],
+      w1: ["Price differences", "Invoice lines above the agreed price", "6", "<b>−3</b> since Monday"],
+      w2: ["Invoices approved per day", "This week", [["Mon", 48], ["Tue", 61], ["Wed", 55], ["Thu", 70], ["Fri", 64]], ""],
+      w3: ["Invoices to approve", "Saved view · Supplier invoices", ["Supplier", "Invoice", "Amount", "Waiting"],
+        [["Kuipers Hout", "2026-0412", "€3,410", "3 h"], ["Rijnstaal", "2026-0409", "€12,940", "6 h"], ["De Graaf Transport", "2026-0401", "€860", "1 d"]]] },
+  };
+  const fill = (R) => {
+    $("#roleName").textContent = R.name;
+    $("#stats").innerHTML = R.stats.map(([ic, n, l]) => `<div class="stat"><span class="ic">${fa(ic)}</span><div><b class="tnum">${n}</b><small>${l}</small></div></div>`).join("");
+    $("#w1t").textContent = R.w1[0]; $("#w1i").textContent = R.w1[1]; $("#w1n").textContent = R.w1[2]; $("#w1d").innerHTML = R.w1[3];
+    $("#w2t").textContent = R.w2[0]; $("#w2i").textContent = R.w2[1];
+    const mx = Math.max(...R.w2[2].map(([, v]) => v));
+    $("#bars").innerHTML = R.w2[2].map(([d, v]) => `<div class="bar" style="height:${(v / mx) * 100}%"><i>${v}${R.w2[3]}</i><span>${d}</span></div>`).join("");
+    $("#w3t").textContent = R.w3[0]; $("#w3i").textContent = R.w3[1];
+    $("#tbl").innerHTML = `<tr>${R.w3[2].map((h) => `<th>${h}</th>`).join("")}</tr>` + R.w3[3].map((r) => `<tr>${r.map((c, i) => `<td class="${i ? "n" : ""}">${i === 3 ? `<span class="pill">${c}</span>` : c}</td>`).join("")}</tr>`).join("");
+  };
+  fill(ROLES.desk);
+  $("#rmenu").innerHTML = ["Builder", "Order desk", "Finance"].map((r) => `<div class="it" id="rm-${r.split(" ")[0]}">${r}${r === "Order desk" ? fa("faCheck") : ""}</div>`).join("");
+  const app = $("#app");
+  const at = (el, fx = 0.5, fy = 0.5) => { const a = app.getBoundingClientRect(), r = el.getBoundingClientRect(), s = a.width / 1280;
+    return [(r.left - a.left + r.width * fx) / s, (r.top - a.top + r.height * fy) / s]; };
+  const rp = at($("#role"), 1, 1); $("#rmenu").style.left = rp[0] - 220 + "px"; $("#rmenu").style.top = rp[1] + 6 + "px";
+  $("#rmenu").style.display = ""; const P = { ta: at($("#ta"), 0.3), send: at($("#sendb")), role: at($("#role")), fin: at($("#rm-Finance")) }; $("#rmenu").style.display = "none";
+  const VW = C.STAGE_W, VH = C.STAGE_H, FIT = Math.min(VW / 1280, VH / C.APP_H) * 0.98;
+  const fit = (x0, y0, x1, y1) => { const s = Math.min(VW / (x1 - x0), VH / (y1 - y0)); return [(x0 + x1) / 2, (y0 + y1) / 2 + (VH / s - (y1 - y0)) / 2, s]; };
+  // Shots: the Overview and the Agent together; the new widgets, from the Overview's own edge; the role switch.
+  const g0 = at($("#grid"), 0, 0), w3b = at($("#w3"), 1, 1), pnl = at($(".panel"), 1, 0);
+  const cp0 = at($(".composer"), 0, 0), cp1 = at($(".composer"), 1, 1);
+  const BOTH = fit(0, 0, 1280, g0[1] + 560), WIDGETS = fit(0, 0, pnl[0] - 6, Math.max(w3b[1] + 20, ((pnl[0] - 6) * VH) / VW));
+  // The ask, close: the Agent's composer and the messages above it, from the sidebar's edge to the app's.
+  const ASKS = fit(pnl[0], cp1[1] - 330, 1280, cp1[1] + 12);
+  const cam = C.camera(app, VW, VH, [[0, ...BOTH], [1.9, ...BOTH], [2.3, ...ASKS], [5.1, ...ASKS], [5.6, ...WIDGETS], [D, ...WIDGETS]]);
+  const F = (t, [x, y]) => { const m = cam(t).map(x, y); return [C.STAGE_X + m[0], C.STAGE_Y + m[1]]; };
+  const OFF = [C.W * 0.6, C.H + 40];
+  const cur = C.cursor([[1.9, ...OFF], [2.4, ...F(2.4, P.ta), true], [4.4, ...F(4.4, P.ta)], [4.6, ...F(4.6, P.send), true], [5.1, ...OFF], [9.9, ...OFF],
+    [10.5, ...F(10.5, P.role), true], [11.1, ...F(11.1, P.fin)], [11.3, ...F(11.3, P.fin), true], [12.0, ...OFF]]);
+  const cap = C.captions([
+    [1.9, 6.8, "Ask the Agent for what you need to see.<br><em>It builds the widgets on your Overview.</em>"],
+    [7.0, 9.6, "Every widget reads your live data.<br><em>Ask again to change it.</em>"],
+    [9.9, 99, "Each role gets its own Overview.<br><em>See it the way finance does.</em>"],
+  ]);
+  cam(0);
+  const ASK = "Add what the order desk needs: orders waiting on a PO and handling time per day.";
+  const NEW = [["#w1", "#r1", 5.4], ["#w2", "#r2", 5.75], ["#w3", "#r3", 6.1]];
+  C.run(D, (t) => {
+    cap(t); cam(t); cur(t);
+    // Typing, then the message goes up and the Agent works.
+    const typing = t >= 2.5 && t < 4.6;
+    if (typing) type($("#ta"), ASK, t, 2.5, 4.3); else $("#ta").innerHTML = t >= 4.6 ? '<span class="ph2">Ask the agent anything…</span>' : '<span class="ph2">Ask the agent anything…</span>';
+    if (t >= 2.5 && t < 4.6 && $("#ta").textContent === "") $("#ta").innerHTML = '<span class="ph2">Ask the agent anything…</span>';
+    const sent = t >= 4.65;
+    $("#sug").style.display = sent ? "none" : "";
+    $("#um").style.display = sent ? "" : "none"; $("#umtxt").textContent = ASK;
+    $("#am").style.display = t >= 4.8 ? "" : "none";
+    APP.drive($("#amav"), t < 6.2 ? "working" : "static", t);
+    $("#cot").textContent = t < 6.2 ? "Working…" : "Worked for 6s";
+    $("#cr1").style.display = t >= 5.0 ? "" : "none"; $("#cr2").style.display = t >= 6.2 ? "" : "none";
+    $("#areply").style.opacity = out(p(t, 6.3, 6.7)); $("#areply").style.display = t >= 6.3 ? "" : "none";
+    // The widgets land one by one, each with the agent-changed ring for a moment.
+    NEW.forEach(([w, r, a]) => {
+      const q = out(p(t, a, a + 0.45));
+      $(w).style.opacity = q; $(w).style.transform = `translateY(${(1 - q) * 12}px)`;
+      const ring = Math.min(p(t, a, a + 0.3), 1 - p(t, a + 2.2, a + 3.0));
+      $(r).style.opacity = ring;
+      $(r).style.background = `linear-gradient(${(t * 90) % 360}deg, hsl(var(--highlight) / .55), hsl(var(--info) / .55) 43%, hsl(var(--highlight) / .35))`;
+      $(r).style.webkitMask = $(r).style.mask = "linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0)";
+      $(r).style.webkitMaskComposite = "xor"; $(r).style.maskComposite = "exclude"; $(r).style.padding = "2px";
+    });
+    $$(".bar").forEach((b, i) => (b.style.transform = `scaleY(${out(p(t, 5.85 + i * 0.08, 6.35 + i * 0.08))})`));
+    // The role switch.
+    const menu = t >= 10.55 && t < 11.4;
+    $("#rmenu").style.display = menu ? "" : "none";
+    $("#rm-Finance").className = "it" + (t >= 11.0 ? " hl" : "");
+    const fin = t >= 11.4;
+    if ((fin ? "fin" : "desk") !== $("#grid").dataset.r) { fill(fin ? ROLES.fin : ROLES.desk); $("#grid").dataset.r = fin ? "fin" : "desk"; }
+    const sw = fin ? out(p(t, 11.4, 11.8)) : 1;
+    $("#grid").style.opacity = 0.35 + 0.65 * sw;
+  });
+</script>
+</body></html>
