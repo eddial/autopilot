@@ -68,6 +68,21 @@ Do the work up to the point where the owner only has to decide:
   when the repo expects one.
 - **Decision needed** → gather the facts and options; recommend one.
 
+**Link everything you create outside Linear.** Each Gmail draft or sent
+mail, Slack message or draft, PR, branch, document, artifact or calendar
+event you make goes on the issue as a resource the moment it exists (a
+sent draft gets its sent thread's link):
+
+```
+node "$AUTOPILOT_ROOT/runtime/tick.ts" link <ID> <url> "<title>" [--subtitle "<to whom, state>"]
+```
+
+The title says what it is and where (`gmail: ElevenLabs pricing (sent)`,
+`slack: DM to Tijmen`). Linking the same URL again updates it, so relink
+when the state changes (draft → sent). Gmail thread links have the form
+`https://mail.google.com/mail/u/0/#all/<threadId>`; a Slack message's is
+the permalink from the send result.
+
 Between pauses, comment only at real milestones (e.g. "found the root
 cause", "draft ready"), not for every step.
 

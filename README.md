@@ -247,6 +247,7 @@ branch.
 | `bin/autopilot signal <name> [--dry=<minutes>]` | run one signal now; `--dry` previews without filing |
 | `bin/autopilot schedule <name>` · `launch` | run a schedule or the launcher now |
 | `bin/autopilot watch [<ID> "<what>" …]` · `unwatch <ID>` | list, add or remove watchers |
+| `bin/autopilot link <ID> <url> "<title>" [--subtitle …]` | attach a link to an issue's Resources (a session does this for everything it creates outside Linear) |
 | `bin/autopilot where` | print the engine and home paths |
 | `bin/autopilot setup` · `install` | create the home from the examples; relink the plugin |
 
