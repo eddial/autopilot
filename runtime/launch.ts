@@ -12,6 +12,11 @@ export const MARK = '🤖 Autopilot';
 // the session, like a comment from the owner.
 export const WATCH_UPDATE = `${MARK} · watcher update`;
 export const NEW_SIGNAL = `${MARK} · 📨 new signal`;
+// What reaches a session from Linear: the launcher's first prompt and the comments relay() types in. A session
+// answers on the issue only for these; a message the owner types in the session itself is answered there.
+const WORK = 'Use the autopilot:work skill on Linear issue';
+export const fromLinear = (text: string) =>
+  text.includes(WORK) || /^(New comments? on|Something new came in on) Linear issue /.test(text.trimStart());
 
 export async function gql(query: string, variables: Record<string, unknown> = {}) {
   if (!process.env.LINEAR_API_KEY) throw new Error(`LINEAR_API_KEY missing in ${path.join(HOME, '.env')}`);
@@ -216,7 +221,7 @@ async function start(issue: any) {
     : folder ? `You work in ${folder}, the ${ws.name} workstream's folder, shared with its other sessions. Put files for this issue in ${files}/.`
     : `You run in the Autopilot folder (${ROOT}); leave its files alone. Put files for this issue in ${files}/, the ${ws.name} workstream's folder for it.`;
   const mirror = key ? `This issue mirrors ${key} (${ticket?.url ?? 'its source attachment'}), the team's own ticket. ${id} is ${config.owner}'s private copy: keep it out of everything the team sees. Branches, commits, PR titles and descriptions name ${key} only, written for the team; never ${id}, Autopilot, session links or briefing text. Do not comment on ${key} or change its status unless ${config.owner} asks on ${id}; the team's GitHub automation moves it when the branch is pushed and the PR merges.` : '';
-  const prompt = [instructions(), section(ws.body, 'Work'), `${place}${mirror ? ` ${mirror}` : ''} Use the autopilot:work skill on Linear issue ${id}.`].filter(Boolean).join('\n\n---\n\n');
+  const prompt = [instructions(), section(ws.body, 'Work'), `${place}${mirror ? ` ${mirror}` : ''} ${WORK} ${id}.`].filter(Boolean).join('\n\n---\n\n');
   // Without --name the app titles the session from the prompt, which opens with the same generic
   // instructions for every issue, so every session gets a title like "General coding session".
   const name = ticket ? `${ticket.identifier} ${ticket.title}` : `${id} ${issue.title}`;
@@ -240,15 +245,11 @@ async function start(issue: any) {
   const started = new Date().toISOString();
   const session: Session = { issue_id: issue.id, repo, worktree, branch, window: `${TMUX}:${id}`, session_id: sessionId, link, started, seen: started };
   withState(s => { s.sessions[id] = session; });
-  // The session runs whatever happens here; a lost comment or attachment must not send the issue back.
+  // The session runs whatever happens here; a lost attachment must not send the issue back. The links go under
+  // Resources only: a comment repeating them is noise on the issue.
   const when = `${branch || ws.name} · started ${started.slice(0, 16).replace('T', ' ')} UTC`;
   for (const [url, title, sub] of [[local, 'Claude Code session (this Mac)', `Claude app · ${when}`], [link, 'Claude Code session (Remote Control)', when]])
     if (url) await attach(issue.id, url, title, sub).catch(e => log('launcher', id, 'session attachment failed:', (e as Error).message));
-  await comment(issue.id, [`${MARK} · session started ${branch ? `on branch \`${branch}\`` : `for the ${ws.name} workstream, files in \`${files}\``}.`,
-    `In the Claude app: ${local}`,
-    link ? `Remote Control: ${link}` : 'Remote Control link not found yet; open it from the Claude app session list.',
-    `On the server: \`tmux attach -t ${TMUX} \\; select-window -t ${id}\``].join('\n\n'))
-    .catch(e => log('launcher', id, 'start comment failed:', (e as Error).message));
   log('launcher', id, 'started', link);
 }
 
