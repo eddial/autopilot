@@ -69,6 +69,7 @@ export function duration(s: string): number {
 export type Job = {
   pid?: number | null; last_checked?: string; last_run?: string; last_success?: string; last_error?: string | null;
   failures?: number; failing_since?: string | null; gaps?: { from: string; to: string }[]; health_reported?: boolean;
+  health_issue?: string; // the open "<job> failing" issue, so the close finds it without a search
 };
 // repo and branch are empty for a session in a workstream's folder (no git).
 export type Session = { issue_id: string; repo: string; worktree: string; branch: string; window: string; session_id?: string; link?: string; started: string; seen?: string };

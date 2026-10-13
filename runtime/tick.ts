@@ -263,19 +263,26 @@ function runHealth(target: string, mode: string) {
   try {
     const j = readState().jobs[target] ?? {};
     const title = `Autopilot health: ${target} failing`;
+    // Close by identifier: Linear's search lags a few minutes behind a new issue, and a job that recovers right
+    // after its issue was filed would otherwise find nothing and leave it open (AP-58).
+    const found = j.health_issue ? `Issue ${j.health_issue}: if its status is not Done, Canceled or Duplicate` : `If an open issue titled exactly "${title}" exists`;
     const task = mode === 'close'
-      ? `If an open issue titled exactly "${title}" exists, comment that runs succeed again since ${j.last_success} and move it to Done. Do nothing else.`
-      : [j.failing_since && `Find the open issue titled exactly "${title}"; comment the latest state on it, or create it if none exists: project ${config.autopilot_workstream}, status Triage, priority 2, label autopilot. ` +
+      ? `${found}, comment that runs succeed again since ${j.last_success} and move it to Done. Do nothing else.`
+      : [j.failing_since && `${j.health_issue ? `The failing issue is ${j.health_issue}; if it is Done, Canceled or Duplicate, look for` : 'Find'} the open issue titled exactly "${title}"; comment the latest state on it, or create it if none exists: project ${config.autopilot_workstream}, status Triage, priority 2, label autopilot. ` +
           `Body: what fails (${target}), failing since ${j.failing_since}, ${j.failures} failed runs, last error:\n\n${j.last_error}`,
         j.gaps?.length && `Create an issue "Autopilot health: ${target} skipped a time range": project ${config.autopilot_workstream}, status Triage, priority 2, label autopilot. ` +
           `Body: the window was capped at ${config.window_cap}; check these ranges by hand: ${j.gaps.map(g => `${g.from} → ${g.to}`).join('; ')}.`,
       ].filter(Boolean).join('\n\n');
-    claude(`${instructions()}\n\n---\n\nLinear team: ${config.linear_team}.\n\n${task}\n\nReply "ok" when done.`, { tools: config.filing_tools, model: config.model });
+    const schema = { type: 'object', properties: { failing_issue: { type: 'string', description: `Identifier of the "${title}" issue you commented on or created (e.g. AP-58); "" if none` } }, required: ['failing_issue'] };
+    const out = claude(`${instructions()}\n\n---\n\nLinear team: ${config.linear_team}.\n\n${task}`, { tools: config.filing_tools, model: config.model, schema }) as { failing_issue?: string };
     withState(s => {
       const t = job(s, target);
-      if (mode === 'close') t.health_reported = false;
+      if (mode === 'close') { t.health_reported = false; delete t.health_issue; }
       // What was reported, not the state now: the job may have recovered meanwhile, and the next tick closes the issue.
-      else { t.health_reported = !!j.failing_since; t.gaps = (t.gaps ?? []).slice(j.gaps?.length ?? 0); }
+      else {
+        t.health_reported = !!j.failing_since; t.gaps = (t.gaps ?? []).slice(j.gaps?.length ?? 0);
+        if (j.failing_since && /^[A-Z]+-\d+$/.test(out?.failing_issue ?? '')) t.health_issue = out.failing_issue;
+      }
     });
     succeeded(key);
   } catch (e) { failed(key, e); }
