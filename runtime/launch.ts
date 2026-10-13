@@ -29,7 +29,7 @@ const issuesIn = async (filter: object) =>
 export const comment = (issueId: string, body: string) =>
   gql('mutation($i: CommentCreateInput!) { commentCreate(input: $i) { success } }', { i: { issueId, body } });
 // A link attachment shows under the issue's Resources; the same URL again updates it instead of adding one.
-const attach = (issueId: string, url: string, title: string, subtitle: string) =>
+export const attach = (issueId: string, url: string, title: string, subtitle?: string) =>
   gql('mutation($i: AttachmentCreateInput!) { attachmentCreate(input: $i) { success } }', { i: { issueId, url, title, subtitle } });
 export const move = (id: string, stateId: string) =>
   gql('mutation($id: String!, $s: String!) { issueUpdate(id: $id, input: { stateId: $s }) { success } }', { id, s: stateId });

@@ -327,9 +327,20 @@ else if (cmd === 'launch') {
 } else if (cmd === 'slack-upload') {
   const { upload } = await import('./slack.ts');
   try { await upload(args); } catch (e) { console.error((e as Error).message); process.exit(1); }
+} else if (cmd === 'link') {
+  // A session attaches what it creates outside Linear (a mail thread, a sent draft, a Slack message, a PR, a doc) to its issue.
+  const [id, url, title, ...rest] = args;
+  const sub = rest[rest.indexOf('--subtitle') + 1];
+  if (!id || !url || !title) { console.error('usage: autopilot link <ID> <url> "<title>" [--subtitle "<text>"]'); process.exit(1); }
+  const { gql, attach } = await import('./launch.ts');
+  try {
+    const issue = (await gql('query($id: String!) { issue(id: $id) { id } }', { id })).issue;
+    await attach(issue.id, url, title, rest.includes('--subtitle') ? sub : undefined);
+    console.log(`linked ${url} to ${id}`);
+  } catch (e) { console.error((e as Error).message); process.exit(1); }
 } else if (cmd === 'unwatch') { unwatch(args[0]); console.log(`unwatched ${args[0]}`); }
 else if (cmd === 'install') install();
 else if (cmd === 'setup') setup();
 else if (cmd === 'where') console.log(`engine ${ROOT}\nhome   ${HOME}${fs.existsSync(CONFIG) ? '' : ' (not set up: run `autopilot setup`)'}`);
 else if (!cmd || cmd === 'tick') await tick();
-else { console.error('usage: autopilot [tick|signal <name> [--dry=<minutes>]|schedule <name>|launch|watch [<ID> "<what>" …]|unwatch <ID>|slack-upload <channel> <file>…|setup|install|where]'); process.exit(1); }
+else { console.error('usage: autopilot [tick|signal <name> [--dry=<minutes>]|schedule <name>|launch|watch [<ID> "<what>" …]|unwatch <ID>|slack-upload <channel> <file>…|link <ID> <url> "<title>"|setup|install|where]'); process.exit(1); }
