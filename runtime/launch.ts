@@ -23,7 +23,7 @@ export async function gql(query: string, variables: Record<string, unknown> = {}
   if (!r.ok || j.errors) throw new Error(`Linear: ${r.status} ${JSON.stringify(j.errors ?? j).slice(0, 500)}`);
   return j.data;
 }
-const ISSUE = 'id identifier title description createdAt project { name } state { name type }';
+const ISSUE = 'id identifier title description createdAt project { name } state { name type } attachments { nodes { url } }';
 const issuesIn = async (filter: object) =>
   (await gql(`query($f: IssueFilter) { issues(filter: $f, first: 100) { nodes { ${ISSUE} } } }`, { f: filter })).issues.nodes;
 export const comment = (issueId: string, body: string) =>
@@ -33,6 +33,29 @@ export const attach = (issueId: string, url: string, title: string, subtitle?: s
   gql('mutation($i: AttachmentCreateInput!) { attachmentCreate(input: $i) { success } }', { i: { issueId, url, title, subtitle } });
 export const move = (id: string, stateId: string) =>
   gql('mutation($id: String!, $s: String!) { issueUpdate(id: $id, input: { stateId: $s }) { success } }', { id, s: stateId });
+
+// An issue the Linear signal filed from another team's ticket mirrors that ticket: its source attachment is the
+// ticket's URL. The ticket is the real one: its branch name is the session's branch, so the team's GitHub
+// automation moves it, and when it closes the mirror closes with it.
+export function sourceTicket(issue: any): string {
+  for (const a of issue.attachments?.nodes ?? []) {
+    const key = a.url.match(/^https:\/\/linear\.app\/[^/]+\/issue\/([A-Z][A-Z0-9]*-\d+)/)?.[1];
+    if (key && !key.startsWith(`${config.linear_team}-`)) return key;
+  }
+  return '';
+}
+type Ticket = { identifier: string; url: string; branchName: string; state: { name: string; type: string } };
+async function tickets(keys: string[]): Promise<Record<string, Ticket>> {
+  if (!keys.length) return {};
+  // One query per team by number: a ticket that no longer exists is simply missing, where issue(id:) fails the
+  // whole query. (Linear ignores an `or` of team-and-number filters and returns every issue.)
+  const byTeam = Object.groupBy(keys, k => k.split('-')[0]);
+  const out: Record<string, Ticket> = {};
+  for (const [team, ks] of Object.entries(byTeam))
+    for (const t of (await gql('query($f: IssueFilter) { issues(filter: $f, first: 100) { nodes { identifier url branchName state { name type } } } }',
+      { f: { team: { key: { eq: team } }, number: { in: ks!.map(k => Number(k.split('-')[1])) } } })).issues.nodes) out[t.identifier] = t;
+  return out;
+}
 
 const tmux = (...a: string[]) => run('tmux', a);
 // Claude Code stops at "Do you trust this folder?" in a folder it has not seen, and the session never starts.
@@ -61,6 +84,7 @@ function ignoreWorktrees(repo: string) {
   fs.mkdirSync(path.dirname(exclude), { recursive: true });
   fs.appendFileSync(exclude, '\n.claude/worktrees/\n');
 }
+const mainWorktree = (repo: string) => run('git', ['-C', repo, 'worktree', 'list', '--porcelain']).match(/^worktree (.+)$/m)?.[1] ?? '';
 const hasWindow = (name: string) => { try { return tmux('list-windows', '-t', TMUX, '-F', '#W').split('\n').includes(name); } catch { return false; } };
 
 // Status name → id.
@@ -77,6 +101,8 @@ export async function launch() {
   const states = await teamStates();
   for (const n of ['Start', 'Working', 'Triage']) if (!states[n]) throw new Error(`status ${n} missing; run /autopilot:init`);
   const inTeam = (name: string) => ({ team: { key: { eq: config.linear_team } }, state: { name: { eq: name } } });
+
+  try { await closeMirrors(states); } catch (e) { log('launcher', 'closing mirrors failed:', (e as Error).message); }
 
   // Cleanup first, so finished sessions free their slot.
   const known = Object.entries(readState().sessions);
@@ -127,6 +153,23 @@ async function route(issue: any): Promise<string> {
   return name;
 }
 
+// A mirror closes with its ticket: Done when the ticket is done, Canceled when it is canceled or a duplicate. The cleanup
+// below then ends its session, so the owner never moves both.
+async function closeMirrors(states: Record<string, string>) {
+  const open = (await issuesIn({ team: { key: { eq: config.linear_team } }, state: { type: { nin: ['completed', 'canceled'] } } }))
+    .map((i: any) => ({ i, key: sourceTicket(i) })).filter(({ key }: any) => key);
+  const found = await tickets([...new Set<string>(open.map(({ key }: any) => key))]);
+  for (const { i, key } of open) {
+    const t = found[key];
+    if (!t || !['completed', 'canceled', 'duplicate'].includes(t.state.type)) continue;
+    const to = t.state.type !== 'completed' && states.Canceled ? 'Canceled' : 'Done';
+    if (!states[to]) { log('launcher', i.identifier, `${key} closed, but status ${to} is missing`); continue; }
+    await move(i.id, states[to]);
+    await comment(i.id, `${MARK} · ${key} is ${t.state.name}, so this issue moves to ${to}.`);
+    log('launcher', i.identifier, `${key} is ${t.state.name}: moved to ${to}`);
+  }
+}
+
 async function start(issue: any) {
   const id: string = issue.identifier;
   const project = issue.project?.name ?? await route(issue);
@@ -139,9 +182,12 @@ async function start(issue: any) {
   const repo = ws.meta.repo ? repoDir(ws.meta.repo) : '';
   const folder = !repo && ws.meta.folder ? path.resolve(home(ws.meta.folder)) : '';
   const files = repo ? '' : path.join(folder || path.join(config.worktrees_dir, ws.name), id);
-  const branch = repo ? `claude/${id.toLowerCase()}` : '';
-  // A follow-up after Review reuses the branch's worktree, wherever it was made.
+  const key = sourceTicket(issue);
+  const ticket = key ? (await tickets([key]))[key] : undefined;
+  const branch = !repo ? '' : ticket?.branchName || `claude/${id.toLowerCase()}`;
+  // A follow-up after Review reuses the branch's worktree, wherever it was made; but never the owner's own checkout.
   const existing = repo ? worktreeOf(repo, branch) : '';
+  if (existing && existing === mainWorktree(repo)) throw new Error(`branch ${branch} is checked out in ${existing}; switch that checkout to another branch first`);
   const worktree = repo ? existing || path.join(repo, '.claude', 'worktrees', id) : folder || ROOT;
   if (!repo) fs.mkdirSync(files, { recursive: true });
   else if (!existing) {
@@ -152,7 +198,9 @@ async function start(issue: any) {
       // A local-only repo (the home, before it gets a remote) branches from its checked-out branch.
       const remote = run('git', ['-C', repo, 'remote']).split('\n').includes('origin');
       if (remote) run('git', ['-C', repo, 'fetch', '--prune', 'origin']);
-      const base = remote ? run('git', ['-C', repo, 'symbolic-ref', '--short', 'refs/remotes/origin/HEAD']) : run('git', ['-C', repo, 'rev-parse', '--abbrev-ref', 'HEAD']);
+      // A ticket's branch someone already pushed is continued, not started over.
+      const pushed = remote && run('git', ['-C', repo, 'branch', '-r', '--list', `origin/${branch}`]) ? `origin/${branch}` : '';
+      const base = pushed || (remote ? run('git', ['-C', repo, 'symbolic-ref', '--short', 'refs/remotes/origin/HEAD']) : run('git', ['-C', repo, 'rev-parse', '--abbrev-ref', 'HEAD']));
       run('git', ['-C', repo, 'worktree', 'add', '-b', branch, worktree, base]);
     }
   }
@@ -165,7 +213,8 @@ async function start(issue: any) {
   const place = repo ? `You work in a git worktree of ${repo} on branch \`${branch}\`.`
     : folder ? `You work in ${folder}, the ${ws.name} workstream's folder, shared with its other sessions. Put files for this issue in ${files}/.`
     : `You run in the Autopilot folder (${ROOT}); leave its files alone. Put files for this issue in ${files}/, the ${ws.name} workstream's folder for it.`;
-  const prompt = [instructions(), section(ws.body, 'Work'), `${place} Use the autopilot:work skill on Linear issue ${id}.`].filter(Boolean).join('\n\n---\n\n');
+  const mirror = key ? `This issue mirrors ${key} (${ticket?.url ?? 'its source attachment'}), the team's own ticket. ${id} is ${config.owner}'s private copy: keep it out of everything the team sees. Branches, commits, PR titles and descriptions name ${key} only, written for the team; never ${id}, Autopilot, session links or briefing text. Do not comment on ${key} or change its status unless ${config.owner} asks on ${id}; the team's GitHub automation moves it when the branch is pushed and the PR merges.` : '';
+  const prompt = [instructions(), section(ws.body, 'Work'), `${place}${mirror ? ` ${mirror}` : ''} Use the autopilot:work skill on Linear issue ${id}.`].filter(Boolean).join('\n\n---\n\n');
   // Without --name the app titles the session from the prompt, which opens with the same generic
   // instructions for every issue, so every session gets a title like "General coding session".
   const name = `${id} ${issue.title}`;
