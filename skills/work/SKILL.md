@@ -1,6 +1,6 @@
 ---
 name: work
-description: How an Autopilot session works a Linear issue — read the issue and its source, prepare a draft, document or change, comment on the issue at every pause, take the owner's comments as instructions, and hand over in Review or Waiting. Use when asked to "use the autopilot:work skill on Linear issue <ID>".
+description: How an Autopilot session works a Linear issue — read the issue and its source, prepare a draft, document or change, answer on the issue when the work came from it, take the owner's comments as instructions, and hand over in Review or Waiting. Use when asked to "use the autopilot:work skill on Linear issue <ID>".
 ---
 
 # Work an Autopilot issue
@@ -49,9 +49,16 @@ The issue's comments are where you and the owner talk while you work:
 
 - **Start every comment you write with `🤖 Autopilot`** (e.g. `🤖 Autopilot · briefing`).
   That is how the launcher tells your comments from theirs.
-- **Comment at every pause**: whenever you end your turn, because you
-  are done, need a decision, are blocked, or are unsure. A Stop hook
-  sends you back if you try to pause without one.
+- **Answer where you were asked.** When the work came from Linear (the
+  first prompt, or a message the launcher relays: the owner's comment, a
+  watcher update, a new signal), end it with one comment on the issue:
+  the briefing below, or a short answer when that is all it needs. A
+  Stop hook sends you back if you pause without one. When the owner
+  types to you in this session, answer here and leave Linear alone; once
+  that leads to a handover (a draft ready, a decision for them, waiting
+  on someone), brief on the issue and move it as below.
+- **One comment per handover.** No progress or milestone comments, no
+  restating what is already under Resources.
 - **Their replies come to you**: when the owner comments, the launcher
   types the comment into this session as a new message ("New comment on
   Linear issue …"). Act on it like a message from them, then comment
@@ -98,9 +105,6 @@ The title says what it is and where (`gmail: ElevenLabs pricing (sent)`,
 when the state changes (draft → sent). Gmail thread links have the form
 `https://mail.google.com/mail/u/0/#all/<threadId>`; a Slack message's is
 the permalink from the send result.
-
-Between pauses, comment only at real milestones (e.g. "found the root
-cause", "draft ready"), not for every step.
 
 ## 3. Hand over
 

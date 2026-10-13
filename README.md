@@ -144,12 +144,12 @@ Check it with `/autopilot:status`. The log is `home/.state/tick.log`.
 | --- | --- | --- |
 | **Triage** | Autopilot | A signal filed it. Look, re-file (change the project) or cancel. |
 | **Start** | you | Move an issue here to start a session. Commenting on a Triage issue does the same. |
-| **Working** | Autopilot | A session is on it. Its links (Claude app, Remote Control, tmux) are in the first comment. |
+| **Working** | Autopilot | A session is on it. Its links (Claude app, Remote Control) are under Resources. |
 | **Review** | you | A briefing is waiting for your decision. Reply in a comment to steer; the reply goes into the live session. |
 | **Waiting** | someone else | Blocked on another person; a watcher wakes the session when they act. |
 | **Done / Canceled** | you | Closes the session and cleans up its worktree (unless it holds unpushed work). |
 
-Every issue with a session has two links under Resources (and in its first comment): one opens the
+Every issue with a session has two links under Resources: one opens the
 running session in the Claude app on your Mac, the other is Remote Control, which opens the same
 session on claude.ai or in the Claude app on your phone while it keeps running on your Mac with your
 files and connectors. `tmux attach -t autopilot` shows it too. It is one session either way: what you
