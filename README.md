@@ -272,6 +272,12 @@ branch.
   `.claude/settings.json` (no deny rules by default). The session gets an ID the launcher chooses, so the issue gets a
   `claude://resume?session=<id>` link that opens it in the Claude app on that Mac; that link and the Remote Control
   link scraped from the pane are commented on the issue and attached to it, so they show under its Resources. A failure before the session starts moves the issue back to Triage with the error.
+- **Team tickets.** An issue the Linear signal filed from another team's ticket (its source attachment is that
+  ticket's URL) mirrors it. In a workstream with a repo, its session works on the ticket's own branch (Linear's
+  `branchName`, continuing it if it was already pushed), so the team's GitHub automation moves the ticket, and it
+  names only the ticket in branches, commits and PRs: the Autopilot issue never shows. It writes nothing on the ticket
+  unless you ask. When the ticket is Done (or Canceled, a Duplicate), the launcher moves the mirror to Done (Canceled)
+  and the cleanup ends its session, so you only ever move one of the two.
 - **Watchers.** A session leaves a watcher on what its issue waits on (`node runtime/tick.ts watch <ID> "<what>"
   [--every 30m] [--for 14d] [--signal …] [--tools …]`; `watch` lists them, `unwatch <ID>` removes one). It reads with
   the tools of the issue's source signal (its label) or the tools given, so any connector or read-only command works.
