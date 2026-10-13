@@ -44,7 +44,7 @@ export function sourceTicket(issue: any): string {
   }
   return '';
 }
-type Ticket = { identifier: string; url: string; branchName: string; state: { name: string; type: string } };
+type Ticket = { identifier: string; title: string; url: string; branchName: string; state: { name: string; type: string } };
 async function tickets(keys: string[]): Promise<Record<string, Ticket>> {
   if (!keys.length) return {};
   // One query per team by number: a ticket that no longer exists is simply missing, where issue(id:) fails the
@@ -52,7 +52,7 @@ async function tickets(keys: string[]): Promise<Record<string, Ticket>> {
   const byTeam = Object.groupBy(keys, k => k.split('-')[0]);
   const out: Record<string, Ticket> = {};
   for (const [team, ks] of Object.entries(byTeam))
-    for (const t of (await gql('query($f: IssueFilter) { issues(filter: $f, first: 100) { nodes { identifier url branchName state { name type } } } }',
+    for (const t of (await gql('query($f: IssueFilter) { issues(filter: $f, first: 100) { nodes { identifier title url branchName state { name type } } } }',
       { f: { team: { key: { eq: team } }, number: { in: ks!.map(k => Number(k.split('-')[1])) } } })).issues.nodes) out[t.identifier] = t;
   return out;
 }
@@ -188,7 +188,9 @@ async function start(issue: any) {
   // A follow-up after Review reuses the branch's worktree, wherever it was made; but never the owner's own checkout.
   const existing = repo ? worktreeOf(repo, branch) : '';
   if (existing && existing === mainWorktree(repo)) throw new Error(`branch ${branch} is checked out in ${existing}; switch that checkout to another branch first`);
-  const worktree = repo ? existing || path.join(repo, '.claude', 'worktrees', id) : folder || ROOT;
+  // A mirror's worktree and session are named after the team ticket, so the Claude app lists LLE-n under the repo.
+  const label = ticket?.identifier ?? id;
+  const worktree = repo ? existing || path.join(repo, '.claude', 'worktrees', label) : folder || ROOT;
   if (!repo) fs.mkdirSync(files, { recursive: true });
   else if (!existing) {
     ignoreWorktrees(repo);
@@ -217,7 +219,7 @@ async function start(issue: any) {
   const prompt = [instructions(), section(ws.body, 'Work'), `${place}${mirror ? ` ${mirror}` : ''} Use the autopilot:work skill on Linear issue ${id}.`].filter(Boolean).join('\n\n---\n\n');
   // Without --name the app titles the session from the prompt, which opens with the same generic
   // instructions for every issue, so every session gets a title like "General coding session".
-  const name = `${id} ${issue.title}`;
+  const name = ticket ? `${ticket.identifier} ${ticket.title}` : `${id} ${issue.title}`;
   tmux('new-window', '-d', '-t', `${TMUX}:`, '-n', id, '-c', worktree,
     '-e', `AUTOPILOT_ISSUE=${id}`, '-e', `AUTOPILOT_ISSUE_UUID=${issue.id}`, '-e', `AUTOPILOT_ROOT=${ROOT}`, '-e', `AUTOPILOT_HOME=${HOME}`,
     'claude', '--session-id', sessionId, '--name', name, '--remote-control', name, ...(files && !folder ? ['--add-dir', files] : []), '--no-chrome', '--permission-mode', 'bypassPermissions', '--settings', path.join(ROOT, '.claude', 'settings.json'), prompt);

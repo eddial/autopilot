@@ -275,7 +275,8 @@ branch.
 - **Team tickets.** An issue the Linear signal filed from another team's ticket (its source attachment is that
   ticket's URL) mirrors it. In a workstream with a repo, its session works on the ticket's own branch (Linear's
   `branchName`, continuing it if it was already pushed), so the team's GitHub automation moves the ticket, and it
-  names only the ticket in branches, commits and PRs: the Autopilot issue never shows. It writes nothing on the ticket
+  names only the ticket in branches, commits and PRs: the Autopilot issue never shows. The session and its worktree
+  (`<repo>/.claude/worktrees/LLE-n`) are named after the ticket too, so the Claude app lists it as `LLE-n …` under the repo. It writes nothing on the ticket
   unless you ask. When the ticket is Done (or Canceled, a Duplicate), the launcher moves the mirror to Done (Canceled)
   and the cleanup ends its session, so you only ever move one of the two.
 - **Watchers.** A session leaves a watcher on what its issue waits on (`node runtime/tick.ts watch <ID> "<what>"
