@@ -106,6 +106,12 @@ when the state changes (draft → sent). Gmail thread links have the form
 `https://mail.google.com/mail/u/0/#all/<threadId>`; a Slack message's is
 the permalink from the send result.
 
+**Local files are clickable links.** Every file on this Mac that you
+mention gets a link, never a bare path: in the session
+`file:///<absolute path>`; on Linear `vscode://file/<absolute path>`
+(opens in VS Code; Linear rejects `file://`), both in the briefing text
+and as a resource with `link` (title `file: <what it is>`).
+
 ## 3. Hand over
 
 Comment a briefing, at most 150 words:
