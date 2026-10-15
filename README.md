@@ -258,7 +258,10 @@ branch.
   --model haiku --json-schema …` call (the signal's `model:` overrides it) with the signal's read tools plus `filing_tools` files the items;
   every item goes to `.state/decisions.jsonl`. Each `created` item is looked up in Linear (by identifier,
   else by its source URL); one that is not there is logged as `failed` and fails the run. A failed or
-  unparseable run leaves `last_checked`, so the next tick retries. The first run only sets `last_checked` (no backfill). A signal with `cron:` is a
+  unparseable run leaves `last_checked`, so the next tick retries. An `updated` item whose comment cannot
+  be posted (Linear briefly unreachable) is logged `updated` with `pending: true` and kept in
+  `pending_updates` in state.json; every tick retries the queue (job `signal-updates`, its own decisions line
+  per outcome), and health raises it like any failing job. The first run only sets `last_checked` (no backfill). A signal with `cron:` is a
   digest instead: it runs when the cron matches, over everything since its previous run (the first run
   covers its `window_cap:`, which overrides the global cap), and a failed run is retried every `every:`.
 - **Launcher.** Every tick: issues in Done/Canceled with a session are cleaned up (tmux window killed,

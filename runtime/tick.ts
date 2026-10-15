@@ -96,6 +96,7 @@ async function tick() {
     }
   }
   if (!alive(s.jobs.launcher?.pid)) detach('launcher', ['launch']);
+  if (s.pending_updates?.length && !alive(s.jobs[UPDATES]?.pid)) detach(UPDATES, ['updates']);
   // Watchers: due every `every`; the run itself checks the issue's status (watch.ts).
   for (const [id, w] of Object.entries(s.watchers)) {
     const key = `watch:${id}`;
@@ -185,6 +186,46 @@ async function addSignal(name: string, item: any) {
   return item;
 }
 
+// A comment that failed to post is still an update: it waits in state.json and every tick retries it, so an
+// issue without a watcher does not lose the news (AP-76). The one-hour repeat check in addSignal still applies.
+const UPDATES = 'signal-updates';
+const updateKey = (name: string, i: any) => `${name} ${i.issue} ${i.source_url}`;
+function queueUpdate(name: string, item: any, window: string[], e: unknown) {
+  const msg = (e as Error).message.slice(0, 200), key = updateKey(name, item);
+  withState(s => {
+    const q = (s.pending_updates ??= []).filter(p => p.key !== key);
+    q.push({ key, signal: name, item, window, tries: 1, first_failed: iso(Date.now()), last_error: msg });
+    s.pending_updates = q;
+  });
+  return { ...item, pending: true, reason: `could not add to ${item.issue} yet (${msg}); retrying next tick: ${item.reason}` };
+}
+
+// One pass over the queue: posted or no longer applicable (issue closed, already there) leaves it and gets its
+// own decisions line; a failure counts a try. The job fails while anything stays queued, so health raises it
+// after 3 failed passes over an hour, like any other job, and closes it once the queue drains.
+async function retryUpdates() {
+  try {
+    const queue = readState().pending_updates ?? [];
+    const done: string[] = [], errors: string[] = [];
+    for (const p of queue) {
+      try {
+        const r = await addSignal(p.signal, p.item);
+        done.push(p.key);
+        fs.appendFileSync(path.join(STATE_DIR, 'decisions.jsonl'), JSON.stringify({ ts: iso(Date.now()), signal: p.signal, window: p.window,
+          ...r, retried: p.tries, ...(r.action === 'updated' ? { reason: `posted after ${p.tries} failed ${p.tries === 1 ? 'try' : 'tries'}: ${p.item.reason}` } : {}) }) + '\n');
+      } catch (e) {
+        const msg = (e as Error).message.slice(0, 200);
+        errors.push(`${p.item.issue} (${p.signal}, ${p.tries + 1} tries since ${p.first_failed}): ${msg}`);
+        withState(s => { const q = s.pending_updates?.find(x => x.key === p.key); if (q) Object.assign(q, { tries: q.tries + 1, last_error: msg }); });
+      }
+    }
+    withState(s => { s.pending_updates = (s.pending_updates ?? []).filter(p => !done.includes(p.key)); });
+    if (done.length) log(UPDATES, `${done.length} pending update(s) resolved`);
+    if (errors.length) throw new Error(`${errors.length} signal update(s) not posted:\n${errors.join('\n')}`);
+    succeeded(UPDATES);
+  } catch (e) { failed(UPDATES, e); }
+}
+
 // A filing the model reports must exist in Linear: a run without Linear write tools still answers `created`.
 // Look the issue up by its identifier, or by the source URL attached to it when the identifier is missing,
 // and only accept one made during this run; otherwise the item is `failed` and the run with it.
@@ -231,7 +272,7 @@ async function runSignal(name: string, dry?: number) {
     if (!Array.isArray(items)) throw new Error(`bad output: ${JSON.stringify(out).slice(0, 500)}`);
     try { items = followUps(name, items, active); } catch (e) { log(key, 'follow-up check failed:', (e as Error).message.slice(0, 200)); }
     if (!dry) items = await Promise.all(items.map(i => i.action !== 'updated' || !i.issue ? i
-      : addSignal(name, i).catch(e => ({ ...i, action: 'dropped', reason: `could not add to ${i.issue}: ${(e as Error).message.slice(0, 200)}` }))));
+      : addSignal(name, i).catch(e => queueUpdate(name, i, [iso(from), iso(end)], e))));
     if (!dry) items = await Promise.all(items.map((i: any) => verifyFiled(i, started - 6e4)));
     if (dry) return console.log(JSON.stringify({ window: [iso(from), iso(end)], seconds: (Date.now() - started) / 1e3, items }, null, 2));
     fs.appendFileSync(path.join(STATE_DIR, 'decisions.jsonl'),
@@ -322,6 +363,7 @@ function install() {
 
 if (cmd === 'signal') await runSignal(args[0], Number(args.find(a => a.startsWith('--dry='))?.slice(6)) || undefined);
 else if (cmd === 'schedule') runSchedule(args[0]);
+else if (cmd === 'updates') await retryUpdates();
 else if (cmd === 'health') runHealth(args[0], args[1]);
 else if (cmd === 'launch') {
   const { launch } = await import('./launch.ts');

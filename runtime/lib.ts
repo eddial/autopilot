@@ -78,8 +78,11 @@ export type Watcher = {
   issue_id: string; what: string; signals: string[]; tools: string[]; every: string; until: string; created: string;
   last_run?: string; fingerprint?: string;
 };
+// A signal item whose new-signal comment could not be posted (Linear down for a moment): retried every tick (AP-76).
+export type PendingUpdate = { key: string; signal: string; item: any; window: string[]; tries: number; first_failed: string; last_error: string };
 export type State = {
   jobs: Record<string, Job>; sessions: Record<string, Session>; watchers: Record<string, Watcher>; last_tick?: string; offline_since?: string | null;
+  pending_updates?: PendingUpdate[];
 };
 const STATE = path.join(STATE_DIR, 'state.json');
 export const readState = (): State => {
