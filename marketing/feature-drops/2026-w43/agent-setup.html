@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<title>Guided setup</title>
+<link rel="stylesheet" href="clip.css">
+<link rel="stylesheet" href="app.css">
+<link rel="stylesheet" href="parts/agent-chat.css">
+<link rel="stylesheet" href="chapter.css">
+<style>
+  .agentpage { position: absolute; inset: 0; display: flex; }
+  .chatcol { flex: 1; min-width: 0; display: flex; flex-direction: column; padding: 16px 0 20px; }
+  .chatcol > * { width: 560px; margin-left: auto; margin-right: auto; }
+  .chatcol .msgs { gap: 16px; }
+  .prose p { margin: 0 0 6px; }
+  .prose a { color: hsl(var(--primary)); text-decoration: underline; text-underline-offset: 2px; }
+  /* agent-summary-sidebar SectionCard + project-setup-card.tsx */
+  .summ { width: 300px; flex: none; padding: 16px 16px 0 0; }
+  .scard { border: 1px solid hsl(var(--border)); border-radius: 12px; background: hsl(var(--background)); }
+  .scard .hd { display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; font-size: 12px; font-weight: 600; }
+  .scard .hd svg { width: 16px; height: 16px; color: hsl(var(--muted-foreground)); }
+  .scard .bd { padding: 0 8px 8px; }
+  .scard .sub { font-size: 12px; line-height: 16px; font-weight: 500; padding: 0 4px; }
+  .prog { display: flex; align-items: center; gap: 8px; margin: 8px 4px 10px; }
+  .prog .bar { flex: 1; height: 4px; border-radius: 999px; background: hsl(var(--muted)); overflow: hidden; }
+  .prog .bar i { display: block; height: 100%; background: hsl(var(--success)); }
+  .prog span { font-size: 11px; font-weight: 500; color: hsl(var(--muted-foreground)); font-variant-numeric: tabular-nums; }
+  .tasks { list-style: none; margin: 0; padding: 0 4px; display: flex; flex-direction: column; gap: 6px; }
+  .tasks li { display: flex; align-items: flex-start; gap: 8px; }
+  .tk { width: 16px; height: 16px; flex: none; border-radius: 999px; display: grid; place-items: center; }
+  .tk.pend { color: hsl(var(--muted-foreground)); }
+  .tk.done { background: hsl(var(--success)); color: #fff; }
+  .tasks .tt { font-size: 12px; line-height: 16px; }
+  .tasks li.isdone .tt { color: hsl(var(--muted-foreground)); }
+  .tasks .nt { font-size: 11px; line-height: 15px; color: hsl(var(--muted-foreground)); }
+  /* Overview: dashboard-grid standard blocks (text-block, link-tiles, stat tiles, steps) */
+  .ovpage { position: absolute; inset: 0; padding: 0 0 0 0; }
+  .ov { padding: 20px 32px; display: flex; flex-direction: column; gap: 16px; }
+  .wcard { background: hsl(var(--card)); border: 1px solid hsl(var(--border)); border-radius: 12px; padding: 20px; }
+  .eyebrow { font-size: 12px; line-height: 16px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: hsl(var(--highlight)); margin-bottom: 10px; }
+  .tb h2 { margin: 0; font-size: 26px; line-height: 32px; font-weight: 600; letter-spacing: -.02em; }
+  .tb p { margin: 8px 0 0; font-size: 14px; line-height: 22px; color: hsl(var(--muted-foreground)); max-width: 640px; }
+  .tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 18px; }
+  .lt { height: 36px; display: flex; align-items: center; justify-content: space-between; border-radius: 6px; padding: 0 12px; font-weight: 500; border: 1px solid hsl(var(--input)); }
+  .lt.main { background: hsl(var(--highlight)); color: #fff; border-color: hsl(var(--highlight)); }
+  .lt .l { display: flex; align-items: center; gap: 8px; }
+  .lt svg { width: 12px; height: 12px; }
+  .lt:not(.main) .l svg { color: hsl(var(--muted-foreground)); }
+  .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .stat { display: flex; align-items: center; gap: 16px; }
+  .stat .ic { width: 44px; height: 44px; border-radius: 8px; background: hsl(var(--muted)); color: hsl(var(--muted-foreground)); display: grid; place-items: center; }
+  .stat .ic svg { width: 16px; height: 16px; fill: currentColor; stroke: none; }
+  .stat b { display: block; font-size: 28px; line-height: 1; font-weight: 500; }
+  .stat small { display: block; margin-top: 6px; font-size: 12px; text-transform: uppercase; letter-spacing: .05em; color: hsl(var(--muted-foreground)); }
+  .wt { font-size: 16px; font-weight: 600; }
+  .wi { font-size: 14px; color: hsl(var(--muted-foreground)); margin-top: 6px; }
+  .steps { position: relative; display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-top: 18px; }
+  .steps::before { content: ""; position: absolute; left: 24px; right: 12%; top: 24px; height: 2px; background: hsl(var(--border)); }
+  .st .n { position: relative; width: 48px; height: 48px; border-radius: 999px; display: grid; place-items: center; font-size: 16px; font-weight: 600; box-shadow: 0 0 0 4px hsl(var(--card)); background: hsl(var(--card)); border: 2px solid hsl(var(--border)); color: hsl(var(--muted-foreground)); }
+  .st:first-child .n { background: hsl(var(--foreground)); color: hsl(var(--background)); border-color: hsl(var(--foreground)); }
+  .st b { display: block; margin-top: 10px; font-size: 14px; font-weight: 600; }
+  .st span { display: block; font-size: 13px; color: hsl(var(--muted-foreground)); }
+</style></head>
+<body>
+<div class="frame">
+  <div class="stage">
+    <div class="app" id="app">
+      <div id="sb"></div>
+      <main class="panel both">
+        <div class="agentpage" id="agentpage">
+          <div class="chatcol">
+            <div class="msgs">
+              <div class="msg user"><span class="av">S</span><div class="bubble">Set up a project for our incoming orders. We use Exact Online and an Outlook inbox.</div></div>
+              <div class="msg" id="m1"><span class="avl"></span><div class="prose">
+                <div class="cot-head" id="cot">Working…</div>
+                <div class="step" id="s1"><span class="dot" data-fa="faLink"></span><span class="txt">Connected Exact Online and Outlook (2.1s)</span></div>
+                <div class="step" id="s2"><span class="dot" data-fa="faInbox"></span><span class="txt">Read 30 days of order emails (3.4s)</span></div>
+                <div class="step" id="s3"><span class="dot" data-fa="faUserPlus"></span><span class="txt">Added Sanne and Joris (0.4s)</span></div>
+                <div id="t1"></div>
+              </div></div>
+            </div>
+            <div class="composer">
+              <div class="ta"><div>Ask the agent anything…</div></div>
+              <div class="row"><span class="rb" id="plus"></span>
+                <div class="r"><span class="model">Opus 5.5 <span id="mchev"></span></span><span class="rb" id="mic"></span><span class="rb" id="call"></span></div></div>
+            </div>
+          </div>
+          <div class="summ">
+            <div class="scard">
+              <div class="hd">Setup<span id="chev"></span></div>
+              <div class="bd">
+                <div class="sub">Organisation setup</div>
+                <div class="prog"><span class="bar"><i id="pbar"></i></span><span id="pcnt">0 of 5</span></div>
+                <ul class="tasks" id="tasks"></ul>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="ovpage" id="ovpage">
+          <div class="ph"><h1>Overview</h1></div>
+          <div class="ov">
+            <div class="wcard tb"><div class="eyebrow">Order intake</div><h2>Orders from email to Exact Online</h2>
+              <p>Order emails are read, matched to the customer and items in Exact, and drafted as sales orders. Anything unclear goes to the order desk.</p>
+              <div class="tiles"><span class="lt main"><span class="l"><span data-fa="faPlay"></span>Try it</span><span data-fa="faArrowRight"></span></span>
+                <span class="lt"><span class="l"><span data-fa="faInbox"></span>Requests</span><span data-fa="faArrowRight"></span></span>
+                <span class="lt"><span class="l"><span data-fa="faFileSpreadsheet"></span>Orders</span><span data-fa="faArrowRight"></span></span></div></div>
+            <div class="wcard stats">
+              <div class="stat"><span class="ic" data-fa="faInbox"></span><div><b class="tnum">412</b><small>Orders this month</small></div></div>
+              <div class="stat"><span class="ic" data-fa="faCheck"></span><div><b class="tnum">371</b><small>Drafted in Exact</small></div></div>
+              <div class="stat"><span class="ic" data-fa="faClock"></span><div><b class="tnum">41</b><small>With the order desk</small></div></div>
+            </div>
+            <div class="wcard"><div class="wt">How the work moves</div><div class="wi">From the customer's email to a sales order.</div>
+              <div class="steps">
+                <div class="st"><span class="n">1</span><b>Email arrives</b><span>orders@ inbox</span></div>
+                <div class="st"><span class="n">2</span><b>Order is read</b><span>Customer, items, PO</span></div>
+                <div class="st"><span class="n">3</span><b>Drafted in Exact</b><span>As a sales order</span></div>
+                <div class="st"><span class="n">4</span><b>Exceptions</b><span>To the order desk</span></div>
+              </div></div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+</div>
+<script src="fa-icons.js"></script>
+<script src="app.js"></script>
+<script src="clip.js"></script>
+<script src="chapter.js"></script>
+<script>
+  CHAPTER({ n: 2, total: 5, tag: "Guided setup", title: "Guided setup<br><em>for a blank project.</em>",
+    line: "The agent connects your systems, reads them first, and works through a setup plan." });
+  const D = 7.8;
+  window.HOLDS = [[1.0, 0.7], [4.65, 1.0], [7.75, 1.0]]; // pause on the title card, the first result and the final result
+  const { $, $$, p, out, io, show, type } = C;
+  $("#sb").outerHTML = APP.sidebar("Agent");
+  const nav = (l) => $$(".nav").find((n) => n.textContent.trim() === l);
+  $(".avl").outerHTML = `<span id="av1" style="display:block;margin-top:2px;color:hsl(var(--foreground))">${APP.loader(20)}</span>`;
+  $("#mchev").innerHTML = fa("faChevronDown", "", "width:9px;height:9px");
+  $("#plus").innerHTML = lu("plus", "", "width:16px;height:16px"); $("#mic").innerHTML = fa("faMicrophone"); $("#call").innerHTML = fa("s:faPhoneFlip");
+  $("#chev").innerHTML = lu("chevronDown");
+  const TASKS = [["Connect your systems", "Exact Online and Outlook"], ["Add the team", "Sanne and Joris"], ["Write the instructions and memory", ""], ["Hand over the first jobs", ""], ["Set up the Overview", ""]];
+  const DONE_AT = [2.6, 3.4, 4.2, 4.9, 5.6];
+  const CIRCLE = `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M10.1 2.18a9.93 9.93 0 0 1 3.8 0M17.6 3.71a9.95 9.95 0 0 1 2.69 2.7M21.82 10.1a9.93 9.93 0 0 1 0 3.8M20.29 17.6a9.95 9.95 0 0 1-2.7 2.69M13.9 21.82a9.94 9.94 0 0 1-3.8 0M6.4 20.29a9.95 9.95 0 0 1-2.69-2.7M2.18 13.9a9.93 9.93 0 0 1 0-3.8M3.71 6.4a9.95 9.95 0 0 1 2.7-2.69"/></svg>`;
+  const CHECK = `<svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>`;
+  $("#tasks").innerHTML = TASKS.map(([t, n], i) => `<li id="tk${i}"><span class="tk pend" id="ti${i}">${CIRCLE}</span><div><div class="tt">${t}</div><div class="nt" id="tn${i}">${n}</div></div></li>`).join("");
+  $$("[data-fa]").forEach((el) => (el.innerHTML = fa(el.dataset.fa)));
+  const app = $("#app");
+  const VW = C.STAGE_W, VH = C.STAGE_H;
+  const cam = C.camera(app, VW, VH, [[0, 640, 400, 0.74], [1.9, 640, 400, 0.74], [2.4, 790, 400, 1.0], [5.6, 790, 400, 1.0], [6.1, 760, 400, 0.97], [D, 760, 400, 0.97]]);
+  const cap = C.captions([
+    [1.9, 4.55, "Start a blank project.<br><em>The agent runs the setup.</em>"],
+    [4.95, 9, "Then it builds<br><em>the Overview.</em>"],
+  ]);
+  cam(0);
+  const T1 = `Exact Online and Outlook are connected. I read 30 days of order emails: about 410 orders a month, and 1 in 10 arrives without the customer's PO. Next I'll set up the <a>Overview</a>.`;
+  C.run(D, (t) => {
+    C.hook($("#hook"), t, 1.5);
+    cap(t); cam(t);
+    let done = 0;
+    TASKS.forEach((_, i) => { const d = t >= DONE_AT[i]; if (d) done++;
+      $("#tk" + i).className = d ? "isdone" : ""; $("#ti" + i).className = "tk " + (d ? "done" : "pend"); $("#ti" + i).innerHTML = d ? CHECK : CIRCLE;
+      $("#tn" + i).style.display = d && TASKS[i][1] ? "" : "none"; });
+    $("#pcnt").textContent = `${done} of 5`; $("#pbar").style.width = (done / 5) * 100 + "%";
+    show($("#s1"), t, 2.0, Infinity, -8, 0.25); show($("#s2"), t, 2.7, Infinity, -8, 0.25); show($("#s3"), t, 3.3, Infinity, -8, 0.25);
+    $("#cot").textContent = t < 3.6 ? "Working…" : "Worked for 6s";
+    APP.drive($("#av1"), t < 3.6 ? "working" : "static", t);
+    $("#t1").innerHTML = t < 3.7 ? "" : (t >= 4.6 ? T1 : T1.replace(/<[^>]+>/g, "").slice(0, Math.round(T1.replace(/<[^>]+>/g, "").length * p(t, 3.7, 4.6))));
+    // Overview replaces the agent page once its task is done.
+    const sw = io(p(t, 5.7, 6.0));
+    $("#agentpage").style.opacity = 1 - sw; $("#ovpage").style.opacity = sw;
+    nav("Agent").className = "nav" + (t < 5.7 ? " on" : ""); nav("Overview").className = "nav" + (t >= 5.7 ? " on" : "");
+    $$(".ov .wcard").forEach((w, i) => show(w, t, 5.9 + i * 0.25, Infinity, 12, 0.4));
+  });
+</script>
+</body></html>

@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<title>Requests and data tables</title>
+<link rel="stylesheet" href="clip.css">
+<link rel="stylesheet" href="app.css">
+<link rel="stylesheet" href="parts/data-table.css">
+<link rel="stylesheet" href="parts/board.css">
+<link rel="stylesheet" href="chapter.css">
+<style>
+  .board { top: 52px; }
+  .kc dl div.own { overflow: hidden; }
+  /* column-visibility-dropdown.tsx: w-72, search, Show all / Hide all / Reset to view, counter, field rows */
+  .menu.cv { width: 288px; padding: 4px; }
+  .menu.cv .srch { height: 32px; margin: 4px; border: 1px solid hsl(var(--input)); border-radius: 6px; display: flex; align-items: center; padding: 0 10px; color: hsl(var(--muted-foreground)); }
+  .menu.cv hr { border: 0; border-top: 1px solid hsl(var(--border)); margin: 4px -4px; }
+  .menu.cv .it svg { width: 16px; height: 16px; }
+  .menu.cv .cnt { font-size: 12px; color: hsl(var(--muted-foreground)); padding: 4px 8px; }
+  #fields { display: block; padding: 0; }
+  .menu.cv .fr { display: flex; align-items: center; gap: 8px; padding: 6px 8px; }
+  .menu.cv .fr .g svg { width: 16px; height: 16px; color: hsl(var(--muted-foreground)); }
+  .menu.cv .fr .ty svg { width: 12px; height: 12px; color: hsl(var(--muted-foreground)); }
+  .menu.cv .fr .nm { flex: 1; font-size: 14px; }
+  .menu.cv .fr .e svg { width: 16px; height: 16px; color: hsl(var(--muted-foreground)); }
+</style></head>
+<body>
+<div class="frame">
+  <div class="stage">
+    <div class="app" id="app">
+      <div id="sb"></div>
+      <main class="panel">
+        <div class="ph">
+          <div class="th-title"><h1>Supplier invoices</h1><span data-fa="faChevronDown" data-s="width:12px;height:12px;color:hsl(var(--muted-foreground))"></span></div>
+          <div class="vtabs"><span class="tab">All</span><span class="tab on">By match</span></div>
+          <div class="right"><span class="btn pri"><span data-fa="faPlus"></span>New Record</span></div>
+        </div>
+        <div class="body" style="margin-top:12px">
+          <div class="tcard" id="tcard">
+            <div class="tb">
+              <span class="btn out"><span data-fa="faFilter"></span>Filter</span>
+              <span class="input search"><span data-fa="faMagnifyingGlass"></span>Search records...</span>
+              <div class="rt"><span class="btn out ico" id="eye" data-fa="faEye"></span><span class="btn out ico" data-fa="faLayerPlus"></span><span class="btn out ico" data-fa="faFileImport"></span><span class="btn out ico" data-fa="faDownload"></span><span class="btn out ico" data-fa="faSliders"></span></div>
+            </div>
+            <div class="board" id="board"></div>
+          </div>
+        </div>
+      </main>
+      <div class="menu cv" id="menu">
+        <div class="srch">Search properties...</div><hr>
+        <div class="it"><span data-fa="faEye"></span>Show all columns</div>
+        <div class="it"><span data-fa="faEyeSlash"></span>Hide all columns</div>
+        <div class="it" id="reset"><span data-fa="faRotateLeft"></span>Reset to view</div><hr>
+        <div class="cnt" id="cnt">3 of 6 visible</div>
+        <div id="fields"></div>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="fa-icons.js"></script>
+<script src="app.js"></script>
+<script src="clip.js"></script>
+<script src="chapter.js"></script>
+<script>
+  CHAPTER({ n: 4, total: 5, tag: "Requests & tables", title: "Requests and<br><em>data tables.</em>",
+    line: "Shared request links open the request, filters survive a refresh, and board cards stay where you drop them." });
+  const D = 7.8;
+  window.HOLDS = [[1.0, 0.7], [4.3, 1.0], [7.7, 1.0]]; // pause on the title card, the first result and the final result
+  const { $, $$, p, io, out } = C;
+  $("#sb").outerHTML = APP.sidebar("Data tables");
+  const COL = { "To match": "#3b82f6", "Price difference": "#f59e0b", "Ready to book": "#10b981" };
+  const PEOPLE = { Sanne: "hsl(280 30% 42%)", Joris: "hsl(170 35% 35%)", Mila: "hsl(15 45% 45%)" };
+  const who = (n) => `<span class="who"><span class="uav" style="background:${PEOPLE[n]}">${n[0]}</span>${n}</span>`;
+  const R = [["Brouwer Verpakking", "€1,265", "To match", "Joris", "4500012902"], ["De Graaf Transport", "€860", "To match", "Mila", "4500012915"],
+    ["Van Dijk Metaal", "€4,820", "Price difference", "Sanne", "4500012877"], ["Kuipers Hout", "€3,410", "Price difference", "Joris", "4500012888"],
+    ["Rijnstaal", "€12,940", "Ready to book", "Sanne", "4500012851"], ["Noord Coatings", "€7,150", "Ready to book", "Mila", "4500012860"]];
+  const card = (r, id = "") => `<div class="kc" ${id}><p>${r[0]}</p><dl><div><dt>PO number</dt><dd class="tnum">${r[4]}</dd></div><div><dt>Amount</dt><dd class="tnum">${r[1]}</dd></div><div class="own"><dt>Owner</dt><dd>${who(r[3])}</dd></div></dl></div>`;
+  const lane = (label, cards, id) => `<div class="lane"><div class="lh"><span class="grip" data-fa="faGripDotsVertical"></span><span class="dot" style="background:${COL[label]}"></span><span class="lbl">${label}</span><span class="xs mf tnum" id="${id}n">${cards.length}</span></div><div class="lb" id="${id}">${cards.join("")}</div></div>`;
+  const vd = R[2];
+  $("#board").innerHTML = lane("To match", R.filter((r) => r[2] === "To match").map((r) => card(r)), "lM")
+    + lane("Price difference", [card(vd, 'id="vdA"'), card(R[3])], "lP")
+    + lane("Ready to book", [...R.filter((r) => r[2] === "Ready to book").map((r) => card(r)), card(vd, 'id="vdB"')], "lA");
+  const F6 = [["faFont", "Supplier", 1], ["faHashtag", "PO number", 1], ["faHashtag", "Amount", 1], ["faCaretDown", "Match", 0], ["faUser", "Owner", 0], ["faCalendar", "Due date", 0]];
+  $("#tcard").insertAdjacentHTML("beforeend", `<div class="kc drag" id="drag">${$("#vdA").innerHTML}</div>`);
+  $$("[data-fa]").forEach((el) => (el.innerHTML = fa(el.dataset.fa, "", el.dataset.s || "")));
+  const app = $("#app");
+  const at = (el, fx = 0.5, fy = 0.5) => { const a = app.getBoundingClientRect(), r = el.getBoundingClientRect(), s = a.width / 1280;
+    return [(r.left - a.left + r.width * fx) / s, (r.top - a.top + r.height * fy) / s]; };
+  const e = at($("#eye"), 0, 1); $("#menu").style.left = Math.min(e[0], 1280 - 296) + "px"; $("#menu").style.top = e[1] + 4 + "px";
+  const P = { vdA: at($("#vdA")), lA: at($("#lA"), 0.5, 0.85), eye: at($("#eye")), reset: at($("#reset")) };
+  const tcard = at($("#tcard"), 0, 0);
+  const VW = C.STAGE_W, VH = C.STAGE_H;
+  const cam = C.camera(app, VW, VH, [[0, 640, 400, 0.74], [1.9, 640, 400, 0.74], [2.4, 640, 320, 1.3], [4.6, 640, 320, 1.3], [5.1, 880, 340, 1.2], [D, 880, 340, 1.2]]);
+  const F = (t, [x, y]) => { const m = cam(t).map(x, y); return [64 + m[0], 330 + m[1]]; };
+  const cur = C.cursor([[2.0, 700, 1320], [2.7, ...F(2.7, P.vdA), true], [3.9, ...F(3.9, P.lA)], [4.5, 1000, 1300], [5.2, 1000, 1300], [5.8, ...F(5.8, P.eye), true], [6.5, ...F(6.5, P.reset), true], [7.4, 1000, 1350]]);
+  const cap = C.captions([
+    [1.9, 4.55, "Drag a card to a new lane.<br><em>It stays there.</em>"],
+    [4.95, 9, "Open column visibility.<br><em>Pick Reset to view.</em>"],
+  ]);
+  cam(0);
+  C.run(D, (t) => {
+    C.hook($("#hook"), t, 1.5);
+    cap(t); cam(t); const c = cur(t);
+    const dragging = t >= 2.75 && t < 3.95, dropped = t >= 3.95;
+    $("#vdA").style.display = dropped ? "none" : ""; $("#vdA").className = "kc" + (dragging ? " ghost" : "");
+    $("#vdB").style.display = dropped ? "" : "none";
+    $("#lPn").textContent = dropped ? 1 : 2; $("#lAn").textContent = dropped ? 3 : 2;
+    $("#lA").className = "lb" + (t >= 3.3 && dragging ? " over" : "");
+    const d = $("#drag"); d.style.display = dragging ? "" : "none";
+    if (dragging) { const m = cam(t); const ux = (c.x - 64 - VW / 2) / m.s + m.x, uy = (c.y - 330 - VH / 2) / m.s + m.y;
+      d.style.left = ux - tcard[0] - 128 + "px"; d.style.top = uy - tcard[1] - 30 + "px"; }
+    // Owner was hidden on this view; Reset to view brings back the view's saved fields.
+    const reset = t >= 6.55;
+    $$(".kc .own").forEach((el) => (el.style.display = reset ? "" : "none"));
+    const open = t >= 5.85 && t < 6.75;
+    $("#menu").style.display = open ? "" : "none"; $("#menu").style.opacity = out(p(t, 5.85, 6.0));
+    $("#reset").className = "it" + (t >= 6.3 ? " hl" : "");
+    $("#cnt").textContent = (reset ? 4 : 3) + " of 6 visible";
+    $("#fields").innerHTML = F6.map(([ic, n, v], i) => `<div class="fr"><span class="g">${fa("faGripDotsVertical")}</span><span class="ty">${fa(ic)}</span><span class="nm">${n}</span><span class="e">${fa(v || (reset && n === "Owner") ? "faEye" : "faEyeSlash")}</span></div>`).join("");
+  });
+</script>
+</body></html>

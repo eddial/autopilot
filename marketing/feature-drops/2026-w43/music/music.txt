@@ -1,0 +1,12 @@
+Music for the Feature Drop: upbeat, minimal jazz (a muted trumpet), never chill lo-fi.
+
+muted-trumpet-jazz.mp3: "Muted Trumpet Jazz Study Session in Free Time" by Alex Morgan, album "Lofi Study Beats".
+Source: https://freemusicarchive.org/music/alex-morgan/lofi-study-beats/muted-trumpet-jazz-study-session-in-free-time/
+Licence: Creative Commons Attribution 4.0 (CC BY 4.0). Commercial use allowed. Credit required, every time:
+- on the end card (build.sh passes CREDIT): "Music: Muted Trumpet Jazz Study Session by Alex Morgan · CC BY 4.0";
+- at the end of the post: "Music: Muted Trumpet Jazz Study Session by Alex Morgan, CC BY 4.0".
+Re-encoded to 128 kbit/s for the plugin; otherwise as downloaded (2026-10-09). soundtrack.py loops it with a
+crossfade, fades it in and out and sets its level (--music-gain 0.5).
+
+Turned down before it: synthesised lo-fi (cheap), CC0 lo-fi (cheap), Ketsa "New York Skyline" (too chill).
+A new track needs the same licence check and a credit line in CREDIT, the post and here.
