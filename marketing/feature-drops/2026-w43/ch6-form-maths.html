@@ -1,0 +1,219 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<title>Request forms that do the maths</title>
+<link rel="stylesheet" href="clip.css">
+<link rel="stylesheet" href="app.css">
+<link rel="stylesheet" href="chapter.css">
+<style>
+  /* requests-inbox-page.tsx: header "All Requests" + RequestOverviewToggle, RequestsTabs, then the body row (px-8 pt-4):
+     the list panel (22%, min 220px), a 24px handle, the detail panel. */
+  .app { --ring: 60 7% 60%; --secondary-foreground: 83 11% 14.1%; }
+  .rq-head { padding: 16px 32px 0; }
+  .rq-head .ph { padding: 0; }
+  .ovt { width: 32px; height: 32px; border: 1px solid hsl(var(--input)); border-radius: 6px; background: hsl(var(--background)); display: grid; place-items: center; color: hsl(var(--muted-foreground)); }
+  .ovt svg { width: 16px; height: 16px; }
+  .rq-head .tabs { margin-top: 12px; }
+  .rq-head .tabs .add { margin-left: -16px; width: 28px; height: 28px; display: grid; place-items: center; color: hsl(var(--muted-foreground)); }
+  .rq-head .tabs .add svg { width: 16px; height: 16px; }
+  .rq-body { position: absolute; left: 32px; right: 32px; top: 100px; bottom: 0; display: flex; padding-top: 16px; }
+  .rq-list { width: 220px; flex: none; display: flex; flex-direction: column; padding: 12px 0; }
+  .rq-handle { width: 24px; flex: none; }
+  .rq-detail { flex: 1; min-width: 0; border-radius: 8px; background: hsl(var(--background)); overflow: hidden; }
+  /* RequestsFilters: Search (h-10 rounded-lg pl-10) + FilterBar md-icon (faBarsFilter) */
+  .rq-srch { display: flex; gap: 8px; padding-bottom: 8px; }
+  .rq-srch .s { flex: 1; min-width: 0; height: 40px; border: 1px solid hsl(var(--input)); border-radius: 8px; background: hsl(var(--background)); display: flex; align-items: center; gap: 10px; padding: 0 12px; color: hsl(var(--muted-foreground)); white-space: nowrap; overflow: hidden; }
+  .rq-srch .s svg { width: 13px; height: 13px; }
+  .rq-srch .f { width: 40px; height: 40px; flex: none; border: 1px solid hsl(var(--input)); border-radius: 6px; background: hsl(var(--background)); display: grid; place-items: center; }
+  .rq-srch .f svg { width: 13px; height: 13px; }
+  /* requests-list.tsx: card rounded-lg border p-2.5; title text-13 medium line-clamp-2 min-h-[2lh]; meta text-2xs muted */
+  .rq-cards { display: flex; flex-direction: column; gap: 4px; }
+  .rqc { border: 1px solid hsl(var(--border)); border-radius: 8px; padding: 10px; }
+  .rqc.sel { border-color: hsl(var(--highlight)); background: hsl(var(--highlight) / .1); }
+  .rqc h3 { margin: 0; font-size: 13px; line-height: 20px; font-weight: 500; min-height: 40px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .rqc .meta { margin-top: 12px; display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 10px; line-height: 14px; color: hsl(var(--muted-foreground)); }
+  .rqc .r { display: flex; align-items: center; gap: 8px; }
+  .prio { display: flex; height: 12px; align-items: flex-end; gap: 1px; }
+  .prio i { width: 3px; border-radius: 2px; background: hsl(var(--border)); }
+  .prio i.on { background: hsl(var(--muted-foreground)); } .prio.high i.on { background: hsl(var(--warning)); }
+  .av { width: 16px; height: 16px; border-radius: 999px; display: grid; place-items: center; color: #fff; font-size: 7px; font-weight: 600; }
+  /* request-detail-panel.tsx: scroll column p-4, the sticky (empty on desktop) top bar, then the request card */
+  .dt { padding: 16px; }
+  .dt .bar { height: 12px; }
+  /* element-card.tsx RequestElementCard kind=form: rounded-xl border-input shadow-sm, bg-card; header band (request-input-header.tsx) */
+  .ec { border: 1px solid hsl(var(--input)); border-radius: 12px; overflow: hidden; background: hsl(var(--card)); box-shadow: 0 1px 2px rgb(0 0 0 / .05); }
+  .ec .hb { border-bottom: 1px solid hsl(var(--muted)); background: hsl(var(--muted)); padding: 10px 16px; font-size: 12px; line-height: 16px; color: hsl(var(--muted-foreground)); display: flex; align-items: center; justify-content: space-between; }
+  .ec .hb b { font-weight: 600; color: hsl(var(--foreground)); }
+  .ec .hb .dot { margin: 0 6px; opacity: .5; }
+  .ec .hb .pen { width: 20px; height: 20px; display: grid; place-items: center; } .ec .hb .pen svg { width: 12px; height: 12px; }
+  .ec .bd { padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+  .fh3 { margin: 0; font-size: 13px; line-height: 20px; font-weight: 600; }
+  .fdesc { padding-bottom: 8px; color: hsl(var(--muted-foreground)); font-size: 14px; line-height: 24px; margin-top: -12px; }
+  .frow { display: flex; flex-wrap: wrap; gap: 16px; }
+  .fi { display: flex; flex-direction: column; gap: 4px; width: 100%; }
+  .fi.md { width: calc(50% - 8px); } .fi.sm { width: calc(33.333% - 10.67px); }
+  .fi label { font-size: 13px; line-height: 1; font-weight: 500; display: flex; align-items: center; height: 16px; }
+  .inp { position: relative; min-height: 36px; border: 1px solid hsl(var(--input)); border-radius: 8px; background: hsl(var(--background)); padding: 8px 12px; font-size: 13px; line-height: 20px; display: flex; align-items: center; white-space: nowrap; }
+  .inp.ro { background: transparent; }
+  .inp.foc { box-shadow: 0 0 0 2px hsl(var(--background)), 0 0 0 4px hsl(var(--ring)); }
+  .caret { display: inline-block; width: 1px; height: 16px; background: hsl(var(--foreground)); margin-left: 1px; }
+  /* use-computed-fields renderSuggestion: Button outline xs, rounded-full border-dashed bg-transparent px-2 text-xs font-normal */
+  .usecalc { align-self: flex-start; min-height: 24px; border: 1px dashed hsl(var(--input)); border-radius: 999px; padding: 2px 8px; font-size: 12px; line-height: 18px; color: hsl(var(--secondary-foreground)); background: transparent; white-space: nowrap; }
+  .usecalc.hov { background: hsl(var(--accent)); }
+  /* item-list-display.tsx table style: rounded-lg border, grid text-xs, header h-9 bg-muted, rows h-9 border-t */
+  .itbl { border: 1px solid hsl(var(--border)); border-radius: 8px; overflow: hidden; }
+  .itbl .g { display: grid; grid-template-columns: 196px 76px 82px 82px minmax(0, 1fr) max-content; font-size: 12px; line-height: 16px; }
+  .itbl .hd { display: flex; align-items: center; height: 36px; padding: 0 8px; background: hsl(var(--muted)); color: hsl(var(--muted-foreground)); font-weight: 500; border-right: 1px solid hsl(var(--border)); }
+  .itbl .hd.nb { border-right: 0; }
+  .itbl .rw { display: contents; }
+  .itbl .c { display: flex; align-items: center; gap: 4px; height: 36px; padding: 0 8px; white-space: nowrap; border-right: 1px solid hsl(var(--border)); border-top: 1px solid hsl(var(--border)); }
+  .itbl .c.nb { border-right: 0; } .itbl .c.mf { color: hsl(var(--muted-foreground)); }
+  .itbl .c.edit { box-shadow: inset 0 0 0 1px hsl(var(--ring)); }
+  .itbl .c.hov { background: hsl(var(--muted)); }
+  .itbl .acts { display: flex; align-items: center; gap: 4px; padding: 0 4px; height: 36px; border-top: 1px solid hsl(var(--border)); }
+  .itbl .acts span { width: 24px; height: 24px; display: grid; place-items: center; } .itbl .acts svg { width: 12px; height: 12px; }
+  .itbl .acts .del { color: hsl(var(--destructive)); }
+  .itbl .addr { grid-column: 1 / -1; display: flex; align-items: center; height: 36px; padding: 0 4px; border-top: 1px solid hsl(var(--border)); }
+  .itbl .addr span { display: flex; align-items: center; gap: 4px; height: 24px; padding: 0 8px; font-size: 12px; font-weight: 500; }
+  .itbl .addr svg { width: 12px; height: 12px; }
+  .sub { display: flex; gap: 8px; }
+  .sub .btn.pri { border: 1px solid hsl(var(--primary)); height: 32px; font-size: 13px; }
+</style></head>
+<body>
+<div class="frame">
+  <div class="stage">
+    <div class="app" id="app">
+      <div id="sb"></div>
+      <main class="panel">
+        <div class="rq-head">
+          <div class="ph"><h1>All Requests</h1><div class="right"><span class="ovt" id="ovt"></span></div></div>
+          <div class="tabs"><span class="tab on">All</span><span class="tab">Approvals</span><span class="tab">Inputs</span><span class="tab">Mentions</span><span class="add" data-fa="faPlus"></span></div>
+        </div>
+        <div class="rq-body">
+          <div class="rq-list">
+            <div class="rq-srch"><div class="s"><span data-fa="faMagnifyingGlass"></span>Search requests…</div><div class="f" data-fa="faBarsFilter"></div></div>
+            <div class="rq-cards" id="cards"></div>
+          </div>
+          <div class="rq-handle"></div>
+          <div class="rq-detail">
+            <div class="dt">
+              <div class="bar"></div>
+              <div class="ec" id="card">
+                <div class="hb"><span>Requested input from <b>Eva Visser</b><span class="dot">•</span>16 October 2026 at 09:12</span><span class="pen" data-fa="faPencil"></span></div>
+                <div class="bd" id="form">
+                  <h3 class="fh3">Check the order from Kuipers Hout</h3>
+                  <div class="fdesc">Check the lines and the discount, then submit to draft the sales order in Exact Online.</div>
+                  <div class="frow">
+                    <div class="fi md"><label>Customer</label><div class="inp">Kuipers Hout</div></div>
+                    <div class="fi md"><label>PO number</label><div class="inp">4500012877</div></div>
+                    <div class="fi" id="lines"><label>Order lines</label>
+                      <div class="itbl"><div class="g" id="grid"></div></div>
+                    </div>
+                    <div class="fi sm"><label>Subtotal</label><div class="inp ro" id="fSub"></div></div>
+                    <div class="fi sm"><label>Discount (%)</label><div class="inp" id="fDisc"></div></div>
+                    <div class="fi sm" id="totItem"><label>Total</label><div class="inp" id="fTot"></div><span class="usecalc" id="use"></span></div>
+                  </div>
+                  <div class="sub"><span class="btn pri">Submit</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+</div>
+<script src="fa-icons.js"></script>
+<script src="app.js"></script>
+<script src="clip.js"></script>
+<script src="chapter.js"></script>
+<script>
+  CHAPTER({ n: 6, total: 6, module: "Requests", footerLeft: "Feature Drop · Week 43",
+    title: "Request forms<br><em>that do the maths.</em>",
+    line: "A request form works out its own fields from the other fields and the order lines as the operator types. A suggested value can be overridden, and Use calculated value puts the result back." });
+  const D = 9.8;
+  window.HOLDS = [[1.0, 0.7], [5.1, 1.0], [6.95, 0.8], [8.0, 1.0], [D - 0.3, 1.2]];
+  const { $, $$, p, out } = C;
+  $("#sb").outerHTML = APP.sidebar("Requests");
+  $("#ovt").innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="15" y1="3" x2="15" y2="21"/></svg>';
+  // The list: illustrative requests in the Order intake project; the open one is selected.
+  const PEOPLE = { EV: "hsl(280 30% 42%)", TG: "hsl(170 35% 35%)", MJ: "hsl(15 45% 45%)" };
+  const prio = (n, hi) => `<span class="prio${hi ? " high" : ""}">${[4, 8, 12].map((h, i) => `<i class="${i < n ? "on" : ""}" style="height:${h}px"></i>`).join("")}</span>`;
+  const REQ = [["Check the order from Kuipers Hout", "16 Oct 2026, 09:12", 2, 0, ["EV"], true],
+    ["Approve the 8% discount for Van Dijk Metaal", "16 Oct 2026, 08:47", 3, 1, ["MJ"]],
+    ["PO number missing: Smit Elektro", "16 Oct 2026, 08:05", 2, 0, ["TG", "EV"]],
+    ["Match invoice 2026-0412 from Bakker Installatietechniek", "15 Oct 2026, 16:31", 1, 0, ["TG"]]];
+  $("#cards").innerHTML = REQ.map(([t, d, n, hi, ppl, sel]) => `<div class="rqc${sel ? " sel" : ""}"><h3>${t}</h3><div class="meta"><span>${d}</span><span class="r">${prio(n, hi)}<span style="display:flex">${ppl.map((x, i) => `<span class="av" style="background:${PEOPLE[x]};margin-left:${i ? -4 : 0}px">${x}</span>`).join("")}</span></span></div></div>`).join("");
+  // Order lines (item list, table widget). Line total is a column formula, always calculated (read-only).
+  const LINES = [["Oak planks 27 × 190 mm", 120, 14.35], ["Pine beams 70 × 220 mm", 36, 38.75], ["Birch plywood 18 mm", null, 42.75]];
+  const r2 = (x) => Math.round(x * 100) / 100;
+  const grid = $("#grid");
+  grid.innerHTML = ["Item", "Quantity", "Unit price", "Line total"].map((h) => `<div class="hd">${h}</div>`).join("") + '<div class="hd nb"></div><div class="hd nb"></div>'
+    + LINES.map(([it, q, u], i) => `<div class="c">${it}</div><div class="c" id="q${i}"></div><div class="c">${u}</div><div class="c" id="lt${i}"></div><div class="c nb"></div><div class="acts"><span class="del">${fa("faTrash")}</span><span>${fa("faEllipsis")}</span></div>`).join("")
+    + `<div class="addr"><span>${fa("faPlus")}Add</span></div>`;
+  $$("[data-fa]").forEach((el) => (el.innerHTML = fa(el.dataset.fa)));
+  const grp = (v) => new Intl.NumberFormat("en-GB", { useGrouping: true, maximumFractionDigits: 20 }).format(v);
+
+  const app = $("#app");
+  const at = (el, fx = 0.5, fy = 0.5) => { const a = app.getBoundingClientRect(), r = el.getBoundingClientRect(), s = a.width / 1280;
+    return [(r.left - a.left + r.width * fx) / s, (r.top - a.top + r.height * fy) / s]; };
+  const VW = C.STAGE_W, VH = C.STAGE_H, FIT = Math.min(VW / 1280, VH / C.APP_H) * 0.98;
+  const fit = (x0, y0, x1, y1) => { const s = Math.min(VW / (x1 - x0), VH / (y1 - y0)); return [(x0 + x1) / 2, (y0 + y1) / 2 + (VH / s - (y1 - y0)) / 2, s]; };
+  // Measure with the suggestion chip shown (the layout at the click).
+  $("#use").textContent = "Use calculated value (5,539.95)"; $("#use").style.display = "";
+  const c0 = at($("#card"), 0, 0), c1 = at($("#card"), 1, 1);
+  const P = { q2: at($("#q2"), 0.4), disc: at($("#fDisc"), 0.3), tot: at($("#fTot"), 0.72), use: at($("#use"), 0.82) };
+  // The one zoom: the request card, from its left edge to its right, header band to its foot.
+  const lr = at($(".rq-list"), 1, 0);
+  const FORM = fit(lr[0] + 2, c0[1] - 14, 1280, c1[1] + 14);
+  const FULL = [640, C.APP_H / 2, FIT];
+  const cam = C.camera(app, VW, VH, [[0, ...FULL], [1.9, ...FULL], [2.5, ...FORM], [8.6, ...FORM], [9.2, ...FULL], [D, ...FULL]]);
+  const F = (t, [x, y]) => { const m = cam(t).map(x, y); return [C.STAGE_X + m[0], C.STAGE_Y + m[1]]; };
+  const OFF = [C.W * 0.62, C.H + 40];
+  const cur = C.cursor([[2.3, ...OFF], [2.75, ...F(2.75, P.q2), true], [3.4, ...F(3.4, P.q2)], [4.0, ...F(4.0, P.disc), true], [4.9, ...F(4.9, P.disc)], [5.3, ...OFF],
+    [5.6, ...OFF], [6.1, ...F(6.1, P.tot), true], [6.95, ...F(6.95, P.tot)], [7.45, ...F(7.45, P.use), true], [8.1, ...OFF]]);
+  const cap = C.captions([
+    [1.9, 5.4, "Fill in the request.<br><em>Totals follow as you type.</em>"],
+    [5.7, 99, "Change a calculated value?<br><em>Use calculated value puts it back.</em>"],
+  ]);
+  cam(0);
+  // Typing: the quantity in its cell, the discount, then a total of the operator's own.
+  const QT = [2.85, 3.1], DT = [4.1, 4.55], TT = [6.25, 6.7];
+  C.typing(...QT); C.typing(...DT); C.typing(...TT);
+  const caret = '<span class="caret"></span>';
+  C.run(D, (t) => {
+    cap(t); cam(t); cur(t);
+    // Beat 1: the quantity of the third line (committed with Enter at 3.25), then the discount.
+    const qEdit = t >= 2.8 && t < 3.25, qDone = t >= 3.25;
+    const qTyped = "60".slice(0, Math.round(2 * p(t, ...QT)));
+    const qty = LINES.map(([, q]) => q); if (qDone) qty[2] = 60;
+    LINES.forEach(([, , u], i) => {
+      const q = $("#q" + i);
+      if (i === 2 && qEdit) q.innerHTML = qTyped + caret; else q.textContent = qty[i] == null ? "-" : String(qty[i]);
+      q.className = "c" + (i === 2 && qEdit ? " edit" : "") + (i === 2 && t >= 2.6 && t < 2.8 ? " hov" : "");
+      $("#lt" + i).textContent = qty[i] == null ? "-" : String(r2(qty[i] * u));
+    });
+    const subtotal = r2(qty.reduce((s, q, i) => s + (q || 0) * LINES[i][2], 0));
+    $("#fSub").textContent = grp(subtotal);
+    const dFocus = t >= 4.05 && t < 6.05;
+    const dTyped = "2.5".slice(0, Math.round(3 * p(t, ...DT)));
+    $("#fDisc").innerHTML = dTyped + (dFocus ? caret : "");
+    $("#fDisc").className = "inp" + (dFocus ? " foc" : "");
+    const disc = Number(dTyped) || 0;
+    const calc = r2(subtotal * (1 - disc / 100));
+    // Beat 2: the operator types a total of their own (5500); the field stops following its formula, and the
+    // suggestion offers the calculated value back. A click puts it back and the chip goes.
+    const tFocus = t >= 6.15 && t < 7.5, restored = t >= 7.5;
+    const own = t >= TT[0] && !restored;
+    const tTyped = "5500".slice(0, Math.round(4 * p(t, ...TT)));
+    let shown;
+    if (own) shown = tFocus ? tTyped : grp(5500);
+    else shown = tFocus ? String(calc) : grp(calc);
+    $("#fTot").innerHTML = shown + (tFocus ? caret : "");
+    $("#fTot").className = "inp" + (tFocus ? " foc" : "");
+    const chip = own && tTyped.length > 0 && Number(tTyped) !== calc;
+    $("#use").style.display = chip ? "" : "none";
+    $("#use").textContent = `Use calculated value (${grp(calc)})`;
+    $("#use").className = "usecalc" + (t >= 7.2 && t < 7.5 ? " hov" : "");
+  });
+</script>
+</body></html>

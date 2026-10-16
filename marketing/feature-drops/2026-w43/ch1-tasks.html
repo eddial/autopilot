@@ -1,0 +1,238 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<title>Hand a task to a colleague</title>
+<link rel="stylesheet" href="clip.css">
+<link rel="stylesheet" href="app.css">
+<link rel="stylesheet" href="parts/agent-chat.css">
+<link rel="stylesheet" href="chapter.css">
+<style>
+  /* Agent page: the chat in one centred column (agent/page.tsx, agent-chat.tsx), as Week 42's voice chapter. */
+  .agentpage { position: absolute; inset: 0; display: flex; flex-direction: column; }
+  .agentpage .col { width: 680px; margin: 0 auto; flex: 1; display: flex; flex-direction: column; padding: 16px 0 20px; min-height: 0; }
+  .agentpage .msgs { gap: 18px; }
+  .prose { font-size: 14px; line-height: 22px; }
+  .bubble { font-size: 14px; line-height: 22px; padding: 6px 10px; }
+  .composer .ta div { font-size: 14px; }
+  .rb.send { background: hsl(var(--primary)); color: hsl(var(--primary-foreground)); }
+  .step .dot img { width: 10px; height: 10px; border-radius: 2px; display: block; }
+  .step .dot svg.lu { width: 10px; height: 10px; stroke: currentColor; fill: none; stroke-width: 2; }
+
+  /* LLE-15524: a task as a request's card (workflow-app/elements/element-card.tsx RequestElementCard + ElementCard):
+     rounded-xl border, border-input + shadow-sm while open, border-muted once answered. */
+  .rcard { overflow: hidden; border-radius: 12px; border: 1px solid hsl(var(--input)); box-shadow: 0 1px 2px rgb(0 0 0 / .05); }
+  .rcard.res { border-color: hsl(var(--muted)); box-shadow: none; }
+  /* request-input-header.tsx: border-b border-muted bg-muted px-4 py-2.5 text-xs text-muted-foreground */
+  .rhead { border-bottom: 1px solid hsl(var(--muted)); background: hsl(var(--muted)); padding: 10px 16px; font-size: 12px; line-height: 16px; color: hsl(var(--muted-foreground)); }
+  .rhead .who { color: hsl(var(--foreground)); font-weight: 500; }
+  .rhead .sep { margin: 0 6px; opacity: .5; }
+  /* Body px-4 py-4: bg-background while an approval is open, bg-muted once resolved. */
+  .rbody { padding: 16px; background: hsl(var(--background)); }
+  .rcard.res .rbody { background: hsl(var(--muted)); }
+  /* RequestElementHeading: h2 text-base font-semibold, hr my-3 border-t border-border */
+  .rbody h2 { margin: 0; font-size: 16px; line-height: 24px; font-weight: 600; }
+  .rbody hr { margin: 12px 0; border: 0; border-top: 1px solid hsl(var(--border)); }
+  .rbody .desc { font-size: 14px; line-height: 22px; }
+  .rbody .desc p { margin: 0 0 6px; } .rbody .desc p:last-child { margin: 0; }
+  /* ui/button size sm: h-8 rounded-md px-3 text-sm font-medium; variants success / destructive (person-task-presentation.ts) */
+  .abtns { display: flex; gap: 8px; margin-top: 12px; }
+  .abtn { height: 32px; display: inline-flex; align-items: center; padding: 0 12px; border-radius: 6px; font-size: 14px; font-weight: 500; color: #fff; }
+  .abtn.ok { background: hsl(var(--success)); }
+  .abtn.no { background: hsl(var(--destructive)); }
+  .abtn.ok.press { background: hsl(145 35% 29%); }
+  /* request-completion-status.tsx: rounded-xl px-3 py-2 text-sm font-medium bg-success/10 */
+  .done { display: flex; gap: 4px; margin-top: 12px; border-radius: 12px; padding: 8px 12px; font-size: 14px; line-height: 20px; font-weight: 500; background: hsl(var(--success) / .1); }
+  .done .ic { color: hsl(var(--success)); margin: 2px 4px 0 0; }
+  .done .ic svg { width: 16px; height: 16px; }
+  .done b { font-weight: 600; }
+  .done .when { display: block; font-size: 12px; line-height: 16px; font-weight: 400; opacity: .5; }
+
+  /* person-task-outcome-card.tsx on activity-card.tsx: rounded-xl border bg-card shadow-sm; header min-h-9 px-3 py-2 gap-3 */
+  .ocard { margin-left: 28px; overflow: hidden; border-radius: 12px; border: 1px solid hsl(var(--border)); background: hsl(var(--card)); box-shadow: 0 1px 2px rgb(0 0 0 / .05); }
+  .ocard .tg { display: flex; align-items: center; gap: 12px; min-height: 36px; padding: 8px 12px; }
+  .ocard .ics { display: flex; align-items: center; gap: 8px; color: hsl(var(--muted-foreground)); }
+  .ocard .ics .a svg { width: 16px; height: 16px; }
+  .ocard .ics .b { color: hsl(var(--success)); } .ocard .ics .b svg { width: 14px; height: 14px; }
+  .ocard .tt { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 12px; line-height: 16px; color: hsl(var(--muted-foreground)); }
+  .ocard .lab { font-size: 12px; line-height: 16px; font-weight: 500; }
+  .ocard .chev svg { width: 16px; height: 16px; stroke: hsl(var(--muted-foreground)); fill: none; stroke-width: 2; }
+  /* person-task-page.tsx: PageHeader with the breadcrumb (text-sm muted, page font-normal foreground); body p-6, card mx-auto max-w-3xl */
+  .taskpage { position: absolute; inset: 0; display: flex; flex-direction: column; }
+  .taskpage .ph { padding-top: 20px; }
+  .crumb { display: flex; align-items: center; gap: 10px; font-size: 14px; line-height: 20px; color: hsl(var(--muted-foreground)); }
+  .crumb .cur { color: hsl(var(--foreground)); }
+  .crumb .sepc svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2; }
+  .tbody { padding: 24px; }
+  .tbody .rcard { width: 768px; margin: 0 auto; }
+  /* children: space-y-3; "Continue with agent" = Button link sm h-auto px-0 muted; PersonTaskAgentComposer on ChatComposerShell */
+  .withagent { margin-top: 12px; display: flex; flex-direction: column; gap: 12px; }
+  .cwa { font-size: 14px; line-height: 20px; font-weight: 500; color: hsl(var(--muted-foreground)); }
+  .tcomp { border: 1px solid hsl(var(--border)); border-radius: 16px; background: hsl(var(--card)); }
+  .tta { padding: 12px 8px 4px; margin: 0 6px; font-size: 14px; line-height: 20px; color: hsl(var(--muted-foreground)); }
+  .tfoot { display: flex; justify-content: flex-end; padding: 0 8px 8px; }
+  .tsend { width: 32px; height: 32px; border-radius: 999px; display: grid; place-items: center; background: hsl(var(--primary)); color: hsl(var(--primary-foreground)); opacity: .5; }
+  .tsend svg { width: 14px; height: 14px; }
+</style></head>
+<body>
+<div class="frame">
+  <div class="stage">
+    <div class="app" id="app">
+      <div id="sb"></div>
+      <main class="panel both">
+        <!-- Eva's session: she asks, the Agent raises the task, then carries on with its outcome. -->
+        <div class="agentpage" id="eva">
+          <div class="col">
+            <div class="msgs">
+              <div class="msg user"><span class="av">E</span><div class="bubble">What did Van Dijk Metaal order this morning?</div></div>
+              <div class="msg"><span class="avl"></span><div class="prose">
+                <div class="cot-head">Worked for 3s</div>
+                <div class="step"><span class="dot" data-lu="wrench"></span><span class="txt">Read Order emails (0.8s)</span></div>
+                <div>Van Dijk Metaal ordered 40 HEA 200 steel beams and 12 base plates, €12,300 in total. They ask for 8% off, more than the 5% the order desk can give.</div>
+              </div></div>
+              <div class="msg user" id="u2"><span class="av">E</span><div class="bubble" id="u2t"></div></div>
+              <div class="msg" id="a2"><span class="avl" id="a2av"></span><div class="prose">
+                <div class="cot-head" id="a2h">Working…</div>
+                <div class="step" id="a2s"><span class="dot" data-lu="wrench"></span><span class="txt">Raise Task: Approve 8% discount for Van Dijk Metaal <span id="a2d">(0.9s)</span></span></div>
+                <div id="a2r"></div>
+              </div></div>
+              <div id="oc"><div class="ocard"><div class="tg">
+                <span class="ics"><span class="a" data-fa="faListCheck"></span><span class="b" data-fa="s:faCircleCheck"></span></span>
+                <span class="tt">Approve 8% discount for Van Dijk Metaal</span><span class="lab">Approved</span><span class="chev" data-lu="chevronRight"></span>
+              </div></div></div>
+              <div class="msg" id="a3"><span class="avl" id="a3av"></span><div class="prose">
+                <div class="cot-head" id="a3h">Working…</div>
+                <div class="step" id="a3s"><span class="dot" id="exl"></span><span class="txt">Exact Online: Created Sales Order <span id="a3d">(1.4s)</span></span></div>
+                <div id="a3r"></div>
+              </div></div>
+            </div>
+            <div class="composer">
+              <div class="ta"><div id="ta">Ask the agent anything…</div></div>
+              <div class="row"><span class="rb lp"></span>
+                <div class="r"><span class="model">Opus 5.5 <span class="mchev"></span></span><span class="rb mic"></span><span class="rb" id="send"></span></div></div>
+            </div>
+          </div>
+        </div>
+        <!-- Mila's side: the task's page (person-task-page.tsx), the task as a request's card (LLE-15524), with
+             "Continue with agent" and the composer to work it with her own Agent (LLE-15694) under the answer. -->
+        <div class="taskpage" id="mila">
+          <div class="ph"><div class="crumb"><span>Tasks</span><span class="sepc" data-lu="chevronRight"></span><span class="cur">Approve 8% discount for Van Dijk Metaal</span></div></div>
+          <div class="tbody">
+            <section class="rcard" id="rcard">
+              <div class="rhead">Requested input from <span class="who">Mila Jansen</span><span class="sep">•</span>16 October 2026 at 10:41 am</div>
+              <div class="rbody">
+                <h2>Approve 8% discount for Van Dijk Metaal</h2>
+                <hr>
+                <div class="desc"><p>Van Dijk Metaal asks 8% off their order of 40 HEA 200 steel beams and 12 base plates: €12,300 becomes €11,316.</p>
+                  <p>That's more than the 5% the order desk can give. Eva Visser wants to draft the sales order in Exact Online once it's approved.</p></div>
+                <div class="abtns" id="abtns"><span class="abtn ok" id="approve">Approve</span><span class="abtn no" id="reject">Reject</span></div>
+                <div class="done" id="done"><span class="ic" data-fa="faCircleCheck"></span><div><b>Approved</b> - You<span class="when">16/10/2026, 10:43 am</span></div></div>
+                <div class="withagent" id="withagent">
+                  <div class="cwa">Continue with agent</div>
+                  <div class="tcomp"><div class="tta">Message the agent about this task</div><div class="tfoot"><span class="tsend" data-fa="faArrowUp"></span></div></div>
+                </div>
+              </div>
+            </section>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+</div>
+<script src="fa-icons.js"></script>
+<script src="app.js"></script>
+<script src="clip.js"></script>
+<script src="chapter.js"></script>
+<script>
+  CHAPTER({ n: 1, total: 6, module: "Agent", footerLeft: "Feature Drop · Week 43",
+    title: "Hand a task to a colleague.<br><em>Your session carries on.</em>",
+    line: "Ask the Agent to involve someone: it sends them a task they answer from a card like a request, or work with their own Agent. When they're done, your session picks it up." });
+  const D = 12.6;
+  // The result after each beat, and the end.
+  window.HOLDS = [[5.8, 0.8], [8.6, 0.9], [12.0, 1.1]];
+  const { $, $$, p, out, io } = C;
+  $("#sb").outerHTML = APP.sidebar("Agent");
+  const navAgent = $$(".sb .nav").find((n) => n.textContent.trim() === "Agent");
+  // lucide icons used by the chat (tool-meta.ts WrenchIcon, activity-card ChevronRightIcon)
+  const LUX = { wrench: '<path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>', chevronRight: '<path d="m9 18 6-6-6-6"/>' };
+  $$("[data-lu]").forEach((el) => (el.innerHTML = `<svg class="lu" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">${LUX[el.dataset.lu]}</svg>`));
+  $$("[data-fa]").forEach((el) => (el.innerHTML = fa(el.dataset.fa)));
+  $("#exl").innerHTML = '<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIAAAACACAMAAAD04JH5AAAALVBMVEX////hFB3gAADlTFDzqaz97/DnWF3kJC72uLr0wsP619nkNTvvkZTpdXfviYxRQlBxAAAB8UlEQVR4nO2aCW7DIBBFMQaDWXz/49aRolZVBhvDZ1DVeQfIfwYCw6KUIAiCIAiCIAjC38beMyg5eJOOnLdbMtzA2pBW/Wa5Q69ogT3HitwfNqyAicuTdLCAPdzDdKyA3Z7HIwXM08YHC6SmeJzA0ZiPEmj9fpSAac7HCNjmeJBA8wAACYQ4uQXaRyBGwPbkIwTyhYC+pX85Dq4YvsT0zV6iuwF8qW1z6P7tKsge0KvnST+H4Erlb0xffxLIfLZ4ehJw/SOrno1oAb72PyEagLMDVPgU0AenAFEJuFG7LRL/KQDf61zyWQpow5lPzYNsc2BJIK51RIQpORFXAukrS81D/0ogzO6CnoJYBOYLIFZtEZgu0DUVQwR6ZkIRgBTPRD1wvyN+M0rgMJUg8ufXhERZzlsVExuTZbaA5i2LiQMa1r0huTvm3J2Tx8Tge6BrqFGoOQ2oI5pF428DixRuimJiM9ip/LMRognD7mV/YYsnpXHdckrJX7LPPit2/Wsi9T+oJwIW5Z4LE4hA8bycS+ByFLAI9NyaQQSUb+8EjEDHzSVIwDYPA5CAsq13dyiB1/uByQLKN71gAAqcU2KDAlRA7ebxMxaswGswupr3S+METoLJa6x6RjVI4MSG3R/vh2TRXTJGQBAEQRAEQRAEAcgXbjMbwSIdiogAAAAASUVORK5CYII=" alt="">';
+  $$(".avl").forEach((el) => (el.innerHTML = `<span style="display:block;margin-top:2px;color:hsl(var(--foreground))">${APP.loader(20)}</span>`));
+  $$(".mchev").forEach((el) => (el.innerHTML = fa("faChevronDown", "", "width:9px;height:9px")));
+  $$(".lp").forEach((el) => (el.innerHTML = lu("plus", "", "width:16px;height:16px")));
+  $$(".mic").forEach((el) => (el.innerHTML = fa("faMicrophone")));
+  $$(".call").forEach((el) => (el.innerHTML = fa("s:faPhoneFlip")));
+
+  const app = $("#app");
+  const box = (el) => { const a = app.getBoundingClientRect(), r = el.getBoundingClientRect(), s = a.width / 1280;
+    return [(r.left - a.left) / s, (r.top - a.top) / s, (r.right - a.left) / s, (r.bottom - a.top) / s]; };
+  const at = (el, fx = 0.5, fy = 0.5) => { const b = box(el); return [b[0] + (b[2] - b[0]) * fx, b[1] + (b[3] - b[1]) * fy]; };
+  const VW = C.STAGE_W, VH = C.STAGE_H, FIT = Math.min(VW / 1280, VH / C.APP_H) * 0.98;
+  const fit = (x0, y0, x1, y1) => { const s = Math.min(VW / (x1 - x0), VH / (y1 - y0)); return [(x0 + x1) / 2, (y0 + y1) / 2 + (VH / s - (y1 - y0)) / 2, s]; };
+  // Measure in the final layout: Mila's card open (buttons shown), Eva's composer.
+  $("#done").style.display = "none";
+  const P = { ta: at($("#ta"), 0.25), send: at($("#send")), ok: at($("#approve")) };
+  const rc = box($("#rcard")), ph = box($("#mila .ph"));
+  const cr = box($("#mila .crumb"));
+  const CARD = fit(cr[0] - 24, ph[1], rc[2] + 24, rc[3] + 24);
+  const FULL = [640, C.APP_H / 2, FIT];
+  const cam = C.camera(app, VW, VH, [[0, ...FULL], [6.5, ...FULL], [7.1, ...CARD], [9.1, ...CARD], [9.7, ...FULL], [D, ...FULL]]);
+  const F = (t, [x, y]) => { const m = cam(t).map(x, y); return [C.STAGE_X + m[0], C.STAGE_Y + m[1]]; };
+  const OFF = (fx) => [C.W * fx, C.H + 40];
+  const cur = C.cursor([[1.6, ...OFF(0.5)], [2.05, ...F(2.05, P.ta), true], [2.3, ...F(2.3, P.ta)], [4.0, ...F(4.0, P.ta)], [4.35, ...F(4.35, P.send), true], [4.9, ...OFF(0.75)],
+    [7.3, ...OFF(0.55)], [8.1, ...F(8.1, P.ok), true], [8.5, ...F(8.5, P.ok)], [9.3, ...OFF(0.6)]]);
+  const cap = C.captions([
+    [1.9, 5.95, "Ask the Agent to involve someone.<br><em>It sends them a task.</em>"],
+    [6.3, 9.55, "Mila answers on the card,<br><em>or works it with her Agent.</em>"],
+    [9.9, 99, "Once she's done,<br><em>the Agent picks it up.</em>"],
+  ]);
+  const ASK = "Draft the sales order for Van Dijk Metaal and have Mila approve the 8% discount.";
+  const R2 = "I've sent Mila Jansen a task to approve the 8% discount. I'll draft the sales order as soon as she answers.";
+  const R3 = "Mila approved the discount. The draft sales order for Van Dijk Metaal is in Exact Online: SO-20472, €11,316.00 with 8% off.";
+  C.typing(2.3, 4.1);
+  // The Agent writes silently.
+  const tw = (el, text, t, a, b) => C.type(el, text, t, a, b, null);
+  cam(0);
+  C.run(D, (t) => {
+    cap(t); cam(t); cur(t);
+    // Beat 1: Eva types and sends; the Agent raises the task and says so.
+    const sent = t >= 4.4, ta = $("#ta");
+    if (sent) { ta.textContent = "Ask the agent anything…"; ta.style.color = ""; }
+    else if (t >= 2.3) { C.type(ta, ASK, t, 2.3, 4.1); ta.style.color = "hsl(var(--foreground))"; }
+    else { ta.textContent = "Ask the agent anything…"; ta.style.color = ""; }
+    const typed = t >= 2.3 && !sent;
+    $("#send").className = "rb" + (typed ? " send" : "");
+    $("#send").innerHTML = fa(typed ? "faArrowUp" : "s:faPhoneFlip");
+    $("#u2").style.display = sent ? "" : "none"; $("#u2t").textContent = ASK;
+    $("#a2").style.display = t >= 4.6 ? "" : "none";
+    $("#a2s").style.display = t >= 4.75 ? "" : "none";
+    $("#a2d").style.display = t >= 5.0 ? "" : "none";
+    $("#a2h").textContent = t >= 5.0 ? "Worked for 2s" : "Working…";
+    tw($("#a2r"), R2, t, 5.05, 5.7);
+    APP.drive($("#a2av"), t >= 4.6 && t < 5.7 ? "working" : "static", t);
+    // Beat 2: Mila's session, the same task as a request card; she approves it.
+    const sw1 = io(p(t, 6.1, 6.5)), sw2 = io(p(t, 9.65, 10.05));
+    $("#eva").style.opacity = 1 - sw1 + sw2; $("#mila").style.opacity = sw1 - sw2;
+    $("#eva").style.visibility = 1 - sw1 + sw2 > 0 ? "visible" : "hidden"; $("#mila").style.visibility = sw1 - sw2 > 0 ? "visible" : "hidden";
+    const answered = t >= 8.25;
+    $("#approve").classList.toggle("press", t >= 8.05 && !answered);
+    $("#rcard").classList.toggle("res", answered);
+    $("#done").style.display = answered ? "" : "none";
+    // Settled, nothing is left to work: the agent section goes (no session was opened for it).
+    $("#withagent").style.display = answered ? "none" : "";
+    // The task page isn't a pinned page: no nav item is lit while it's open.
+    navAgent.classList.toggle("on", sw1 - sw2 < 0.5);
+    // Settled: the buttons stay, disabled (selected at 0.8, the other at 0.5, on the button's disabled 0.5).
+    $("#approve").style.opacity = answered ? 0.4 : 1; $("#reject").style.opacity = answered ? 0.25 : 1;
+    const d = out(p(t, 8.25, 8.5)); $("#done").style.opacity = d; $("#done").style.transform = `translateY(${(1 - d) * 6}px)`;
+    // Beat 3: back in Eva's session, the outcome card arrives and the Agent carries on.
+    const o = out(p(t, 10.3, 10.6));
+    $("#oc").style.display = t >= 10.3 ? "" : "none"; $("#oc").style.opacity = o; $("#oc").style.transform = `translateY(${(1 - o) * 8}px)`;
+    $("#a3").style.display = t >= 10.6 ? "" : "none";
+    $("#a3s").style.display = t >= 10.75 ? "" : "none";
+    $("#a3d").style.display = t >= 11.1 ? "" : "none";
+    $("#a3h").textContent = t >= 11.1 ? "Worked for 4s" : "Working…";
+    tw($("#a3r"), R3, t, 11.15, 11.9);
+    APP.drive($("#a3av"), t >= 10.6 && t < 11.9 ? "working" : "static", t);
+  });
+</script>
+</body></html>

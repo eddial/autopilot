@@ -1,0 +1,265 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<title>Copy a skill into another project</title>
+<link rel="stylesheet" href="clip.css">
+<link rel="stylesheet" href="app.css">
+<link rel="stylesheet" href="chapter.css">
+<style>
+  /* Skills page: context/skills/page.tsx (ProjectSectionHeader, Search, ToggleButtonGroup, Library, New, grid gap-3 3 cols),
+     components/context/skill-card.tsx (grid card, StatusChip, "Skill actions" dropdown with "Copy to project…"),
+     components/context/copy-skill-to-project-dialog.tsx (Dialog sm:max-w-md, Select, Will be copied / Will not be copied lists, toast),
+     ui/dropdown-menu.tsx, ui/dialog.tsx, ui/select.tsx, ui/toast.tsx, ui/button.tsx. */
+  .app { --popover: 0 0% 100%; }
+  .page { position: absolute; inset: 0; }
+  .sb-proj { white-space: nowrap; }
+  .wrap { padding: 16px 32px 0; }
+  .hdr { display: flex; align-items: center; margin-bottom: 24px; }
+  .hdr h1 { margin: 0; font-size: 20px; line-height: 28px; font-weight: 600; letter-spacing: -.025em; }
+  .bar { display: flex; align-items: center; gap: 8px; margin-bottom: 24px; }
+  .srch { position: relative; flex: 1; height: 40px; border: 1px solid hsl(var(--input)); border-radius: 8px; background: hsl(var(--background)); display: flex; align-items: center; padding-left: 40px; color: hsl(var(--muted-foreground)); }
+  .srch svg { position: absolute; left: 12px; top: 13px; width: 14px; height: 14px; }
+  .tgl { display: flex; padding: 4px; border: 1px solid hsl(var(--input)); border-radius: 8px; gap: 2px; }
+  .tgl span { border-radius: 6px; padding: 6px 12px; color: hsl(var(--muted-foreground)); }
+  .tgl span.on { background: hsl(var(--border)); color: hsl(var(--foreground)); }
+  .tgl svg { width: 16px; height: 16px; }
+  .b10 { height: 40px; display: inline-flex; align-items: center; border-radius: 8px; padding: 0 16px; font-weight: 500; border: 1px solid hsl(var(--input)); background: hsl(var(--background)); }
+  .b10.pri { background: hsl(var(--primary)); border-color: hsl(var(--primary)); color: hsl(var(--primary-foreground)); }
+  .b10 svg { width: 14px; height: 14px; margin-right: 6px; }
+  .grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+  .card { min-height: 200px; display: flex; flex-direction: column; border: 1px solid hsl(var(--border)); border-radius: 12px; padding: 16px; }
+  .card.hov { background: hsl(var(--muted)); }
+  .card .top { flex: 1; display: flex; flex-direction: column; padding-bottom: 4px; }
+  .card h3 { margin: 0; font-size: 13px; line-height: 20px; font-weight: 500; }
+  .card .ds { margin: 6px 0 0; font-size: 12px; line-height: 16px; color: hsl(var(--muted-foreground)); }
+  .card .dt { margin: auto 0 0; padding-top: 8px; font-size: 12px; line-height: 16px; color: hsl(var(--muted-foreground)); }
+  .card .bt { margin-top: 12px; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .card .bt > div { display: flex; align-items: center; gap: 8px; }
+  .sbtn { height: 32px; display: inline-flex; align-items: center; border: 1px solid hsl(var(--input)); border-radius: 8px; padding: 0 12px; font-size: 12px; font-weight: 500; background: hsl(var(--background)); }
+  .chip { border-radius: 999px; padding: 2px 6px; font-size: 10px; line-height: 14px; }
+  .chip.act { background: hsl(var(--success) / .1); color: hsl(var(--success)); }
+  .chip.dr { border: 1px dashed hsl(var(--border)); color: hsl(var(--muted-foreground)); }
+  .kb { width: 32px; height: 32px; border-radius: 6px; display: grid; place-items: center; color: hsl(var(--muted-foreground)); }
+  .kb svg { width: 14px; height: 14px; }
+  .kb.on { background: hsl(var(--accent)); }
+  /* DropdownMenuContent align="end", sideOffset 4 */
+  .menu { position: absolute; z-index: 30; min-width: 128px; padding: 4px; border: 1px solid hsl(var(--border)); border-radius: 6px; background: hsl(var(--popover)); box-shadow: 0 4px 6px -1px rgb(0 0 0 / .1), 0 2px 4px -2px rgb(0 0 0 / .1); white-space: nowrap; }
+  .mi { display: flex; align-items: center; border-radius: 4px; padding: 6px 8px; font-size: 13px; line-height: 20px; }
+  .mi svg { width: 14px; height: 14px; margin-right: 8px; }
+  .mi.hov { background: hsl(var(--accent)); }
+  .mi.del { color: hsl(var(--destructive)); }
+  .sep { margin: 4px -4px; height: 1px; background: hsl(var(--muted)); }
+  /* Dialog: bg-backdrop overlay, DialogContent grid gap-4 border bg-card p-6 shadow-lg rounded-lg, sm:max-w-md */
+  .backdrop { position: absolute; inset: 0; z-index: 40; background: hsl(48 20% 97% / .8); }
+  .dlg { position: absolute; left: 50%; top: 50%; width: 448px; z-index: 41; background: hsl(var(--card)); border: 1px solid hsl(var(--border)); border-radius: 8px; padding: 24px; display: flex; flex-direction: column; gap: 16px;
+    box-shadow: 0 10px 15px -3px rgb(0 0 0 / .1), 0 4px 6px -4px rgb(0 0 0 / .1); }
+  .dlg h2 { margin: 0; font-size: 18px; line-height: 18px; font-weight: 600; }
+  .dlg .dd { margin-top: 10px; font-size: 13px; line-height: 20px; color: hsl(var(--muted-foreground)); }
+  .dlg .x { position: absolute; right: 16px; top: 16px; } .dlg .x svg { width: 16px; height: 16px; }
+  .fld { display: flex; flex-direction: column; gap: 6px; position: relative; }
+  .lab { font-size: 13px; line-height: 13px; font-weight: 500; }
+  .trg { height: 32px; display: flex; align-items: center; justify-content: space-between; border: 1px solid hsl(var(--input)); border-radius: 6px; padding: 0 12px; background: hsl(var(--background)); font-size: 13px; }
+  .trg.ph { color: hsl(var(--muted-foreground)); }
+  .trg.open { box-shadow: 0 0 0 2px hsl(var(--background)), 0 0 0 4px hsl(var(--muted-foreground-subtle)); }
+  .trg svg { width: 16px; height: 16px; opacity: .5; color: hsl(var(--foreground)); }
+  .sc { position: absolute; left: 0; right: 0; top: 57px; z-index: 5; padding: 4px; border: 1px solid hsl(var(--border)); border-radius: 6px; background: hsl(var(--popover)); box-shadow: 0 4px 6px -1px rgb(0 0 0 / .1), 0 2px 4px -2px rgb(0 0 0 / .1); }
+  .sc div { padding: 6px 8px; border-radius: 4px; font-size: 13px; line-height: 20px; }
+  .sc div.hov { background: hsl(var(--accent)); }
+  .grp { display: flex; flex-direction: column; gap: 4px; }
+  .grp p { margin: 0; font-size: 13px; line-height: 20px; font-weight: 500; }
+  .grp ul { margin: 0; padding: 0; list-style: disc inside; font-size: 13px; line-height: 20px; color: hsl(var(--muted-foreground)); }
+  .grp ul small { font-size: 12px; }
+  .ft { display: flex; justify-content: flex-end; gap: 8px; }
+  .ft .b10 { font-size: 13px; }
+  .b10.dis { opacity: .5; }
+  /* Toast: viewport bottom-right p-4 max-w 380px; toast rounded-xl border bg-card p-4 pr-8 shadow-lg */
+  .toast { position: absolute; right: 16px; bottom: 16px; width: 348px; z-index: 50; display: flex; align-items: center; justify-content: space-between; gap: 16px; border: 1px solid hsl(var(--border)); border-radius: 12px; background: hsl(var(--card)); padding: 16px 32px 16px 16px;
+    box-shadow: 0 10px 15px -3px rgb(0 0 0 / .1), 0 4px 6px -4px rgb(0 0 0 / .1); }
+  .toast b { display: block; font-size: 13px; line-height: 20px; font-weight: 600; }
+  .toast span.d { display: block; font-size: 13px; line-height: 20px; opacity: .9; }
+  .toast .ta { height: 32px; flex: none; display: inline-flex; align-items: center; border: 1px solid hsl(var(--border)); border-radius: 6px; padding: 0 12px; font-size: 13px; font-weight: 500; }
+  .toast .ta.hov { background: hsl(var(--secondary)); }
+  /* Skill page in the other project: context/skills/[skillId]/page.tsx header (back, name, Unpublished Changes, improve, copy, delete, Publish) */
+  .sh { display: flex; align-items: center; gap: 12px; padding: 16px 32px; }
+  .sh .l { flex: 1; display: flex; align-items: center; gap: 8px; }
+  .sh h1 { margin: 0; font-size: 20px; line-height: 28px; font-weight: 600; letter-spacing: -.025em; }
+  .sh .r { display: flex; align-items: center; gap: 8px; }
+  .chg { background: hsl(var(--secondary)); color: hsl(var(--muted-foreground)); font-weight: 400; }
+  .ed { position: absolute; left: 32px; top: 76px; width: 400px; display: flex; flex-direction: column; gap: 20px; }
+  .fl { font-weight: 500; color: hsl(var(--muted-foreground)); margin-bottom: 8px; }
+  .fv { border: 1px solid hsl(var(--border)); border-radius: 8px; background: hsl(var(--card)); padding: 12px 14px; line-height: 22px; }
+  .fv.file { display: flex; align-items: center; gap: 8px; padding: 8px 12px; }
+  .fv.file svg { width: 14px; height: 14px; color: hsl(var(--muted-foreground)); }
+  .side { position: absolute; right: 12px; top: 76px; bottom: 12px; width: 520px; border: 1px solid hsl(var(--border)); border-radius: 12px; background: hsl(var(--card)); box-shadow: 0 4px 12px rgb(0 0 0 / .06); padding: 4px 16px 16px; display: flex; flex-direction: column; gap: 12px; }
+  .prevw { color: hsl(var(--muted-foreground)); font-size: 12px; line-height: 18px; }
+  .lit { box-shadow: 0 0 0 3px hsl(var(--highlight) / var(--ra, 0)); }
+</style></head>
+<body>
+<div class="frame">
+  <div class="stage">
+    <div class="app" id="app">
+      <div id="sb"></div>
+      <main class="panel">
+        <div class="page" id="skills">
+          <div class="wrap">
+            <div class="hdr"><h1>Skills</h1></div>
+            <div class="bar">
+              <div class="srch"><span data-fa="faMagnifyingGlass"></span>Search skills...</div>
+              <div class="tgl"><span class="on" data-fa="faTableCellsLarge"></span><span data-fa="faList"></span></div>
+              <span class="b10"><span id="icBook"></span>Library</span>
+              <span class="b10 pri"><span data-lu="plus"></span>New</span>
+            </div>
+            <div class="grid" id="grid"></div>
+          </div>
+        </div>
+        <div class="page" id="detail" style="display:none">
+          <div class="sh">
+            <div class="l"><span class="kb" data-fa="faArrowLeft"></span><h1>Purchase order intake</h1></div>
+            <div class="r"><span class="badge chg lit" id="chg">Unpublished Changes</span><span class="kb" data-fa="s:faRobot"></span><span class="kb" data-fa="faCopy"></span><span class="kb" data-fa="faTrash"></span><span class="btn pri">Publish</span></div>
+          </div>
+          <div class="ed">
+            <div><div class="fl">Description</div><div class="fv">Turns purchase orders from email into draft sales orders in Exact Online.</div></div>
+            <div><div class="fl">Instructions</div><div class="fv">
+              1. Read the order from the email or its attachment.<br>
+              2. Find the customer in Exact by name or VAT number.<br>
+              3. Match each line to an article and check the price.<br>
+              4. Create the sales order as a draft for review.</div></div>
+                      </div>
+          <aside class="side">
+            <div class="tabs"><span class="tab on">Preview</span><span class="tab">Tests</span><span class="tab">Versions</span><span class="tab">Feedback</span><span class="tab">Usage</span></div>
+            <div class="prevw">Try the skill on a sample order to see what it does.</div>
+          </aside>
+        </div>
+      </main>
+      <div class="menu" id="menu" style="display:none">
+        <div class="mi"><span data-fa="faStar"></span>Add to Favourites</div>
+        <div class="mi" id="miCopy"><span data-fa="faCopy"></span>Copy to project…</div>
+        <div class="sep"></div>
+        <div class="mi del"><span data-lu="trash2"></span>Delete</div>
+      </div>
+      <div class="backdrop" id="bd" style="display:none"></div>
+      <div class="dlg" id="dlg" style="display:none">
+        <div><h2>Copy skill to another project</h2><div class="dd">Purchase order intake will be added to the chosen project as a draft for you to review and publish there.</div></div>
+        <span class="x" id="icX"></span>
+        <div class="fld"><span class="lab">Project</span>
+          <div class="trg ph" id="trg"><span id="trgTx">Choose a project</span><span data-lu="chevronDown"></span></div>
+          <div class="sc" id="sc" style="display:none"><div id="optBe">Order intake Belgium</div><div>Accounts payable</div><div>Customer service</div></div>
+        </div>
+        <div class="grp"><p>Will be copied</p><ul><li>customer-article-codes.xlsx</li></ul></div>
+        <div class="grp"><p>Will not be copied, because they belong to this project</p><ul>
+          <li>Order intake from email<small> (Workflow)</small></li>
+          <li>Exact Online<small> (Connection)</small></li>
+          <li>Price agreements<small> (Data table)</small></li></ul></div>
+        <div class="ft"><span class="b10">Cancel</span><span class="b10 pri dis" id="go">Copy to project</span></div>
+      </div>
+      <div class="toast" id="toast" style="display:none">
+        <div><b>Copied to Order intake Belgium</b><span class="d">The copy is a draft there, ready to review and publish.</span></div>
+        <span class="ta" id="open">Open</span>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="fa-icons.js"></script>
+<script src="app.js"></script>
+<script src="clip.js"></script>
+<script src="chapter.js"></script>
+<script>
+  CHAPTER({ n: 5, total: 6, module: "Skills", footerLeft: "Feature Drop · Week 43",
+    title: "Copy a skill<br><em>into another project.</em>", line: "Copy a skill from a skill's menu into another project of your organisation. It arrives there as a draft; files come along, and the list shows what stays behind because it belongs to this project." });
+  const D = 10.2;
+  const { $, $$, p, out, io } = C;
+  $("#sb").outerHTML = APP.sidebar("Skills");
+  $("#icBook").outerHTML = `<svg class="lu" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 7v14"/><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"/></svg>`;
+  $("#icX").innerHTML = `<svg class="lu" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>`;
+  const SK = [
+    ["Purchase order intake", "Turns purchase orders from email into draft sales orders in Exact Online.", "2 Sep 2026", "14 Oct 2026", 1],
+    ["Invoice matching", "Matches supplier invoices to the purchase order and goods receipt, and flags price or quantity differences.", "28 Aug 2026", "13 Oct 2026", 1],
+    ["Price check", "Checks each order line against the customer's price agreement before the order is drafted.", "4 Sep 2026", "12 Oct 2026", 1],
+    ["Delivery date updates", "Reads delivery confirmations from suppliers and updates the expected date on the order.", "11 Sep 2026", "10 Oct 2026", 1],
+    ["Credit check", "Looks up the customer's open balance and credit limit in Exact Online before an order is released.", "15 Sep 2026", "9 Oct 2026", 1],
+    ["Missing PO follow-up", "Drafts a reply to the customer when an order arrives without a PO number.", "22 Sep 2026", "8 Oct 2026", 0],
+    ["Order confirmation", "Sends the customer an order confirmation with lines, prices and delivery dates.", "18 Aug 2026", "7 Oct 2026", 1],
+    ["Return requests", "Logs return requests from email and checks them against the original order.", "1 Sep 2026", "3 Oct 2026", 1],
+    ["Supplier price lists", "Reads new supplier price lists and prepares the changes for the article table.", "25 Sep 2026", "1 Oct 2026", 0],
+  ];
+  $("#grid").innerHTML = SK.map(([n, d, c, m, a], i) => `<div class="card" id="c${i}"><div class="top"><h3>${n}</h3><p class="ds">${d}</p><p class="dt">Created ${c} · Modified ${m}</p></div>
+    <div class="bt"><div><span class="sbtn">Edit</span>${a ? '<span class="sbtn">Use</span>' : ""}</div><div>${a ? '<span class="chip act">Active</span>' : '<span class="chip dr">Draft</span>'}<span class="kb" id="k${i}">${fa("faEllipsisVertical")}</span></div></div></div>`).join("");
+  $$("[data-fa]").forEach((el) => (el.innerHTML = fa(el.dataset.fa)));
+  $$("[data-lu]").forEach((el) => (el.innerHTML = lu(el.dataset.lu)));
+
+  const app = $("#app");
+  const at = (el, fx = 0.5, fy = 0.5) => { const a = app.getBoundingClientRect(), r = el.getBoundingClientRect(), s = a.width / 1280;
+    return [(r.left - a.left + r.width * fx) / s, (r.top - a.top + r.height * fy) / s]; };
+  // The menu opens under the card's "Skill actions" button, aligned to its right edge (sideOffset 4).
+  const k0 = at($("#k0"), 1, 1);
+  $("#menu").style.display = "";
+  const mw = $("#menu").offsetWidth;
+  $("#menu").style.left = (k0[0] - mw) + "px"; $("#menu").style.top = (k0[1] + 4) + "px";
+  // The dialog is centred in the viewport.
+  $("#dlg").style.display = ""; $("#sc").style.display = ""; $("#toast").style.display = "";
+  const dh = $("#dlg").offsetHeight;
+  $("#dlg").style.left = (640 - 224) + "px"; $("#dlg").style.top = Math.round(C.APP_H / 2 - dh / 2) + "px";
+  // Measured with every state visible: the menu, the dialog with the select open, the toast.
+  const P = { k: at($("#k0")), copy: at($("#miCopy"), 0.4), trg: at($("#trg"), 0.4), be: at($("#optBe"), 0.3), go: at($("#go")), open: at($("#open")) };
+  const d0 = at($("#dlg"), 0, 0), d1 = at($("#dlg"), 1, 1);
+  $("#menu").style.display = "none"; $("#dlg").style.display = "none"; $("#sc").style.display = "none"; $("#toast").style.display = "none";
+
+  const VW = C.STAGE_W, VH = C.STAGE_H, FIT = Math.min(VW / 1280, VH / C.APP_H) * 0.98;
+  const fit = (x0, y0, x1, y1) => { const s = Math.min(VW / (x1 - x0), VH / (y1 - y0)); return [(x0 + x1) / 2, (y0 + y1) / 2, s]; };
+  // The one held zoom: the dialog, framed from its own edges with room around it.
+  const DLG = fit(d0[0] - 90, d0[1] - 70, d1[0] + 90, d1[1] + 70);
+  const FULL = [640, C.APP_H / 2, FIT];
+  const cam = C.camera(app, VW, VH, [[0, ...FULL], [3.9, ...FULL], [4.5, ...DLG], [7.6, ...DLG], [8.2, ...FULL], [D, ...FULL]]);
+  const F = (t, [x, y]) => { const m = cam(t).map(x, y); return [C.STAGE_X + m[0], C.STAGE_Y + m[1]]; };
+  const OFF = [C.W * 0.7, C.H + 40];
+  const cur = C.cursor([[1.8, ...OFF], [2.3, ...F(2.3, P.k)], [2.6, ...F(2.6, P.k), true],
+    [3.2, ...F(3.2, P.copy)], [3.6, ...F(3.6, P.copy), true], [3.9, ...F(3.9, P.copy)],
+    [4.6, ...F(4.6, P.trg)], [5.2, ...F(5.2, P.trg)], [5.4, ...F(5.4, P.trg), true],
+    [5.9, ...F(5.9, P.be)], [6.2, ...F(6.2, P.be), true],
+    [6.8, ...F(6.8, P.go)], [7.0, ...F(7.0, P.go), true], [7.5, ...F(7.5, P.go)],
+    [8.2, ...F(8.2, P.open)], [8.6, ...F(8.6, P.open)], [8.8, ...F(8.8, P.open), true], [9.4, C.W * 0.9, C.H + 40]]);
+  window.HOLDS = [[3.2, 0.5], [6.85, 0.9], [8.25, 0.9], [D - 0.1, 1.5]];
+  const cap = C.captions([
+    [1.9, 4.6, "Pick Copy to project<br><em>from the skill's menu.</em>"],
+    [4.9, 99, "Choose where it goes.<br><em>It lands there as a draft.</em>"],
+  ]);
+  cam(0);
+  C.run(D, (t) => {
+    cap(t); cam(t); cur(t);
+    // Beat 1: the card's menu, then Copy to project…
+    const menuOn = t >= 2.65 && t < 3.65;
+    $("#menu").style.display = menuOn ? "" : "none";
+    $("#menu").style.opacity = out(p(t, 2.65, 2.8));
+    $("#k0").classList.toggle("on", menuOn);
+    $("#c0").classList.toggle("hov", t >= 2.3 && t < 3.65);
+    $("#miCopy").classList.toggle("hov", t >= 3.1 && t < 3.65);
+    // Beat 2: the dialog, the project, Copy.
+    const dOn = t >= 3.7 && t < 7.55;
+    const dIn = out(p(t, 3.7, 3.9)), dOut = p(t, 7.4, 7.55);
+    $("#bd").style.display = $("#dlg").style.display = dOn ? "" : "none";
+    $("#bd").style.opacity = dIn * (1 - dOut);
+    $("#dlg").style.opacity = dIn * (1 - dOut);
+    $("#dlg").style.transform = `scale(${0.95 + 0.05 * dIn - 0.05 * dOut})`;
+    const scOn = t >= 5.45 && t < 6.25;
+    $("#sc").style.display = scOn ? "" : "none";
+    $("#trg").classList.toggle("open", t >= 5.45 && t < 6.3);
+    $("#optBe").className = t >= 5.85 ? "hov" : "";
+    const picked = t >= 6.25;
+    $("#trgTx").textContent = picked ? "Order intake Belgium" : "Choose a project";
+    $("#trg").classList.toggle("ph", !picked);
+    $("#go").classList.toggle("dis", !picked || t >= 7.05);
+    $("#go").textContent = t >= 7.05 ? "Copying…" : "Copy to project";
+    // The toast, then Open: the copy in Order intake Belgium, as a draft.
+    const toastOn = t >= 7.55 && t < 8.9;
+    const ti = out(p(t, 7.55, 7.85));
+    $("#toast").style.display = toastOn ? "" : "none";
+    $("#toast").style.opacity = ti; $("#toast").style.transform = `translateY(${(1 - ti) * 40}px)`;
+    $("#open").classList.toggle("hov", t >= 8.55);
+    const there = t >= 8.9;
+    $("#skills").style.display = there ? "none" : "";
+    $("#detail").style.display = there ? "" : "none";
+    $("#detail").style.opacity = out(p(t, 8.9, 9.25));
+    $(".sb-proj").firstChild.textContent = there ? "Order intake Belgium " : "Order intake ";
+    $("#chg").style.setProperty("--ra", (0.25 * out(p(t, 9.3, 9.7))).toFixed(3));
+  });
+</script>
+</body></html>

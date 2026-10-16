@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<title>The Agent asks first</title>
+<link rel="stylesheet" href="clip.css">
+<link rel="stylesheet" href="app.css">
+<link rel="stylesheet" href="parts/agent-chat.css">
+<link rel="stylesheet" href="chapter.css">
+<style>
+  /* The Agent page: one chat column (agent-chat.tsx, footer max-w-3xl). */
+  .agentpage { position: absolute; inset: 0; display: flex; }
+  .chatcol { flex: 1; min-width: 0; display: flex; flex-direction: column; padding: 16px 0 20px; }
+  .chatcol > * { width: 680px; margin-left: auto; margin-right: auto; }
+  .chatcol .msgs { gap: 16px; }
+  .prose p { margin: 0 0 6px; }
+  .step .txt b { font-weight: 500; color: hsl(var(--foreground)); }
+  /* parts/thinking-placeholder.tsx: muted, 50% opacity, xs, no logo, "Waiting for your response..." */
+  .waiting { font-size: 12px; line-height: 16px; color: hsl(var(--muted-foreground)); opacity: .5; padding-top: 2px; }
+  .composer .ta div.typed { color: hsl(var(--foreground)); }
+  .rb.send { background: hsl(var(--primary)); color: hsl(var(--primary-foreground)); }
+
+  /* agent-chat.tsx footer interrupt widget shell: mx-auto mb-2 w-full max-w-3xl;
+     rounded-2xl border border-border bg-card shadow-sm p-1.5 (approval-request is not a carded form). */
+  .fw { margin-bottom: 8px; border: 1px solid hsl(var(--border)); border-radius: 16px; background: hsl(var(--card));
+    box-shadow: 0 1px 2px rgb(0 0 0 / .05); padding: 6px; display: none; }
+  /* widgets/approval-request-widget.tsx, inFooter: content space-y-4 pr-1; header space-y-1;
+     h3 text-sm font-semibold; p text-sm text-muted-foreground. */
+  .ar .content { padding-right: 4px; }
+  .ar .content > * + * { margin-top: 16px; }
+  .ar h3 { margin: 0; font-size: 13px; line-height: 20px; font-weight: 600; }
+  .ar .desc { margin: 4px 0 0; font-size: 13px; line-height: 20px; color: hsl(var(--muted-foreground)); }
+  /* ApprovalInputsList: dl space-y-2 rounded-md border bg-muted p-3 text-xs; dt font-medium muted; dd foreground. */
+  .ar dl { margin: 0; border: 1px solid hsl(var(--border)); border-radius: 6px; background: hsl(var(--muted)); padding: 12px; font-size: 12px; line-height: 16px; }
+  .ar dl > div { display: flex; flex-direction: column; gap: 2px; }
+  .ar dl > div + div { margin-top: 8px; }
+  .ar dt { font-weight: 500; color: hsl(var(--muted-foreground)); }
+  .ar dd { margin: 0; color: hsl(var(--foreground)); }
+  /* actions: flex gap-2 pt-3; Button size sm (h-8 rounded-md px-3 text-sm font-medium). */
+  .ar .acts { display: flex; gap: 8px; padding-top: 12px; }
+  .ar .b { height: 32px; display: inline-flex; align-items: center; padding: 0 12px; border-radius: 6px; font-size: 13px; font-weight: 500; white-space: nowrap; border: 1px solid transparent; }
+  .ar .b.default { background: hsl(var(--primary)); border-color: hsl(var(--primary)); color: hsl(var(--primary-foreground)); }
+  .ar .b.destructive { background: hsl(var(--destructive)); color: #fff; }
+  .ar .b.outline { border-color: hsl(var(--input)); background: hsl(var(--background)); }
+  .ar .b.press { filter: brightness(.92); }
+</style></head>
+<body>
+<div class="frame">
+  <div class="stage">
+    <div class="app" id="app">
+      <div id="sb"></div>
+      <main class="panel both">
+        <div class="agentpage">
+          <div class="chatcol">
+            <div class="msgs" id="msgs">
+              <div class="msg user"><span class="av">EV</span><div class="bubble">Which order emails came in since yesterday evening?</div></div>
+              <div class="msg"><span class="avl" id="av0"></span><div class="prose">Six, all in the orders@ inbox: Van Dijk Metaal, Kuipers Hout, Smit Elektro, Bakker Installatietechniek and two from repeat customers. None has been processed yet.</div></div>
+              <div class="msg user" id="u1"><span class="av">EV</span><div class="bubble" id="u1t"></div></div>
+              <div class="msg" id="a1"><span class="avl" id="av1"></span><div class="prose">
+                <div class="cot-head" id="cot1">Working…</div>
+                <div class="step" id="s1a"><span class="dot" data-lu="zap" style="color:hsl(var(--success))"></span><span class="txt">Retrieved Workflow <b>Order intake from email</b></span></div>
+                <div class="step" id="s1b"><span class="dot" data-lu="play" style="color:hsl(var(--success))"></span><span class="txt" id="s1bt">Run Workflow <b>Order intake from email</b></span></div>
+                <div class="waiting" id="w1">Waiting for your response...</div>
+                <div id="t1"></div>
+              </div></div>
+              <div class="msg user" id="u2"><span class="av">EV</span><div class="bubble" id="u2t"></div></div>
+              <div class="msg" id="a2"><span class="avl" id="av2"></span><div class="prose">
+                <div class="cot-head" id="cot2">Working…</div>
+                <div class="step" id="s2a"><span class="dot" data-lu="trash2" style="color:hsl(var(--destructive))"></span><span class="txt">Delete Workflow <b>Invoice matching (old)</b></span></div>
+                <div class="waiting" id="w2">Waiting for your response...</div>
+                <div id="t2"></div>
+              </div></div>
+            </div>
+            <div class="fw ar" id="card1">
+              <div class="content">
+                <div><h3>Run "Order intake from email"?</h3><p class="desc">The agent wants to run the live version of this workflow.</p></div>
+                <dl><div><dt>Workflow</dt><dd>Order intake from email</dd></div><div><dt>Run</dt><dd>Production</dd></div></dl>
+              </div>
+              <div class="acts"><span class="b default" id="run">Run workflow</span><span class="b outline">Not now</span></div>
+            </div>
+            <div class="fw ar" id="card2">
+              <div class="content">
+                <div><h3>Delete "Invoice matching (old)"?</h3><p class="desc">The agent wants to delete this workflow, which is in use. This cannot be undone. What happens to each use:</p></div>
+                <dl>
+                  <div><dt>Version 2.1.0 is switched on (schedule trigger)</dt><dd>It no longer runs.</dd></div>
+                  <div><dt>Its schedule is on (0 7 * * 1-5, Europe/Amsterdam)</dt><dd>No more scheduled runs start.</dd></div>
+                  <div><dt>The skill "Match supplier invoices" uses it</dt><dd>The skill keeps it listed but can no longer run it.</dd></div>
+                </dl>
+              </div>
+              <div class="acts"><span class="b destructive" id="del">Delete workflow</span><span class="b outline" id="cancel">Cancel</span></div>
+            </div>
+            <div class="composer" id="composer">
+              <div class="ta"><div id="ta">Reply to Lleverage…</div></div>
+              <div class="row"><span class="rb" id="plus"></span>
+                <div class="r"><span class="model">Opus 5.5 <span id="mchev"></span></span><span class="rb" id="mic"></span><span class="rb" id="sendb"></span></div></div>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+</div>
+<script src="fa-icons.js"></script>
+<script src="app.js"></script>
+<script src="clip.js"></script>
+<script src="chapter.js"></script>
+<script>
+  CHAPTER({ n: 3, total: 6, module: "Agent", footerLeft: "Feature Drop · Week 43",
+    title: "The Agent asks<br><em>before it acts.</em>",
+    line: "When a skill's workflow has Approval switched on, the Agent shows a card before it runs it. Deleting a workflow that is in use asks too, and lists what uses it and what deleting does to each." });
+  // Beat 1: the run approval. Beat 2: deleting a workflow that is in use. D = the timeline's end.
+  const B2 = 6.4, D = 12.0;
+  // The chapter opens on the Agent page with the session already open: there is no navigation to cut.
+  window.PARTS = { approvals: [0, D] };
+  window.HOLDS = [[1.0, 1.6], [4.1, 0.5], [6.0, 0.8], [9.1, 1.0], [11.3, 1.0]];
+  const { $, $$, p, out, io, show, type } = C;
+  $("#sb").outerHTML = APP.sidebar("Agent");
+  $$(".avl").forEach((el) => (el.outerHTML = `<span id="${el.id}" style="display:block;margin-top:2px;flex:none;color:hsl(var(--foreground))">${APP.loader(20)}</span>`));
+  $("#mchev").innerHTML = fa("faChevronDown", "", "width:9px;height:9px");
+  $("#plus").innerHTML = lu("plus", "", "width:16px;height:16px"); $("#mic").innerHTML = fa("faMicrophone");
+  $$("[data-fa]").forEach((el) => (el.innerHTML = fa(el.dataset.fa)));
+  // tool-meta.ts: get_workflow ZapIcon, run_workflow PlayIcon (text-success), delete_workflow Trash2Icon (text-destructive).
+  LU.zap = '<path d="M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z"/>';
+  $$("[data-lu]").forEach((el) => (el.innerHTML = lu(el.dataset.lu)));
+
+  const ASK1 = "Run the order intake on this morning's emails.";
+  const ASK2 = "Delete the old invoice matching workflow.";
+  const T1 = "Done. Order intake ran on this morning's six emails: five sales orders are drafted in Exact Online, and Kuipers Hout's order is waiting for a PO number in Requests.";
+  const T2 = "I kept Invoice matching (old). Nothing was deleted: its schedule and the Match supplier invoices skill carry on as before.";
+
+  const app = $("#app");
+  const at = (el, fx = 0.5, fy = 0.5) => { const a = app.getBoundingClientRect(), r = el.getBoundingClientRect(), s = a.width / 1280;
+    return [(r.left - a.left + r.width * fx) / s, (r.top - a.top + r.height * fy) / s]; };
+  // Measure in the layout each click has: the send button with text typed, each card shown above the composer.
+  $("#ta").textContent = ASK1; $("#sendb").className = "rb send"; $("#sendb").innerHTML = fa("faArrowUp");
+  const P = { send: at($("#sendb")) };
+  $("#card1").style.display = "block"; P.run = at($("#run")); $("#card1").style.display = "";
+  // The delete card as it stands at the zoom: Eva's request, the Agent waiting, the card above the composer.
+  ["#u2", "#a2"].forEach((s) => ($(s).style.display = "")); $("#u2t").textContent = ASK2; $("#t2").textContent = "";
+  $("#card2").style.display = "block"; $("#ta").textContent = "Reply, or approve above…"; P.cancel = at($("#cancel"));
+  const u2a = at($("#u2"), 0, 0), c2a = at($("#card2"), 0, 0), c2b = at($("#card2"), 1, 1);
+  $("#card2").style.display = "";
+
+  const VW = C.STAGE_W, VH = C.STAGE_H, FIT = Math.min(VW / 1280, VH / C.APP_H) * 0.98;
+  const fit = (x0, y0, x1, y1) => { const s = Math.min(VW / (x1 - x0), VH / (y1 - y0)); return [(x0 + x1) / 2, (y0 + y1) / 2 + (VH / s - (y1 - y0)) / 2, s]; };
+  // The one held zoom: from Eva's request down to the composer under the delete card, framed on their edges.
+  const CARD = fit(c2a[0] - 8, u2a[1] - 20, c2b[0] + 8, C.APP_H);
+  const FULL = [640, C.APP_H / 2, FIT];
+  const cam = C.camera(app, VW, VH, [[0, ...FULL], [B2 + 2.0, ...FULL], [B2 + 2.55, ...CARD], [B2 + 3.95, ...CARD], [B2 + 4.55, ...FULL], [D, ...FULL]]);
+  const F = (t, [x, y]) => { const m = cam(t).map(x, y); return [C.STAGE_X + m[0], C.STAGE_Y + m[1]]; };
+  const OFF = [C.W * 0.62, C.H + 40], OFF2 = [C.W * 0.8, C.H + 40];
+  const cur = C.cursor([[2.6, ...OFF], [3.05, ...F(3.05, P.send)], [3.25, ...F(3.25, P.send), true], [3.6, ...F(3.6, P.send)], [4.1, ...F(4.1, P.run)], [4.45, ...F(4.45, P.run), true], [4.9, ...OFF2],
+    [B2 + 0.8, ...OFF], [B2 + 1.15, ...F(B2 + 1.15, P.send)], [B2 + 1.35, ...F(B2 + 1.35, P.send), true], [B2 + 1.7, ...OFF2],
+    [B2 + 2.9, ...OFF2], [B2 + 3.3, ...F(B2 + 3.3, P.cancel)], [B2 + 3.55, ...F(B2 + 3.55, P.cancel), true], [B2 + 4.1, ...OFF2]]);
+  const cap = C.captions([
+    [1.9, B2 - 0.3, "A workflow with Approval on?<br><em>The Agent asks first.</em>"],
+    [B2, 99, "Deleting one that's in use?<br><em>It shows what would break.</em>"],
+  ]);
+  // Eva types each request; the Agent's replies stream in silently.
+  C.typing(2.0, 3.0); C.typing(B2 + 0.2, B2 + 1.1);
+  cam(0);
+  const streamTo = (el, text, t, a, b) => type(el, text, t, a, b, null);
+  C.run(D, (t) => {
+    cap(t); cam(t); cur(t);
+    // Composer: typed request, send state, then empty after sending. With the delete card up, the placeholder
+    // asks for a reply (acceptsTypedReply); the run card does not take one.
+    const s1 = t >= 3.3, s2 = t >= B2 + 1.4;
+    const k1 = t < 3.3 ? Math.round(ASK1.length * p(t, 2.0, 3.0)) : 0;
+    const k2 = s1 && t >= B2 + 0.2 && !s2 ? Math.round(ASK2.length * p(t, B2 + 0.2, B2 + 1.1)) : 0;
+    const typed = k1 ? ASK1.slice(0, k1) : k2 ? ASK2.slice(0, k2) : "";
+    const card2On = t >= B2 + 1.95 && t < B2 + 3.65;
+    $("#ta").textContent = typed || (card2On ? "Reply, or approve above…" : "Reply to Lleverage…");
+    $("#ta").className = typed ? "typed" : "";
+    $("#sendb").className = "rb" + (typed ? " send" : "");
+    $("#sendb").innerHTML = typed ? fa("faArrowUp") : fa("s:faPhoneFlip");
+
+    // Beat 1: the run asks on a card; approve runs it.
+    $("#u1").style.display = s1 ? "" : "none"; $("#u1t").textContent = ASK1;
+    $("#a1").style.display = t >= 3.5 ? "" : "none";
+    show($("#s1a"), t, 3.55, Infinity, -8, 0.25); show($("#s1b"), t, 3.85, Infinity, -8, 0.25);
+    const ran1 = t >= 5.0;
+    $("#s1bt").innerHTML = (ran1 ? "Ran Workflow" : "Run Workflow") + " <b>Order intake from email</b>" + (ran1 ? " (4.2s)" : "");
+    $("#w1").style.display = t >= 3.95 && t < 4.5 ? "" : "none";
+    $("#cot1").textContent = ran1 ? "Worked for 6s" : "Working…";
+    APP.drive($("#av1"), t >= 3.5 && t < 5.0 ? "working" : "static", t);
+    streamTo($("#t1"), T1, t, 5.15, 5.85);
+    const c1 = t >= 3.95 && t < 4.62;
+    $("#card1").style.display = c1 ? "block" : "none";
+    $("#card1").style.opacity = out(p(t, 3.95, 4.1)) * (1 - p(t, 4.5, 4.62));
+    $("#run").classList.toggle("press", t >= 4.4 && t < 4.6);
+
+    // Beat 2: deleting a workflow that is in use; the card lists each use and what deleting does to it.
+    $("#u2").style.display = s2 ? "" : "none"; $("#u2t").textContent = ASK2;
+    $("#a2").style.display = t >= B2 + 1.55 ? "" : "none";
+    show($("#s2a"), t, B2 + 1.6, Infinity, -8, 0.25);
+    const ans2 = t >= B2 + 3.65;
+    $("#w2").style.display = t >= B2 + 1.95 && !ans2 ? "" : "none";
+    $("#cot2").textContent = ans2 ? "Worked for 3s" : "Working…";
+    APP.drive($("#av2"), t >= B2 + 1.55 && t < B2 + 3.7 ? "working" : "static", t);
+    streamTo($("#t2"), T2, t, B2 + 3.85, B2 + 4.5);
+    $("#card2").style.display = card2On ? "block" : "none";
+    $("#card2").style.opacity = out(p(t, B2 + 1.95, B2 + 2.1)) * (1 - p(t, B2 + 3.55, B2 + 3.65));
+    $("#cancel").style.background = t >= B2 + 3.15 && t < B2 + 3.65 ? "hsl(var(--accent))" : "";
+    // The first exchange scrolls up out of view as the thread grows.
+  });
+</script>
+</body></html>

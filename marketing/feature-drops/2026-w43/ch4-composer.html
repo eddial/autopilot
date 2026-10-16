@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<title>The composer finishes your sentence</title>
+<link rel="stylesheet" href="clip.css">
+<link rel="stylesheet" href="app.css">
+<link rel="stylesheet" href="parts/agent-chat.css">
+<link rel="stylesheet" href="chapter.css">
+<style>
+  /* Agent page: the chat in one centred column (agent/page.tsx, agent-chat.tsx: mx-auto max-w-3xl) */
+  .agentpage { position: absolute; inset: 0; display: flex; flex-direction: column; }
+  .agentpage .col { width: 680px; margin: 0 auto; flex: 1; display: flex; flex-direction: column; padding: 16px 0 20px; min-height: 0; }
+  .agentpage .msgs { gap: 18px; }
+  .bubble { font-size: 13px; line-height: 20px; }
+  .prose { font-size: 13px; line-height: 20px; }
+  .prose p { margin: 0; }
+  /* agent-chat-input.tsx textareaArea: relative px-2 pb-1 pt-3; textarea / overlay p-[6px] text-sm leading-5 */
+  .composer .ta { position: relative; padding: 12px 8px 4px; }
+  .composer .ta .tx { position: relative; padding: 6px; min-height: 32px; font-size: 13px; line-height: 20px; white-space: pre-wrap; color: hsl(var(--foreground)); }
+  .composer .tx .phd { color: hsl(var(--muted-foreground)); }
+  .composer .caret { display: inline-block; width: 1px; height: 17px; margin: 0 -1px -3px 0; background: hsl(var(--foreground)); }
+  /* SuggestionOverlay: each word text-muted-foreground, fading in (150ms, 20ms apart); the last ends in the Tab keycap */
+  .composer .sw { color: hsl(var(--muted-foreground)); }
+  /* SUGGESTION_KEYCAP_CLASS: ml-1.5 inline-block rounded border border-border px-1 align-baseline text-2xs leading-4 muted */
+  .composer kbd { margin-left: 6px; display: inline-block; border: 1px solid hsl(var(--border)); border-radius: 4px; padding: 0 4px; vertical-align: baseline;
+    font-family: inherit; font-size: 10px; font-weight: 400; line-height: 16px; color: hsl(var(--muted-foreground)); background: transparent; }
+  /* Footer: ghost round buttons; primary is the call button when empty, AgentComposerSendButton (bg-primary, faArrowUp) with text,
+     and the secondary stop button with a spinning Loader2 while the Agent works. */
+  .rb.send { background: hsl(var(--primary)); color: hsl(var(--primary-foreground)); }
+  .rb.stop { background: hsl(var(--secondary)); color: hsl(var(--foreground)); }
+  .rb.stop svg { width: 14px; height: 14px; }
+</style></head>
+<body>
+<div class="frame">
+  <div class="stage">
+    <div class="app" id="app">
+      <div id="sb"></div>
+      <main class="panel">
+        <div class="agentpage">
+          <div class="col">
+            <div class="msgs">
+              <div class="msg user"><span class="av">EV</span><div class="bubble">What came in overnight?</div></div>
+              <div class="msg"><span class="aav"></span><div class="prose">
+                <div class="cot-head">Worked for 3s</div>
+                <div class="step"><span class="dot" data-fa="faInbox"></span><span class="txt">Read orders@ since 18:00 (1.1s)</span></div>
+                <p>14 emails: 12 sales orders and 2 supplier invoices. I've put the invoices in Invoices to match against their POs.</p>
+              </div></div>
+              <div class="msg user"><span class="av">EV</span><div class="bubble">Draft today's sales orders from the order emails in Exact Online.</div></div>
+              <div class="msg"><span class="aav" id="a1av"></span><div class="prose">
+                <div class="cot-head" id="cot1">Working…</div>
+                <div class="step"><span class="dot" data-fa="faEnvelope"></span><span class="txt">Read 12 order emails (1.4s)</span></div>
+                <div class="step" id="st1b"><span class="dot" data-fa="faCheck"></span><span class="txt">Drafted 12 sales orders in Exact Online (3.8s)</span></div>
+                <p id="a1t"></p>
+              </div></div>
+              <div class="msg user" id="u2"><span class="av">EV</span><div class="bubble" id="u2t"></div></div>
+              <div class="msg" id="a2"><span class="aav" id="a2av"></span><div class="prose">
+                <div class="cot-head" id="cot2">Working…</div>
+                <div class="step" id="st2"><span class="dot" data-fa="faEnvelope"></span><span class="txt">Sent an email to Bakker Installatietechniek (0.9s)</span></div>
+                <p id="a2t"></p>
+              </div></div>
+              <div class="msg user" id="u3"><span class="av">EV</span><div class="bubble" id="u3t"></div></div>
+              <div class="msg" id="a3"><span class="aav" id="a3av"></span><div class="prose">
+                <div class="cot-head" id="cot3">Working…</div>
+                <div class="step" id="st3"><span class="dot" data-fa="faFileSpreadsheet"></span><span class="txt">Read Held orders (0.6s)</span></div>
+                <p id="a3t"></p>
+              </div></div>
+            </div>
+            <div class="composer" id="cmp">
+              <div class="ta"><div class="tx" id="tx"></div></div>
+              <div class="row"><span class="rb" id="plus"></span>
+                <div class="r"><span class="model">Opus 5.5 <span id="mchev"></span></span><span class="rb" id="mic"></span><span class="rb" id="prim"></span></div></div>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+</div>
+<script src="fa-icons.js"></script>
+<script src="app.js"></script>
+<script src="clip.js"></script>
+<script src="chapter.js"></script>
+<script>
+  CHAPTER({ n: 4, total: 6, module: "Agent", footerLeft: "Feature Drop · Week 43",
+    title: "The composer<br><em>finishes your sentence.</em>",
+    line: "After each answer the composer suggests your next message, and while you type it offers the rest of your sentence in grey. Tab takes it." });
+  // S: the part's start. Before it, Eva's request is already sent and the Agent is working (the feature, on screen).
+  const S = 2.0, D = S + 10.1;
+  window.PARTS = { composer: [S, D] };
+  window.HOLDS = [[S + 1.8, 0.8], [S + 4.3, 0.6], [S + 6.1, 0.9], [S + 9.8, 1.2]];
+  const { $, $$, p, out, io } = C;
+  $("#sb").outerHTML = APP.sidebar("Agent");
+  $$("[data-fa]").forEach((el) => (el.innerHTML = fa(el.dataset.fa)));
+  $$(".aav").forEach((el) => (el.innerHTML = `<span style="display:block;margin-top:2px;color:hsl(var(--foreground))">${APP.loader(20)}</span>`));
+  $("#mchev").innerHTML = fa("faChevronDown", "", "width:9px;height:9px");
+  $("#plus").innerHTML = lu("plus", "", "width:16px;height:16px");
+  $("#mic").innerHTML = fa("faMicrophone", "", "width:16px;height:16px");
+
+  const R1 = "Drafted 12 sales orders in Exact Online, €48,360 in total. Four are on hold, including Bakker Installatietechniek: its prices are 6% above your agreement.";
+  const SUG1 = "Email Bakker Installatietechniek about the price difference";
+  const R2 = "Sent, with the agreed prices attached. Their order stays on hold until they reply.";
+  const TYPED = "Which orders are", SUG2 = "Which orders are waiting on a PO number?";
+  const R3 = "Three: Van Dijk Metaal, Kuipers Hout and Smit Elektro. Their orders are drafted and held until the PO numbers come in.";
+
+  // Timeline (seconds). Beat 1: the reply lands, the next message waits in the composer, Tab takes it, send.
+  const T = { r1: [S + 0.3, S + 1.1], sug1: S + 1.5, tab1: S + 2.2, send1: S + 2.9, w2: S + 3.45, r2: [S + 3.55, S + 4.15],
+    // Beat 2: Eva types, the grey completion follows, Tab, send.
+    type: [S + 5.0, S + 5.4], sug2: S + 5.85, tab2: S + 6.5, send2: S + 7.3, w3: S + 7.9, r3: [S + 8.0, S + 8.8] };
+  C.typing(T.type[0], T.type[1]);
+
+  const app = $("#app");
+  const box = (el) => { const a = app.getBoundingClientRect(), r = el.getBoundingClientRect(), s = a.width / 1280;
+    return [(r.left - a.left) / s, (r.top - a.top) / s, (r.right - a.left) / s, (r.bottom - a.top) / s]; };
+  const mid = (b) => [(b[0] + b[2]) / 2, (b[1] + b[3]) / 2];
+  const VW = C.STAGE_W, VH = C.STAGE_H, FIT = Math.min(VW / 1280, VH / C.APP_H) * 0.98;
+  const fit = (x0, y0, x1, y1) => { const s = Math.min(VW / (x1 - x0), VH / (y1 - y0)); return [(x0 + x1) / 2, (y0 + y1) / 2 + (VH / s - (y1 - y0)) / 2, s]; };
+  // The send button, measured with text in the composer (as at each click).
+  $("#prim").className = "rb send"; $("#prim").innerHTML = fa("s:faArrowUp");
+  const cmp = box($("#cmp")), SEND = mid(box($("#prim")));
+  // The one zoom: the composer with the latest answers above it, framed on the column's edges, bottom on the composer.
+  const ZW = cmp[2] - cmp[0] + 80, ZH = VH / (VW / ZW);
+  const ZOOM = fit(cmp[0] - 40, cmp[3] + 16 - ZH, cmp[2] + 40, cmp[3] + 16);
+  const FULL = [640, C.APP_H / 2, FIT];
+  const cam = C.camera(app, VW, VH, [[0, ...FULL], [S + 0.2, ...FULL], [S + 0.8, ...ZOOM], [S + 9.0, ...ZOOM], [S + 9.6, ...FULL], [D, ...FULL]]);
+  const F = (t, [x, y]) => { const m = cam(t).map(x, y); return [C.STAGE_X + m[0], C.STAGE_Y + m[1]]; };
+  const OFF = (fx) => [C.W * fx, C.H + 40];
+  const ck = (t) => [[t - 0.75, ...OFF(0.62)], [t - 0.3, ...F(t - 0.3, SEND)], [t, ...F(t, SEND), true], [t + 0.3, ...F(t + 0.3, SEND)], [t + 0.75, ...OFF(0.7)]];
+  const cur = C.cursor([...ck(T.send1), ...ck(T.send2)]);
+  const cap = C.captions([
+    [S, S + 4.6, "After each answer,<br><em>a next step waits.</em>"],
+    [S + 4.9, 99, "Start typing,<br><em>Tab finishes it.</em>"],
+  ]);
+  cam(0);
+  window.CHECK = { SEND, T, sends: [T.send1, T.send2] };
+
+  // SuggestionOverlay: the untyped rest of the suggestion, word by word (150 ms fade, 20 ms apart, at most 7 staggered).
+  const overlay = (typed, sug, t, since) => {
+    const words = []; for (const m of sug.matchAll(/\s*\S+/g)) { const end = m.index + m[0].length; if (end <= typed.length) continue; words.push(m[0].slice(Math.max(0, typed.length - m.index))); }
+    return words.map((w, i) => `<span class="sw" style="opacity:${p(t, since + Math.min(i, 7) * 0.02, since + Math.min(i, 7) * 0.02 + 0.15)}">${w}${i === words.length - 1 ? "<kbd>tab</kbd>" : ""}</span>`).join("");
+  };
+  const caret = (t) => (Math.floor((t - S) / 0.53) % 2 === 0 ? '<span class="caret"></span>' : '<span class="caret" style="opacity:0"></span>');
+  const stream = (el, text, t, [a, b]) => C.type(el, text, t, a, b, null);
+
+  // The chat sticks to the bottom: while the camera is close, a message the view's top edge would cut through is left out
+  // of the shot (as if scrolled past), so the shot never cuts a line of text.
+  // Measured from the camera, not the DOM: the flat-plane render draws the app untransformed.
+  const msgEls = $$(".msgs > .msg");
+  const appY = (el) => { let y = 0; for (let e = el; e && e !== app; e = e.offsetParent) y += e.offsetTop; return y; };
+  const clipTop = (v) => { const S2 = v.map(0, 1)[1] - v.map(0, 0)[1], top = v.y - VH / 2 / S2 + 6;
+    msgEls.forEach((m) => { m.style.visibility = ""; });
+    msgEls.forEach((m) => { if (m.style.display !== "none" && appY(m) < top) m.style.visibility = "hidden"; }); };
+  C.run(D, (t) => {
+    cap(t); const view = cam(t); cur(t);
+    // The first answer: the run finishes, then the reply streams in (silent).
+    const done1 = t >= S + 0.3;
+    $("#cot1").textContent = done1 ? "Worked for 6s" : "Working…";
+    $("#st1b").style.display = t >= S + 0.15 ? "" : "none";
+    stream($("#a1t"), R1, t, T.r1);
+    APP.drive($("#a1av"), done1 ? "static" : "working", t);
+    // Eva's second message (the suggestion, taken) and its answer.
+    const s1 = t >= T.send1, s2 = t >= T.send2;
+    $("#u2").style.display = s1 ? "" : "none"; $("#u2t").textContent = SUG1;
+    $("#a2").style.display = t >= T.send1 + 0.25 ? "" : "none";
+    $("#cot2").textContent = t >= T.w2 ? "Worked for 2s" : "Working…";
+    $("#st2").style.display = t >= T.send1 + 0.45 ? "" : "none";
+    stream($("#a2t"), R2, t, T.r2);
+    APP.drive($("#a2av"), t >= T.w2 ? "static" : "working", t);
+    $("#u3").style.display = s2 ? "" : "none"; $("#u3t").textContent = SUG2;
+    $("#a3").style.display = t >= T.send2 + 0.25 ? "" : "none";
+    $("#cot3").textContent = t >= T.w3 ? "Worked for 1s" : "Working…";
+    $("#st3").style.display = t >= T.send2 + 0.45 ? "" : "none";
+    stream($("#a3t"), R3, t, T.r3);
+    APP.drive($("#a3av"), t >= T.w3 ? "static" : "working", t);
+
+    // The composer: value, suggestion overlay, caret, primary button.
+    let value = "", sug = null, since = 0;
+    if (t >= T.sug1 && t < T.tab1) { sug = SUG1; since = T.sug1; }
+    else if (t >= T.tab1 && t < T.send1) value = SUG1;
+    else if (t >= T.type[0] && t < T.send2) {
+      value = t >= T.tab2 ? SUG2 : TYPED.slice(0, Math.round(TYPED.length * p(t, T.type[0], T.type[1])));
+      if (t >= T.sug2 && t < T.tab2) { sug = SUG2; since = T.sug2; }
+    }
+    const working = (t < S + 0.3) || (s1 && t < T.r2[1]) || (s2 && t < T.r3[1]);
+    const c = t >= S ? caret(t) : "";
+    $("#tx").innerHTML = sug ? `${value}${c}${overlay(value, sug, t, since)}`
+      : value ? `${value}${c}` : `${c}<span class="phd">Reply to Lleverage…</span>`;
+    const prim = $("#prim");
+    if (value && !working) { prim.className = "rb send"; prim.innerHTML = fa("s:faArrowUp"); }
+    else if (working && !value) { prim.className = "rb stop"; prim.innerHTML = lu("loader2", "", `transform:rotate(${(t * 360) % 360}deg)`); }
+    else { prim.className = "rb"; prim.innerHTML = fa("s:faPhoneFlip"); }
+    clipTop(view);
+  });
+</script>
+</body></html>

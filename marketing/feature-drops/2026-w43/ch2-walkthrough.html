@@ -1,0 +1,285 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<title>Walk the Agent through your process</title>
+<link rel="stylesheet" href="clip.css">
+<link rel="stylesheet" href="app.css">
+<link rel="stylesheet" href="parts/agent-chat.css">
+<link rel="stylesheet" href="chapter.css">
+<style>
+  /* Agent page: the chat in one centred column (agent/page.tsx, agent-chat.tsx) */
+  .agentpage { position: absolute; inset: 0; display: flex; flex-direction: column; }
+  .agentpage .col { width: 680px; margin: 0 auto; flex: 1; display: flex; flex-direction: column; padding: 16px 0 20px; min-height: 0; }
+  .agentpage .msgs { gap: 18px; }
+  .prose code { font-family: "Roboto Mono", ui-monospace, monospace; font-size: 12px; background: hsl(var(--muted)); border-radius: 4px; padding: 1px 4px; }
+  .step .txt { white-space: nowrap; }
+  .msg .av { font-size: 8px; letter-spacing: -.02em; }
+  .step.run .txt { color: hsl(var(--foreground)); }
+  .step .dot.spin svg { animation: none; }
+  /* voice-call-proposal-card.tsx: my-2 flex items-center gap-3 rounded-2xl border p-4; 40px muted tile, green icon */
+  .vcp { margin: 8px 0 0; display: flex; align-items: center; gap: 12px; border: 1px solid hsl(var(--border)); border-radius: 16px; padding: 16px; }
+  .vcp .tile { width: 40px; height: 40px; border-radius: 8px; background: hsl(var(--muted)); display: grid; place-items: center; color: hsl(var(--success)); flex: none; }
+  .vcp .tile svg { width: 20px; height: 20px; }
+  .vcp .tx { flex: 1; min-width: 0; }
+  .vcp .tx b { display: block; font-size: 13px; line-height: 20px; font-weight: 500; }
+  .vcp .tx span { display: block; margin-top: 2px; font-size: 13px; line-height: 20px; color: hsl(var(--muted-foreground)); }
+  .vcp .btn { height: 32px; display: inline-flex; align-items: center; gap: 8px; padding: 0 12px; border-radius: 6px; font-size: 13px; font-weight: 500; background: hsl(var(--primary)); color: hsl(var(--primary-foreground)); flex: none; }
+  .vcp .btn svg { width: 14px; height: 14px; }
+  .vcp .pill { flex: none; border-radius: 999px; background: hsl(var(--muted)); padding: 4px 10px; font-size: 12px; line-height: 16px; color: hsl(var(--muted-foreground)); }
+  /* voice-screen-share-button.tsx: h-8 w-8 rounded-full; sharing = bg-highlight/10 text-highlight, faDisplaySlash */
+  .rb.share-on { background: hsl(var(--highlight) / .1); color: hsl(var(--highlight)); }
+  .rb.mute-on { background: hsl(var(--success) / .1); color: hsl(var(--success)); }
+  .rb.send { background: hsl(var(--primary)); color: hsl(var(--primary-foreground)); }
+  .composer .ta div.typed { color: hsl(var(--foreground)); }
+  .composer .l { display: flex; align-items: center; gap: 4px; }
+  .composer .rb.sm svg { width: 12px; height: 12px; }
+
+  /* The browser's screen picker (getDisplayMedia needs the user's own click): not our product, drawn plainly. */
+  .scrim { position: absolute; inset: 0; background: rgb(0 0 0 / .32); z-index: 60; }
+  .picker { position: absolute; left: 50%; top: 92px; width: 780px; margin-left: -390px; z-index: 61; background: #fff; border-radius: 12px; box-shadow: 0 24px 60px rgb(0 0 0 / .28); font-family: "Public Sans", system-ui, sans-serif; color: #1f1f1f; padding: 22px 24px 20px; }
+  .picker h3 { margin: 0; font-size: 17px; line-height: 24px; font-weight: 500; }
+  .picker .sub { margin-top: 4px; font-size: 13px; color: #5f6368; }
+  .picker .ptabs { display: flex; gap: 22px; margin-top: 14px; border-bottom: 1px solid #dadce0; font-size: 13px; font-weight: 500; color: #5f6368; }
+  .picker .ptabs span { padding: 8px 2px; }
+  .picker .ptabs span.on { color: #1a73e8; box-shadow: inset 0 -3px 0 #1a73e8; }
+  .picker .wins { display: grid; grid-template-columns: 1.65fr 1fr; gap: 16px; padding: 16px 0 6px; align-items: start; }
+  .picker .win { border-radius: 8px; padding: 8px; border: 2px solid transparent; }
+  .picker .win.sel { background: #e8f0fe; border-color: #1a73e8; }
+  .picker .win .lbl { display: flex; align-items: center; gap: 6px; margin-top: 8px; font-size: 12px; color: #3c4043; }
+  .picker .win .lbl i { width: 12px; height: 12px; border-radius: 3px; flex: none; }
+  .picker .stack { display: flex; flex-direction: column; gap: 10px; }
+  .picker .acts { display: flex; justify-content: flex-end; gap: 8px; margin-top: 12px; }
+  .picker .acts span { height: 34px; display: inline-flex; align-items: center; padding: 0 18px; border-radius: 17px; font-size: 13px; font-weight: 500; border: 1px solid #dadce0; color: #1a73e8; }
+  .picker .acts span.go { background: #1a73e8; border-color: #1a73e8; color: #fff; }
+  .picker .acts span.go.off { background: #f1f3f4; border-color: #f1f3f4; color: #a8abaf; }
+
+  /* An illustrative ERP sales-order screen (the customer's own Exact Online window), as the picker's preview. */
+  .erp { width: 100%; aspect-ratio: 16 / 11.2; border-radius: 4px; overflow: hidden; background: #f4f6f9; border: 1px solid #d5dbe3; font-family: Arial, Helvetica, sans-serif; color: #26313d; display: flex; flex-direction: column; }
+  .erp .top { height: 30px; flex: none; background: #1d3a64; color: #fff; display: flex; align-items: center; gap: 14px; padding: 0 10px; font-size: 11px; }
+  .erp .top b { font-size: 12px; letter-spacing: .01em; }
+  .erp .top b em { font-style: normal; color: #ff6b4a; }
+  .erp .top span { opacity: .82; }
+  .erp .top .u { margin-left: auto; width: 18px; height: 18px; border-radius: 999px; background: #3b5d8f; display: grid; place-items: center; font-size: 8px; }
+  .erp .bar { height: 30px; flex: none; display: flex; align-items: center; gap: 6px; padding: 0 10px; background: #fff; border-bottom: 1px solid #d5dbe3; font-size: 10px; }
+  .erp .bar b { font-size: 12px; margin-right: 8px; }
+  .erp .bar span { border: 1px solid #c4ccd6; border-radius: 3px; padding: 2px 7px; background: #f8f9fb; }
+  .erp .bar span.p { background: #1d6fd1; border-color: #1d6fd1; color: #fff; }
+  .erp .body { flex: 1; padding: 10px 12px; display: flex; flex-direction: column; gap: 9px; min-height: 0; }
+  .erp .form { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 20px; font-size: 10px; }
+  .erp .f { display: grid; grid-template-columns: 76px 1fr; align-items: center; gap: 6px; }
+  .erp .f label { color: #6b7785; }
+  .erp .f div { height: 18px; border: 1px solid #c4ccd6; border-radius: 2px; background: #fff; padding: 0 5px; display: flex; align-items: center; white-space: nowrap; overflow: hidden; }
+  .erp .f div.req { border-color: #e09a2b; background: #fff8ec; }
+  .erp table { width: 100%; border-collapse: collapse; font-size: 9.5px; background: #fff; border: 1px solid #d5dbe3; }
+  .erp th { text-align: left; font-weight: 600; color: #4b5866; background: #eef1f5; padding: 4px 6px; border-bottom: 1px solid #d5dbe3; }
+  .erp td { padding: 4px 6px; border-bottom: 1px solid #edf0f3; white-space: nowrap; }
+  .erp .num { text-align: right; font-variant-numeric: tabular-nums; }
+  .erp .tot { display: flex; justify-content: flex-end; gap: 18px; font-size: 10px; }
+  .erp .tot b { font-size: 11px; }
+  /* Smaller window thumbnails beside it */
+  .mini { aspect-ratio: 16 / 11.2; border-radius: 4px; border: 1px solid #d5dbe3; background: #fff; overflow: hidden; display: flex; flex-direction: column; }
+  .mini .h { height: 16px; background: #217346; }
+  .mini.mail .h { background: #0f6cbd; }
+  .mini .g { flex: 1; background-image: linear-gradient(#e3e7ec 1px, transparent 1px), linear-gradient(90deg, #e3e7ec 1px, transparent 1px); background-size: 100% 12px, 34px 100%; }
+  .mini.mail .g { background: repeating-linear-gradient(#fff 0 14px, #eef1f5 14px 15px); }
+</style></head>
+<body>
+<div class="frame">
+  <div class="stage">
+    <div class="app" id="app">
+      <div id="sb"></div>
+      <main class="panel both">
+        <div class="agentpage" id="agentpage">
+          <div class="col">
+            <div class="msgs" id="msgs">
+              <div class="msg user"><span class="av">EV</span><div class="bubble">I want to show you how we enter order emails in Exact Online.</div></div>
+              <div class="msg"><span class="avl"></span><div class="prose">
+                <div>Share your screen and walk me through it. I'll keep the notes in Project Files, in <code>process-walkthroughs/order-intake-by-email/</code>.</div>
+                <div class="vcp" id="card">
+                  <span class="tile" data-fa="s:faDisplay"></span>
+                  <div class="tx"><b>Show it on a screen call</b><span>Sharing your screen shows how you do it.</span></div>
+                  <span class="btn" id="cardbtn"><span data-fa="s:faDisplay"></span><span id="cardlbl">Share screen</span></span>
+                  <span class="pill" id="cardpill">Sharing screen</span>
+                </div>
+              </div></div>
+              <div class="msg" id="m3"><span class="avl"></span><div class="prose"><div id="m3t"></div></div></div>
+              <div class="msg user" id="m4"><span class="av">EV</span><div class="bubble" id="m4t"></div></div>
+              <div class="msg" id="m5"><span class="avl"></span><div class="prose">
+                <div class="cot-head">Worked for 2s</div>
+                <div class="step"><span class="dot" data-fa="faFloppyDisk"></span><span class="txt" id="w1"></span></div>
+                <div id="m5t"></div>
+              </div></div>
+              <div class="msg user" id="m6"><span class="av">EV</span><div class="bubble">Build a skill from the order intake notes.</div></div>
+              <div class="msg" id="m7"><span class="avl" id="m7av"></span><div class="prose">
+                <div class="cot-head" id="m7h">Working…</div>
+                <div class="step" id="s1"><span class="dot" data-fa="faFileLines"></span><span class="txt" id="s1t"></span></div>
+                <div class="step" id="s2"><span class="dot" data-fa="faStar"></span><span class="txt">Used Skill: skill-blueprints</span></div>
+                <div class="step run" id="s3"><span class="dot" data-fa="faPen"></span><span class="txt">Updating Skill Draft</span></div>
+                <div id="m7t"></div>
+              </div></div>
+            </div>
+            <div class="status" id="status"><span id="sl"></span><span id="stx">Listening</span><span class="stop">· <u>Stop</u></span></div>
+            <div class="composer">
+              <div class="ta"><div id="ta">Reply to Lleverage…</div></div>
+              <div class="row"><span class="l"><span class="rb" id="plus"></span><span class="rb sm" id="exp"></span></span>
+                <div class="r"><span class="model">Opus 5.5 <span id="mchev"></span></span><span class="rb" id="share"></span><span class="rb" id="mic"></span><span class="rb" id="call"></span></div></div>
+            </div>
+          </div>
+        </div>
+        <div class="scrim" id="scrim"></div>
+        <div class="picker" id="picker">
+          <h3>Choose what to share</h3>
+          <div class="sub">The site will be able to see the contents of your screen</div>
+          <div class="ptabs"><span>Chrome tab</span><span class="on">Window</span><span>Entire screen</span></div>
+          <div class="wins">
+            <div class="win" id="erpwin">
+              <div class="erp">
+                <div class="top"><b><em>e</em>xact online</b><span>Sales</span><span>Purchase</span><span>Inventory</span><span>Financial</span><span class="u">EV</span></div>
+                <div class="bar"><b>Sales order</b><span class="p">Save</span><span>Save + New</span><span>Close</span></div>
+                <div class="body">
+                  <div class="form">
+                    <div class="f"><label>Ordered by</label><div>Van Dijk Metaal B.V.</div></div>
+                    <div class="f"><label>Order date</label><div>16-10-2026</div></div>
+                    <div class="f"><label>Your ref.</label><div class="req">4500012877</div></div>
+                    <div class="f"><label>Delivery date</label><div>23-10-2026</div></div>
+                    <div class="f"><label>Description</label><div>Order by email, 16 Oct</div></div>
+                    <div class="f"><label>Warehouse</label><div>1 · Rotterdam</div></div>
+                  </div>
+                  <table>
+                    <tr><th>Item</th><th>Description</th><th class="num">Qty</th><th class="num">Price</th><th class="num">Amount</th></tr>
+                    <tr><td>STL-2040</td><td>Steel plate 2 mm, 1000×2000</td><td class="num">40</td><td class="num">€ 86.50</td><td class="num">€ 3,460.00</td></tr>
+                    <tr><td>BLT-M10</td><td>Hex bolt M10×40, box of 100</td><td class="num">12</td><td class="num">€ 18.20</td><td class="num">€ 218.40</td></tr>
+                    <tr><td>ANG-3030</td><td>Angle profile 30×30, 6 m</td><td class="num">25</td><td class="num">€ 24.80</td><td class="num">€ 620.00</td></tr>
+                  </table>
+                  <div class="tot"><span>Excl. VAT</span><b>€ 4,298.40</b></div>
+                </div>
+              </div>
+              <div class="lbl"><i style="background:#1d3a64"></i>Exact Online – Sales order</div>
+            </div>
+            <div class="stack">
+              <div class="win"><div class="mini mail"><div class="h"></div><div class="g"></div></div><div class="lbl"><i style="background:#0f6cbd"></i>Inbox – orders</div></div>
+              <div class="win"><div class="mini"><div class="h"></div><div class="g"></div></div><div class="lbl"><i style="background:#217346"></i>Price agreements.xlsx</div></div>
+            </div>
+          </div>
+          <div class="acts"><span>Cancel</span><span class="go" id="sharego">Share</span></div>
+        </div>
+      </main>
+    </div>
+  </div>
+</div>
+<script src="fa-icons.js"></script>
+<script src="app.js"></script>
+<script src="clip.js"></script>
+<script src="chapter.js"></script>
+<script>
+  CHAPTER({ n: 2, total: 6, module: "Agent", footerLeft: "Feature Drop · Week 43",
+    title: "Walk the Agent<br><em>through your process.</em>", line: "On a voice call, share your screen and show the Agent how you do a process. It asks as you go and saves notes in Project Files; ask it afterwards to build a skill from them." });
+  const S = 1.0, D = 12.1;
+  window.PARTS = { walk: [S, D] };
+  window.HOLDS = [[2.9, 0.6], [4.05, 0.4], [7.4, 0.8], [11.6, 0.9]]; // the shared window, sharing on, the saved note, the skill under way
+  const { $, $$, p, out, io } = C;
+  $("#sb").outerHTML = APP.sidebar("Agent");
+  $$(".avl").forEach((el) => (el.innerHTML = `<span style="display:block;margin-top:2px;color:hsl(var(--foreground))">${APP.loader(20)}</span>`));
+  $("#sl").innerHTML = APP.loader(20);
+  $("#mchev").innerHTML = fa("faChevronDown", "", "width:9px;height:9px");
+  $("#plus").innerHTML = lu("plus", "", "width:16px;height:16px");
+  $("#exp").innerHTML = fa("faArrowUpRightAndArrowDownLeftFromCenter");
+  $$("[data-fa]").forEach((el) => (el.innerHTML = fa(el.dataset.fa)));
+  // Step labels as the chat builds them (parts/tool-meta.ts): a 40-character detail, then a 60-character label.
+  const det = (s) => (s.length <= 40 ? s : s.slice(0, 40) + "..."), lab = (s) => (s.length <= 60 ? s : s.slice(0, 60).trimEnd() + "…");
+  const DIR = "process-walkthroughs/order-intake-by-email/";
+  $("#w1").textContent = lab("Lleverage Write Project File: " + det(DIR + "map.md"));
+  $("#s1t").textContent = lab("Read File: " + det("files/" + DIR + "map.md"));
+
+  // Composer footer (agent-chat-input.tsx): on a call, screen share, then mute, then hang up; off a call, dictation and call.
+  function footer(st) {
+    const share = $("#share"), mic = $("#mic"), call = $("#call");
+    share.style.display = st.call ? "" : "none";
+    share.className = "rb" + (st.sharing ? " share-on" : "");
+    share.innerHTML = fa(st.sharing ? "s:faDisplaySlash" : "s:faDisplay");
+    mic.innerHTML = fa(st.call ? "faMicrophoneSlash" : "faMicrophone");
+    call.className = "rb" + (st.send ? " send" : st.call ? " call-on" : "");
+    call.innerHTML = fa(st.send ? "faArrowUp" : st.call ? "s:faPhoneHangup" : "s:faPhoneFlip");
+  }
+  const show = (id, on) => ($(id).style.display = on ? "" : "none");
+
+  const app = $("#app");
+  const VW = C.STAGE_W, VH = C.STAGE_H, FIT = Math.min(VW / 1280, VH / C.APP_H) * 0.98;
+  const at = (el, fx = 0.5, fy = 0.5) => { const a = app.getBoundingClientRect(), r = el.getBoundingClientRect(), s = a.width / 1280;
+    return [(r.left - a.left + r.width * fx) / s, (r.top - a.top + r.height * fy) / s]; };
+  const box = (el) => { const a = app.getBoundingClientRect(), r = el.getBoundingClientRect(), s = a.width / 1280;
+    return [(r.left - a.left) / s, (r.top - a.top) / s, (r.right - a.left) / s, (r.bottom - a.top) / s]; };
+  const fit = (x0, y0, x1, y1) => { const s = Math.min(VW / (x1 - x0), VH / (y1 - y0)); return [(x0 + x1) / 2, (y0 + y1) / 2 + (VH / s - (y1 - y0)) / 2, s]; };
+  // Measure every target in the state it has when it is clicked.
+  ["#m3", "#m4", "#m5", "#m6", "#m7", "#cardpill"].forEach((id) => show(id, false));
+  footer({ call: true });
+  const P = {};
+  P.card = at($("#cardbtn"));
+  show("#picker", true); show("#scrim", true);
+  P.erp = at($("#erpwin"), 0.5, 0.42); P.go = at($("#sharego"));
+    show("#picker", false); show("#scrim", false);
+  P.hang = at($("#call"));
+  footer({ call: false, send: true }); P.send = at($("#call"));
+  footer({ call: true });
+  // The one zoom: the conversation, from the first question to the end (bottom-aligned on the composer).
+  const col = box($(".col")), cmp = box($(".composer"));
+  const zs = VW / (col[2] - col[0] + 80), CHAT = [(col[0] + col[2]) / 2, cmp[3] + 16 - VH / zs / 2, zs];
+  const FULL = [640, C.APP_H / 2, FIT];
+  const cam = C.camera(app, VW, VH, [[0, ...FULL], [4.1, ...FULL], [4.65, ...CHAT], [D, ...CHAT]]);
+  const F = (t, [x, y]) => { const m = cam(t).map(x, y); return [C.STAGE_X + m[0], C.STAGE_Y + m[1]]; };
+  const OFF = (fx) => [C.W * fx, C.H + 40];
+  const cur = C.cursor([[1.3, ...OFF(0.62)], [1.9, ...F(1.9, P.card), true], [2.2, ...F(2.2, P.card)], [2.8, ...F(2.8, P.erp), true], [3.3, ...F(3.3, P.go), true], [3.5, ...F(3.5, P.go)], [3.9, ...OFF(0.7)],
+    [7.6, ...OFF(0.72)], [8.1, ...F(8.1, P.hang), true], [8.4, ...OFF(0.75)], [9.4, ...OFF(0.75)], [9.9, ...F(9.9, P.send), true], [10.4, ...OFF(0.78)]]);
+  const cap = C.captions([
+    [1.05, 4.4, "Show how you do it<br><em>on a screen call.</em>"],
+    [4.7, 8.1, "The Agent asks as you go<br><em>and writes each step down.</em>"],
+    [8.4, 99, "Then ask for a skill<br><em>built from the notes.</em>"],
+  ]);
+  // The voice asks (silent, its line arrives as it speaks); Eva answers aloud, her words arrive one by one.
+  const ASKV = "I can see the sales order. Where does the customer's PO number go?";
+  const SAY = "In Your ref. If the email has no PO number, I put the order on hold and ask the customer.", WORDS = SAY.split(" ");
+  const NOTED = "Noted: the PO number goes in Your ref, and an order without one goes on hold.";
+  const BUILD = "I'm building an Order intake by email skill from your walkthrough notes: the steps in Exact Online, the rules, and the open questions.";
+  const TYPED = "Build a skill from the order intake notes.";
+  C.voice(5.0, 6.2);
+  C.type($("#m3t"), ASKV, 0, 4.2, 4.85, null);
+  C.type($("#m5t"), NOTED, 0, 6.75, 7.3, null);
+  C.type($("#m7t"), BUILD, 0, 10.9, 11.55, null);
+  C.type($("#ta"), TYPED, 0, 8.6, 9.7);
+  cam(0);
+  C.run(D, (t) => {
+    cap(t); cam(t); cur(t);
+    // Beat 1: the card's Share screen opens the browser's picker; the Exact Online window is chosen and shared.
+    const pick = t >= 1.95 && t < 3.4, sharing = t >= 3.4 && t < 8.15, call = t < 8.15;
+    const po = out(p(t, 1.95, 2.15)) * (1 - io(p(t, 3.35, 3.5)));
+    show("#picker", pick || (t >= 3.4 && po > 0)); show("#scrim", false); // the browser's picker does not dim the page
+    $("#picker").style.opacity = po; $("#scrim").style.opacity = po;
+    $("#picker").style.transform = `scale(${0.97 + 0.03 * po})`;
+    $("#erpwin").className = "win" + (t >= 2.82 ? " sel" : "");
+    $("#sharego").className = "go" + (t >= 2.82 ? "" : " off");
+    // voice-call-proposal-card: Share screen while on a call; Sharing screen once shared; Screen call after the call.
+    show("#cardbtn", !sharing); show("#cardpill", sharing);
+    $("#cardlbl").textContent = call ? "Share screen" : "Screen call";
+    // Beat 2: the voice asks, Eva answers, the notes are saved, the voice says what it noted.
+    show("#m3", t >= 4.2); C.type($("#m3t"), ASKV, t, 4.2, 4.85, null);
+    show("#m4", t >= 5.0);
+    const n = Math.ceil(WORDS.length * p(t, 5.0, 6.2)); $("#m4t").textContent = WORDS.slice(0, Math.max(1, n)).join(" ");
+    show("#m5", t >= 6.35);
+    $$("#m5 .step").forEach((el, i) => (el.style.opacity = out(p(t, 6.35 + i * 0.2, 6.5 + i * 0.2))));
+    C.type($("#m5t"), NOTED, t, 6.75, 7.3, null);
+    // Beat 3: hang up; type the request; the Agent reads the notes and starts the skill draft.
+    const sent = t >= 9.95;
+    C.type($("#ta"), TYPED, t, 8.6, 9.7);
+    if (sent || t < 8.6) $("#ta").textContent = "Reply to Lleverage…";
+    $("#ta").className = !sent && t >= 8.6 ? "typed" : "";
+    show("#m6", sent); show("#m7", sent);
+    [["#s1", 10.2], ["#s2", 10.45], ["#s3", 10.7]].forEach(([id, a]) => show(id, t >= a));
+    C.type($("#m7t"), BUILD, t, 10.9, 11.55, null);
+    footer({ call, sharing, send: !call && t >= 8.6 && !sent });
+    $("#status").style.opacity = call ? 1 : 0;
+    $("#stx").textContent = t >= 4.2 && t < 4.95 || t >= 6.75 && t < 7.4 ? "Speaking" : "Listening";
+    APP.drive($("#status"), t >= 4.2 && t < 4.95 || t >= 6.75 && t < 7.4 ? "agent" : t >= 5.0 && t < 6.2 ? "user" : "listening", t);
+    APP.drive($("#m7av"), sent && t < 11.6 ? "working" : "static", t);
+    $$(".avl").forEach((el) => el.id !== "m7av" && APP.drive(el, "static", t));
+  });
+</script>
+</body></html>

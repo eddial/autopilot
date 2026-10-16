@@ -10,18 +10,17 @@
 set -e
 cd "$(dirname "$0")"
 export CLIP_SIZE=1440x1440 CLIP_FPS=30 CLIP_BITRATE=10M CLIP_STYLE=canvas
-WEEK=${WEEK:-42} YEAR=${YEAR:-2026}
+WEEK=${WEEK:-43} YEAR=${YEAR:-2026}
 OUT=feature-drop-$YEAR-w$WEEK.mp4
 MUSIC=${MUSIC:-music/muted-trumpet-jazz.mp3}
 CREDIT=${CREDIT:-"Music: Muted Trumpet Jazz Study Session by Alex Morgan · CC BY 4.0"}
 PARTS="card-m1.mp4=feature-drop-cards.html?card=1
-fd1-setup.mp4=ch2-setup.html?part=feature
-fd2-dashboards.mp4=ch7-dashboards.html
-fd3-workflows.mp4=ch1-agent.html?part=sidebar
-fd4-voice.mp4=ch5-voice.html?part=feature
-fd5-agent-step.mp4=ch1-agent.html?part=step
-fd6-tables.mp4=ch6-tables.html?part=feature
-fd7-skills.mp4=ch3-skills.html?part=feature
+fd1-tasks.mp4=ch1-tasks.html
+fd2-walkthrough.mp4=ch2-walkthrough.html?part=walk
+fd3-approvals.mp4=ch3-approvals.html?part=approvals
+fd4-composer.mp4=ch4-composer.html?part=composer
+fd5-copy-skill.mp4=ch5-copy-skill.html
+fd6-form-maths.mp4=ch6-form-maths.html
 card-m2.mp4=feature-drop-cards.html?card=2
 card-m3.mp4=feature-drop-cards.html?card=3"
 CLIP_QUERY="credit=$CREDIT" node cards.mjs feature-drop-cards.html card   # card-1.png: the cover, composed, is the thumbnail
