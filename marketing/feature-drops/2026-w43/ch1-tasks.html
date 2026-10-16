@@ -33,6 +33,12 @@
   .rbody hr { margin: 12px 0; border: 0; border-top: 1px solid hsl(var(--border)); }
   .rbody .desc { font-size: 14px; line-height: 22px; }
   .rbody .desc p { margin: 0 0 6px; } .rbody .desc p:last-child { margin: 0; }
+  .atts { margin-top: 12px; display: flex; flex-direction: column; gap: 6px; }
+  .atts h3 { margin: 0; font-size: 12px; line-height: 16px; font-weight: 500; color: hsl(var(--muted-foreground)); }
+  .att { position: relative; width: 128px; height: 128px; border-radius: 12px; border: 1px solid hsl(var(--border)); background: hsl(var(--background)); padding: 12px 14px; }
+  .att p { margin: 0; font-size: 11px; line-height: 16px; font-weight: 500; word-break: break-all; }
+  .att .pill { position: absolute; left: 12px; bottom: 12px; height: 20px; display: inline-flex; align-items: center; border-radius: 999px; background: hsl(var(--primary)); color: hsl(var(--primary-foreground)); padding: 0 8px; font-size: 9px; font-weight: 500; letter-spacing: .05em; }
+  .rbody .desc ul { margin: 0 0 6px; padding-left: 20px; list-style: disc; }
   /* ui/button size sm: h-8 rounded-md px-3 text-sm font-medium; variants success / destructive (person-task-presentation.ts) */
   .abtns { display: flex; gap: 8px; margin-top: 12px; }
   .abtn { height: 32px; display: inline-flex; align-items: center; padding: 0 12px; border-radius: 6px; font-size: 14px; font-weight: 500; color: #fff; }
@@ -82,13 +88,11 @@
         <div class="agentpage" id="eva">
           <div class="col">
             <div class="msgs">
-              <div class="msg user"><span class="av">E</span><div class="bubble">What did Van Dijk Metaal order this morning?</div></div>
+              <div class="msg user"><span class="av">EV</span><div class="bubble">What did Van Dijk Metaal order this morning?</div></div>
               <div class="msg"><span class="avl"></span><div class="prose">
-                <div class="cot-head">Worked for 3s</div>
-                <div class="step"><span class="dot" data-lu="wrench"></span><span class="txt">Read Order emails (0.8s)</span></div>
                 <div>Van Dijk Metaal ordered 40 HEA 200 steel beams and 12 base plates, €12,300 in total. They ask for 8% off, more than the 5% the order desk can give.</div>
               </div></div>
-              <div class="msg user" id="u2"><span class="av">E</span><div class="bubble" id="u2t"></div></div>
+              <div class="msg user" id="u2"><span class="av">EV</span><div class="bubble" id="u2t"></div></div>
               <div class="msg" id="a2"><span class="avl" id="a2av"></span><div class="prose">
                 <div class="cot-head" id="a2h">Working…</div>
                 <div class="step" id="a2s"><span class="dot" data-lu="wrench"></span><span class="txt">Raise Task: Approve 8% discount for Van Dijk Metaal <span id="a2d">(0.9s)</span></span></div>
@@ -105,7 +109,7 @@
               </div></div>
             </div>
             <div class="composer">
-              <div class="ta"><div id="ta">Ask the agent anything…</div></div>
+              <div class="ta"><div id="ta">Reply to Lleverage…</div></div>
               <div class="row"><span class="rb lp"></span>
                 <div class="r"><span class="model">Opus 5.5 <span class="mchev"></span></span><span class="rb mic"></span><span class="rb" id="send"></span></div></div>
             </div>
@@ -121,8 +125,9 @@
               <div class="rbody">
                 <h2>Approve 8% discount for Van Dijk Metaal</h2>
                 <hr>
-                <div class="desc"><p>Van Dijk Metaal asks 8% off their order of 40 HEA 200 steel beams and 12 base plates: €12,300 becomes €11,316.</p>
-                  <p>That's more than the 5% the order desk can give. Eva Visser wants to draft the sales order in Exact Online once it's approved.</p></div>
+                <div class="desc"><p>Van Dijk Metaal asks 8% off their order (attached): €12,300.00 becomes €11,316.00. That's more than the 5% the order desk can give. Eva Visser drafts the sales order in Exact Online once it's approved.</p></div>
+                <!-- person-task-attachments.tsx: "Attachments" + composer-attachment-cards (attachment-cards.tsx: 128px square, rounded-xl border bg-background) -->
+                <div class="atts"><h3>Attachments</h3><div class="att"><p>Order 4500012877.pdf</p><span class="pill">PDF</span></div></div>
                 <div class="abtns" id="abtns"><span class="abtn ok" id="approve">Approve</span><span class="abtn no" id="reject">Reject</span></div>
                 <div class="done" id="done"><span class="ic" data-fa="faCircleCheck"></span><div><b>Approved</b> - You<span class="when">16/10/2026, 10:43 am</span></div></div>
                 <div class="withagent" id="withagent">
@@ -145,9 +150,9 @@
   CHAPTER({ n: 1, total: 6, module: "Agent", footerLeft: "Feature Drop · Week 43",
     title: "Hand a task to a colleague.<br><em>Your session carries on.</em>",
     line: "Ask the Agent to involve someone: it sends them a task they answer from a card like a request, or work with their own Agent. When they're done, your session picks it up." });
-  const D = 12.6;
+  const D = 12.7;
   // The result after each beat, and the end.
-  window.HOLDS = [[5.8, 0.8], [8.6, 0.9], [12.0, 1.1]];
+  window.HOLDS = [[6.2, 0.8], [8.7, 0.9], [12.1, 1.0]];
   const { $, $$, p, out, io } = C;
   $("#sb").outerHTML = APP.sidebar("Agent");
   const navAgent = $$(".sb .nav").find((n) => n.textContent.trim() === "Agent");
@@ -172,49 +177,53 @@
   $("#done").style.display = "none";
   const P = { ta: at($("#ta"), 0.25), send: at($("#send")), ok: at($("#approve")) };
   const rc = box($("#rcard")), ph = box($("#mila .ph"));
-  const cr = box($("#mila .crumb"));
-  const CARD = fit(cr[0] - 24, ph[1], rc[2] + 24, rc[3] + 24);
+  const cr = box($("#mila .crumb")), cmp = box($("#eva .composer"));
+  // One held zoom from Eva's ask to the end, at one scale: Eva's thread above her composer, then (panning while the
+  // pages crossfade) Mila's card with its agent section, then Eva's thread again. Framed on the card's sides.
+  const S = VW / (rc[2] - rc[0] + 32);
+  const EVA = [760, cmp[3] + 16 - VH / 2 / S, S];
+  const MILA = [760, Math.max(rc[1] - 16, cr[3] + 6) + VH / 2 / S, S];
   const FULL = [640, C.APP_H / 2, FIT];
-  const cam = C.camera(app, VW, VH, [[0, ...FULL], [6.5, ...FULL], [7.1, ...CARD], [9.1, ...CARD], [9.7, ...FULL], [D, ...FULL]]);
+  const cam = C.camera(app, VW, VH, [[0, ...FULL], [1.9, ...FULL], [2.45, ...EVA], [6.4, ...EVA], [7.0, ...MILA], [9.7, ...MILA], [10.3, ...EVA], [D, ...EVA]]);
   const F = (t, [x, y]) => { const m = cam(t).map(x, y); return [C.STAGE_X + m[0], C.STAGE_Y + m[1]]; };
   const OFF = (fx) => [C.W * fx, C.H + 40];
-  const cur = C.cursor([[1.6, ...OFF(0.5)], [2.05, ...F(2.05, P.ta), true], [2.3, ...F(2.3, P.ta)], [4.0, ...F(4.0, P.ta)], [4.35, ...F(4.35, P.send), true], [4.9, ...OFF(0.75)],
-    [7.3, ...OFF(0.55)], [8.1, ...F(8.1, P.ok), true], [8.5, ...F(8.5, P.ok)], [9.3, ...OFF(0.6)]]);
+  const cur = C.cursor([[2.1, ...OFF(0.5)], [2.6, ...F(2.6, P.ta), true], [2.8, ...F(2.8, P.ta)], [4.45, ...F(4.45, P.ta)], [4.8, ...F(4.8, P.send), true], [5.3, ...OFF(0.75)],
+    [7.5, ...OFF(0.55)], [8.2, ...F(8.2, P.ok), true], [8.3, ...F(8.3, P.ok)], [8.68, ...OFF(0.6)]]);
   const cap = C.captions([
-    [1.9, 5.95, "Ask the Agent to involve someone.<br><em>It sends them a task.</em>"],
-    [6.3, 9.55, "Mila answers on the card,<br><em>or works it with her Agent.</em>"],
-    [9.9, 99, "Once she's done,<br><em>the Agent picks it up.</em>"],
+    [1.9, 6.35, "Ask the Agent to involve someone.<br><em>It sends them a task.</em>"],
+    [6.7, 9.65, "Mila answers on the card,<br><em>or works it with her Agent.</em>"],
+    [10.0, 99, "Once she's done,<br><em>the Agent picks it up.</em>"],
   ]);
   const ASK = "Draft the sales order for Van Dijk Metaal and have Mila approve the 8% discount.";
   const R2 = "I've sent Mila Jansen a task to approve the 8% discount. I'll draft the sales order as soon as she answers.";
   const R3 = "Mila approved the discount. The draft sales order for Van Dijk Metaal is in Exact Online: SO-20472, €11,316.00 with 8% off.";
-  C.typing(2.3, 4.1);
+  C.typing(2.75, 4.55);
   // The Agent writes silently.
   const tw = (el, text, t, a, b) => C.type(el, text, t, a, b, null);
   cam(0);
   C.run(D, (t) => {
     cap(t); cam(t); cur(t);
     // Beat 1: Eva types and sends; the Agent raises the task and says so.
-    const sent = t >= 4.4, ta = $("#ta");
-    if (sent) { ta.textContent = "Ask the agent anything…"; ta.style.color = ""; }
-    else if (t >= 2.3) { C.type(ta, ASK, t, 2.3, 4.1); ta.style.color = "hsl(var(--foreground))"; }
-    else { ta.textContent = "Ask the agent anything…"; ta.style.color = ""; }
-    const typed = t >= 2.3 && !sent;
+    const sent = t >= 4.85, ta = $("#ta");
+    if (sent) { ta.textContent = "Reply to Lleverage…"; ta.style.color = ""; }
+    else if (t >= 2.75) { C.type(ta, ASK, t, 2.75, 4.55); ta.style.color = "hsl(var(--foreground))"; }
+    else { ta.textContent = "Reply to Lleverage…"; ta.style.color = ""; }
+    const typed = t >= 2.75 && !sent;
     $("#send").className = "rb" + (typed ? " send" : "");
     $("#send").innerHTML = fa(typed ? "faArrowUp" : "s:faPhoneFlip");
     $("#u2").style.display = sent ? "" : "none"; $("#u2t").textContent = ASK;
-    $("#a2").style.display = t >= 4.6 ? "" : "none";
-    $("#a2s").style.display = t >= 4.75 ? "" : "none";
-    $("#a2d").style.display = t >= 5.0 ? "" : "none";
-    $("#a2h").textContent = t >= 5.0 ? "Worked for 2s" : "Working…";
-    tw($("#a2r"), R2, t, 5.05, 5.7);
-    APP.drive($("#a2av"), t >= 4.6 && t < 5.7 ? "working" : "static", t);
+    $("#a2").style.display = t >= 5.0 ? "" : "none";
+    $("#a2s").style.display = t >= 5.15 ? "" : "none";
+    $("#a2d").style.display = t >= 5.4 ? "" : "none";
+    $("#a2h").textContent = t >= 5.4 ? "Worked for 2s" : "Working…";
+    tw($("#a2r"), R2, t, 5.45, 6.1);
+    APP.drive($("#a2av"), t >= 5.0 && t < 6.1 ? "working" : "static", t);
     // Beat 2: Mila's session, the same task as a request card; she approves it.
-    const sw1 = io(p(t, 6.1, 6.5)), sw2 = io(p(t, 9.65, 10.05));
+    const sw1 = io(p(t, 6.5, 6.9)), sw2 = io(p(t, 9.75, 10.15));
     $("#eva").style.opacity = 1 - sw1 + sw2; $("#mila").style.opacity = sw1 - sw2;
     $("#eva").style.visibility = 1 - sw1 + sw2 > 0 ? "visible" : "hidden"; $("#mila").style.visibility = sw1 - sw2 > 0 ? "visible" : "hidden";
-    const answered = t >= 8.25;
-    $("#approve").classList.toggle("press", t >= 8.05 && !answered);
+    const answered = t >= 8.35;
+    $("#approve").classList.toggle("press", t >= 8.15 && !answered);
     $("#rcard").classList.toggle("res", answered);
     $("#done").style.display = answered ? "" : "none";
     // Settled, nothing is left to work: the agent section goes (no session was opened for it).
@@ -223,16 +232,16 @@
     navAgent.classList.toggle("on", sw1 - sw2 < 0.5);
     // Settled: the buttons stay, disabled (selected at 0.8, the other at 0.5, on the button's disabled 0.5).
     $("#approve").style.opacity = answered ? 0.4 : 1; $("#reject").style.opacity = answered ? 0.25 : 1;
-    const d = out(p(t, 8.25, 8.5)); $("#done").style.opacity = d; $("#done").style.transform = `translateY(${(1 - d) * 6}px)`;
+    const d = out(p(t, 8.35, 8.6)); $("#done").style.opacity = d; $("#done").style.transform = `translateY(${(1 - d) * 6}px)`;
     // Beat 3: back in Eva's session, the outcome card arrives and the Agent carries on.
-    const o = out(p(t, 10.3, 10.6));
-    $("#oc").style.display = t >= 10.3 ? "" : "none"; $("#oc").style.opacity = o; $("#oc").style.transform = `translateY(${(1 - o) * 8}px)`;
-    $("#a3").style.display = t >= 10.6 ? "" : "none";
-    $("#a3s").style.display = t >= 10.75 ? "" : "none";
-    $("#a3d").style.display = t >= 11.1 ? "" : "none";
-    $("#a3h").textContent = t >= 11.1 ? "Worked for 4s" : "Working…";
-    tw($("#a3r"), R3, t, 11.15, 11.9);
-    APP.drive($("#a3av"), t >= 10.6 && t < 11.9 ? "working" : "static", t);
+    const o = out(p(t, 10.4, 10.7));
+    $("#oc").style.display = t >= 10.4 ? "" : "none"; $("#oc").style.opacity = o; $("#oc").style.transform = `translateY(${(1 - o) * 8}px)`;
+    $("#a3").style.display = t >= 10.7 ? "" : "none";
+    $("#a3s").style.display = t >= 10.85 ? "" : "none";
+    $("#a3d").style.display = t >= 11.2 ? "" : "none";
+    $("#a3h").textContent = t >= 11.2 ? "Worked for 4s" : "Working…";
+    tw($("#a3r"), R3, t, 11.25, 12.0);
+    APP.drive($("#a3av"), t >= 10.7 && t < 12.0 ? "working" : "static", t);
   });
 </script>
 </body></html>
