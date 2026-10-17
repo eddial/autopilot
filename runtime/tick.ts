@@ -142,6 +142,17 @@ async function activeIssues(): Promise<{ text: string; ids: Set<string> }> {
   } catch (e) { return { ids: new Set(), text: `(could not list them: ${(e as Error).message.slice(0, 200)}; use the searches)` }; }
 }
 
+// An "already on" drop means the issue has the item and nothing in it is newer, so it has no note. One that
+// still carries a note has news the issue lacks (seen four times on 16 Oct): post it as an update instead.
+function newsOnDrops(key: string, items: any[], active: { ids: Set<string> }) {
+  return items.map(i => {
+    const id = i.action === 'dropped' && i.note?.trim() && (i.issue || /^already on ([A-Z]+-\d+)/.exec(i.reason)?.[1]);
+    if (!id || !/^already on/.test(i.reason) || !active.ids.has(id)) return i;
+    log(key, `dropped item with a note promoted to update on ${id}: ${i.subject}`.slice(0, 300));
+    return { ...i, action: 'updated', issue: id, reason: `news on ${id} (was dropped: ${i.reason})` };
+  });
+}
+
 // Second look at what the run dropped for any reason but its sender: one short question per run, no tools,
 // because in the long filing prompt the model often judges an item (resolved, FYI, receipt) before matching it.
 const MATCH_SCHEMA = { type: 'object', required: ['matches'], properties: { matches: { type: 'array', items: {
@@ -270,6 +281,7 @@ async function runSignal(name: string, dry?: number) {
       log: `${name}-${iso(now).replace(/[:.]/g, '-')}${dry ? '-dry' : ''}` });
     let items = (typeof out === 'string' ? JSON.parse(out.replace(/^[^{]*|[^}]*$/g, '')) : out).items;
     if (!Array.isArray(items)) throw new Error(`bad output: ${JSON.stringify(out).slice(0, 500)}`);
+    items = newsOnDrops(key, items, active);
     try { items = followUps(name, items, active); } catch (e) { log(key, 'follow-up check failed:', (e as Error).message.slice(0, 200)); }
     if (!dry) items = await Promise.all(items.map(i => i.action !== 'updated' || !i.issue ? i
       : addSignal(name, i).catch(e => queueUpdate(name, i, [iso(from), iso(end)], e))));
