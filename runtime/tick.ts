@@ -110,6 +110,9 @@ async function tick() {
     const failing = !!j.failing_since && (j.failures ?? 0) >= 3 && +now - +new Date(j.failing_since) >= 60 * 6e4;
     if ((failing && !j.health_reported) || j.gaps?.length) detach(`health:${key}`, ['health', key, 'open']);
     else if (!j.failing_since && j.health_reported) detach(`health:${key}`, ['health', key, 'close']);
+    // Nothing left to report: a health run that failed is not retried, so clear its failure rather than
+    // leave it reading as failing with a stale last_success (AP-139).
+    else if (!failing && s.jobs[`health:${key}`]?.failing_since) withState(st => { Object.assign(job(st, `health:${key}`), { last_error: null, failures: 0, failing_since: null }); });
   }
 }
 
