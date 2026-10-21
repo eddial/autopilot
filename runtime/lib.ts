@@ -149,10 +149,11 @@ export function run(cmd: string, args: string[], opts: { cwd?: string; input?: s
 // claude.ai connectors connect in the background, and -p only waits briefly for them. Make it wait until
 // they are connected (MCP_CONNECTION_NONBLOCKING=0, up to 30s). As a safety net every listed MCP tool must
 // be in the init event's tools, or the call fails and the next tick retries the same window instead of
-// "succeeding" without them. Subagents and wakeups are off: a run that hands off work or schedules
-// itself ends in several result events, and the last one no longer carries the structured output.
+// "succeeding" without them. A connector that is slow to load is common and passes on its own, so a run
+// with tools missing is retried once after a minute before it fails (AP-139). Subagents and wakeups are
+// off: a run that hands off work or schedules itself ends in several result events, and the last one no longer carries the structured output.
 const NEVER = ['Agent', 'Task', 'ScheduleWakeup', 'CronCreate', 'Monitor', 'Workflow', 'RemoteTrigger', 'SendMessage'];
-export function claude(prompt: string, o: { tools: string[]; model?: string; schema?: object; timeout?: number; log?: string }) {
+export function claude(prompt: string, o: { tools: string[]; model?: string; schema?: object; timeout?: number; log?: string }, retry = true): any {
   const args = ['-p', '--output-format', 'stream-json', '--verbose', '--permission-mode', 'dontAsk', '--allowedTools', o.tools.join(','),
     '--disallowedTools', NEVER.join(',')];
   if (o.model) args.push('--model', o.model);
@@ -165,6 +166,11 @@ export function claude(prompt: string, o: { tools: string[]; model?: string; sch
     .split('\n').flatMap(l => { try { return [JSON.parse(l)]; } catch { return []; } });
   const init = events.find(e => e.type === 'system' && e.subtype === 'init');
   const missing = o.tools.filter(t => t.startsWith('mcp__') && !init?.tools?.includes(t));
+  if (missing.length && retry) {
+    log('claude', `tools not available, retrying in 60s: ${missing.join(', ')}`);
+    Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 60e3);
+    return claude(prompt, o, false);
+  }
   if (missing.length) throw new Error(`claude: tools not available (connector not connected?): ${missing.join(', ')}`);
   const out = events.findLast(e => e.type === 'result' && (!o.schema || e.structured_output)) ?? events.findLast(e => e.type === 'result');
   if (!out) throw new Error('claude: no result event');
