@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<title>The Agent step saves to Files</title>
+<link rel="stylesheet" href="clip.css">
+<link rel="stylesheet" href="app.css">
+<link rel="stylesheet" href="parts/agent-chat.css">
+<link rel="stylesheet" href="chapter.css">
+<style>
+  .scene { position: absolute; inset: 0; }
+  /* Activity (monitoring): the list behind the run panel. */
+  .act .ph { padding-top: 16px; }
+  .act .tabs { margin: 12px 32px 0; }
+  .atbl { margin: 16px 32px 0; border: 1px solid hsl(var(--border)); border-radius: 8px; background: hsl(var(--card)); overflow: hidden; }
+  .atbl .r { display: grid; grid-template-columns: 24px 1.4fr 1fr 90px 90px; gap: 12px; align-items: center; height: 44px; padding: 0 14px; border-top: 1px solid hsl(var(--border)); }
+  .atbl .r.h { border-top: 0; height: 40px; font-weight: 600; color: hsl(var(--muted-foreground)); font-size: 12px; }
+  .atbl .ok { color: hsl(var(--success)); } .atbl .ok svg { width: 14px; height: 14px; }
+  .atbl .r.sel { background: hsl(var(--muted)); }
+  /* activity-execution-panel.tsx in a SlidingPanel (max-w-70%), right side. */
+  .sp { position: absolute; top: 0; right: 0; bottom: 0; width: 70%; background: hsl(var(--background)); border-left: 1px solid hsl(var(--border)); box-shadow: -8px 0 24px rgb(0 0 0 / .06); padding: 16px 0; display: flex; flex-direction: column; }
+  .sp .hd { display: flex; align-items: center; gap: 8px; padding: 0 16px; }
+  .sp .hd .ok { color: hsl(var(--success)); } .sp .hd .ok svg { width: 16px; height: 16px; }
+  .sp .hd h2 { margin: 0; font-size: 16px; line-height: 24px; font-weight: 500; }
+  .sp .hd h2 small { margin-left: 4px; font-size: 12px; font-weight: 400; color: hsl(var(--muted-foreground)); }
+  .sp .bts { margin-top: 8px; display: flex; gap: 8px; padding: 0 16px; }
+  .sp .bts .btn { flex: 1; justify-content: center; }
+  .trace { position: relative; margin: 16px 16px 0; padding-left: 0; }
+  .trace::before { content: ""; position: absolute; left: 9px; top: 12px; bottom: 12px; width: 1px; background: hsl(var(--border)); }
+  /* node-execution.tsx: row gap-1.5 py-1; NodeRefPill h-6 rounded-full bg-border pl-0.5 pr-2 text-xs font-medium */
+  .nrow { position: relative; display: flex; align-items: center; gap: 6px; padding: 4px 0; }
+  .pill2 { display: inline-flex; align-items: center; gap: 6px; height: 24px; border-radius: 999px; background: hsl(var(--border)); padding: 0 8px 0 2px; font-size: 12px; font-weight: 500; }
+  .pill2 .ci { width: 20px; height: 20px; border-radius: 999px; display: grid; place-items: center; color: #fff; }
+  .pill2 .ci svg { width: 10px; height: 10px; }
+  .chk { width: 20px; height: 20px; border-radius: 999px; background: hsl(var(--success) / .1); color: hsl(var(--success)); display: grid; place-items: center; }
+  .chk svg { width: 10px; height: 10px; }
+  .dur { font-size: 12px; font-weight: 500; color: hsl(var(--muted-foreground)); }
+  .chev svg { width: 12px; height: 12px; color: hsl(var(--muted-foreground)); }
+  .nrow.hov .pill2 { box-shadow: 0 0 0 1px hsl(var(--input)); }
+  .nbody { margin-left: 16px; padding: 4px 0 8px 12px; }
+  .nbody .res { margin: 0 0 8px; font-size: 12px; line-height: 16px; color: hsl(var(--muted-foreground)); }
+  .nbody .res b { font-weight: 500; }
+  /* agent-session-trace.tsx: rounded-md border bg-background p-2 text-xs */
+  .ast { border: 1px solid hsl(var(--border)); border-radius: 6px; background: hsl(var(--background)); padding: 8px; font-size: 12px; line-height: 16px; }
+  .ast .top { display: flex; justify-content: space-between; margin-bottom: 8px; }
+  .ast .top b { font-weight: 500; text-transform: uppercase; color: hsl(var(--muted-foreground)); letter-spacing: .02em; }
+  .ast .top span { display: inline-flex; align-items: center; gap: 4px; color: hsl(var(--primary)); }
+  .ast .top span svg { width: 10px; height: 10px; }
+  .ast .bubble { font-size: 13px; line-height: 20px; background: hsl(var(--muted)); max-width: 88%; }
+  .ast .msg { gap: 8px; }
+  .ast .msg + .msg { margin-top: 10px; }
+  .ast .prose { font-size: 13px; line-height: 20px; }
+  .step .dot img { width: 10px; height: 10px; border-radius: 2px; display: block; }
+  .step .dot svg.lu { width: 10px; height: 10px; }
+  .step .txt b { font-weight: 500; color: hsl(var(--foreground)); }
+  .step.hl .txt { color: hsl(var(--foreground)); }
+
+  /* Files (project-files-manager.tsx): Intelligence tabs, toolbar, grid of file cards per folder. */
+  .files .ph { padding-top: 16px; }
+  .files .tabs { margin: 12px 32px 0; }
+  .ftool { display: flex; align-items: center; gap: 8px; margin: 16px 32px 0; }
+  .ftool .s { flex: 1; height: 40px; border: 1px solid hsl(var(--input)); border-radius: 8px; background: hsl(var(--background)); display: flex; align-items: center; gap: 10px; padding: 0 12px; color: hsl(var(--muted-foreground)); }
+  .ftool .s svg, .ftool .b svg { width: 13px; height: 13px; }
+  .ftool .b { height: 40px; border-radius: 8px; display: inline-flex; align-items: center; gap: 8px; padding: 0 12px; font-weight: 500; border: 1px solid hsl(var(--input)); background: hsl(var(--background)); white-space: nowrap; }
+  .ftool .b.pri { background: hsl(var(--primary)); border-color: hsl(var(--primary)); color: hsl(var(--primary-foreground)); }
+  .ftool .tg { display: flex; border: 1px solid hsl(var(--input)); border-radius: 8px; overflow: hidden; }
+  .ftool .tg span { width: 38px; height: 38px; display: grid; place-items: center; color: hsl(var(--muted-foreground)); }
+  .ftool .tg span.on { background: hsl(var(--border)); color: hsl(var(--foreground)); }
+  .ftool .tg svg { width: 13px; height: 13px; }
+  .fsec { margin: 20px 32px 0; }
+  .fsec .fh { display: flex; align-items: center; gap: 8px; padding: 6px 0; }
+  .fsec .fh svg { width: 16px; height: 16px; color: hsl(var(--muted-foreground)); }
+  .fsec .fh h3 { margin: 0; font-size: 13px; font-weight: 500; }
+  .fgrid { margin-top: 8px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+  .fcard { min-height: 150px; border: 1px solid hsl(var(--border)); border-radius: 12px; background: hsl(var(--card)); padding: 16px; display: flex; flex-direction: column; }
+  .fcard .tp { display: flex; justify-content: space-between; color: hsl(var(--muted-foreground)); }
+  .fcard .tp svg { width: 20px; height: 20px; } .fcard .tp .m svg { width: 14px; height: 14px; }
+  .fcard .nm { margin-top: auto; padding-top: 12px; font-size: 13px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .fcard .mt { font-size: 12px; line-height: 16px; color: hsl(var(--muted-foreground)); }
+  .fcard.new { box-shadow: 0 0 0 2px hsl(var(--highlight) / .55); }
+</style></head>
+<body>
+<div class="frame">
+  <div class="stage">
+    <div class="app" id="app">
+      <div id="sb"></div>
+      <main class="panel">
+        <!-- The workflow run in Activity -->
+        <div class="scene act" id="act">
+          <div class="ph"><h1>Activity</h1></div>
+          <div class="tabs"><span class="tab on">Sessions</span><span class="tab">Charts</span></div>
+          <div class="atbl">
+            <div class="r h"><span></span><span>Workflow</span><span>Started</span><span>Duration</span><span>Source</span></div>
+            <div class="r sel"><span class="ok" data-fa="faCircleCheck"></span><span>Supplier invoice intake</span><span>23 Oct, 10:52</span><span>38s</span><span>Email</span></div>
+            <div class="r"><span class="ok" data-fa="faCircleCheck"></span><span>Supplier invoice intake</span><span>23 Oct, 10:31</span><span>41s</span><span>Email</span></div>
+            <div class="r"><span class="ok" data-fa="faCircleCheck"></span><span>Order intake from email</span><span>23 Oct, 10:14</span><span>12s</span><span>Email</span></div>
+            <div class="r"><span class="ok" data-fa="faCircleCheck"></span><span>Supplier invoice intake</span><span>23 Oct, 09:47</span><span>36s</span><span>Email</span></div>
+          </div>
+          <div class="sp">
+            <div class="hd"><span class="ok" data-fa="faCircleCheck"></span><h2>Supplier invoice intake<small>(Session)</small></h2></div>
+            <div class="bts"><span class="btn out">Open in Builder</span><span class="btn out">Share Session</span><span class="btn pri">Retry</span></div>
+            <div class="trace">
+              <div class="nrow"><span class="pill2"><span class="ci" style="background:hsl(280 30% 42%)" data-fa="faEnvelope"></span>New Email</span><span class="chk" data-fa="faCheck"></span><span class="dur">412ms</span><span class="chev" data-fa="faChevronRight"></span></div>
+              <div class="nrow"><span class="pill2"><span class="ci" style="background:hsl(220 15% 42%)" data-fa="faFilePdf"></span>Extract Invoice</span><span class="chk" data-fa="faCheck"></span><span class="dur">3,104ms</span><span class="chev" data-fa="faChevronRight"></span></div>
+              <div class="nrow" id="agentRow"><span class="pill2"><span class="ci" style="background:hsl(15 45% 45%)" data-fa="s:faRobot"></span>Agent</span><span class="chk" data-fa="faCheck"></span><span class="dur">27,840ms</span><span class="chev" id="agChev" data-fa="faChevronRight"></span></div>
+              <div class="nbody" id="agBody">
+                <p class="res"><b>Result:</b> Text reply</p>
+                <div class="ast">
+                  <div class="top"><b>Agent session</b><span>Open session <i data-fa="faArrowUpRightFromSquare"></i></span></div>
+                  <div class="msg user"><span class="av" style="background:hsl(220 15% 42%)" data-fa="faBolt"></span><div class="bubble">Check invoice 2026-0412 from Bakker Installatietechniek against PO 4500012877 and our price agreement. Save what you find in invoice-checks.</div></div>
+                  <div class="msg"><span class="avl"></span><div class="prose">
+                    <div class="cot-head"><span>Read Project File · Retrieved Purchase Order +1 more</span><span data-lu="chevronRight"></span></div>
+                    <div class="step" id="st1"><span class="dot" data-lu="fileText"></span><span class="txt">Read Project File <b>price-agreements/bakker-installatietechniek.pdf</b> (0.8s)</span></div>
+                    <div class="step" id="st2"><span class="dot exl"></span><span class="txt">Exact Online: Retrieved Purchase Order <b>4500012877</b> (1.0s)</span></div>
+                    <div class="step" id="st3"><span class="dot" data-lu="fileText"></span><span class="txt">Write Project File <b>invoice-checks/2026-0412.md</b> (0.6s)</span></div>
+                    <div>Invoice 2026-0412 matches PO 4500012877 on all four lines. One price is €0.40 above the agreement (cable trays, line 2). I saved the check to invoice-checks/2026-0412.md.</div>
+                  </div></div>
+                </div>
+              </div>
+              <div class="nrow"><span class="pill2"><span class="ci" style="background:hsl(170 35% 35%)" data-fa="faPaperPlane"></span>Send Email</span><span class="chk" data-fa="faCheck"></span><span class="dur">688ms</span><span class="chev" data-fa="faChevronRight"></span></div>
+            </div>
+          </div>
+        </div>
+        <!-- Files -->
+        <div class="scene files" id="files" style="visibility:hidden">
+          <div class="ph"><h1>Files</h1></div>
+          <div class="tabs"><span class="tab">Tables</span><span class="tab">Memory</span><span class="tab">Connections</span><span class="tab on">Files</span><span class="tab">Knowledge</span></div>
+          <div class="ftool"><div class="s"><span data-fa="faMagnifyingGlass"></span>Search this folder</div><span class="b"><span data-fa="faBarsFilter"></span>Filter</span>
+            <span class="tg"><span class="on" data-fa="faTableCellsLarge"></span><span data-fa="faList"></span></span>
+            <span class="b"><span data-fa="faFolderPlus"></span>New Folder</span><span class="b pri"><span data-fa="faUpload"></span>Upload</span></div>
+          <div class="fsec"><div class="fh"><span data-fa="faFolderOpen"></span><h3>invoice-checks</h3></div>
+            <div class="fgrid">
+              <div class="fcard" id="newf"><div class="tp"><span data-fa="faFileLines"></span><span class="m" data-fa="faEllipsis"></span></div><div class="nm">2026-0412.md</div><div class="mt">2.1 KB · less than a minute ago</div></div>
+              <div class="fcard"><div class="tp"><span data-fa="faFileLines"></span><span class="m" data-fa="faEllipsis"></span></div><div class="nm">2026-0398.md</div><div class="mt">1.8 KB · 21 minutes ago</div></div>
+              <div class="fcard"><div class="tp"><span data-fa="faFileLines"></span><span class="m" data-fa="faEllipsis"></span></div><div class="nm">2026-0391.md</div><div class="mt">2.4 KB · about 1 hour ago</div></div>
+              <div class="fcard"><div class="tp"><span data-fa="faFileLines"></span><span class="m" data-fa="faEllipsis"></span></div><div class="nm">2026-0377.md</div><div class="mt">1.9 KB · 1 day ago</div></div>
+            </div></div>
+          <div class="fsec"><div class="fh"><span data-fa="faFolder"></span><h3>price-agreements</h3></div>
+            <div class="fgrid">
+              <div class="fcard"><div class="tp"><span data-fa="faFilePdf"></span><span class="m" data-fa="faEllipsis"></span></div><div class="nm">bakker-installatietechniek.pdf</div><div class="mt">184 KB · 12 days ago</div></div>
+              <div class="fcard"><div class="tp"><span data-fa="faFilePdf"></span><span class="m" data-fa="faEllipsis"></span></div><div class="nm">kuipers-hout.pdf</div><div class="mt">162 KB · 12 days ago</div></div>
+              <div class="fcard"><div class="tp"><span data-fa="faFilePdf"></span><span class="m" data-fa="faEllipsis"></span></div><div class="nm">smit-elektro.pdf</div><div class="mt">201 KB · 12 days ago</div></div>
+              <div class="fcard"><div class="tp"><span data-fa="faFilePdf"></span><span class="m" data-fa="faEllipsis"></span></div><div class="nm">van-dijk-metaal.pdf</div><div class="mt">176 KB · 12 days ago</div></div>
+            </div></div>
+        </div>
+      </main>
+    </div>
+  </div>
+</div>
+<script src="fa-icons.js"></script>
+<script src="app.js"></script>
+<script src="clip.js"></script>
+<script src="chapter.js"></script>
+<script>
+  CHAPTER({ n: 5, total: 7, module: "Workflows", footerLeft: "Feature Drop · Week 44",
+    title: "The Agent step<br><em>saves to Files.</em>",
+    line: "An Agent step in a live workflow can read and save Project Files, the way a Write Project File step does, so what it finds stays with the project." });
+  const D = 9.6;
+  window.HOLDS = [[4.9, 1.2], [8.8, 1.3]];
+  const { $, $$, p, out, io } = C;
+  $("#sb").outerHTML = APP.sidebar("Monitoring");
+  const sb = $(".sb");
+  $$("[data-fa]").forEach((el) => (el.innerHTML = fa(el.dataset.fa)));
+  $$("[data-lu]").forEach((el) => (el.innerHTML = lu(el.dataset.lu)));
+  $$(".exl").forEach((el) => (el.innerHTML = `<img src="${APP.EXACT}" alt="">`));
+  $$(".avl").forEach((el) => (el.innerHTML = `<span style="display:block;margin-top:2px;color:hsl(var(--foreground))">${APP.loader(20)}</span>`));
+
+  const app = $("#app");
+  const at = (el, fx = 0.5, fy = 0.5) => { const a = app.getBoundingClientRect(), r = el.getBoundingClientRect(), s = a.width / 1280;
+    return [(r.left - a.left + r.width * fx) / s, (r.top - a.top + r.height * fy) / s]; };
+  const P = { agent: at($("#agentRow .pill2")) };
+  const sp0 = at($(".sp"), 0, 0), b1 = at($("#agBody"), 1, 1), ar = at($(".trace .nrow"), 0, 0);
+  $("#agBody").style.display = "none";
+  const VW = C.STAGE_W, VH = C.STAGE_H, FIT = Math.min(VW / 1280, VH / C.APP_H) * 0.98;
+  const fit = (x0, y0, x1, y1) => { const s = Math.min(VW / (x1 - x0), VH / (y1 - y0)); return [(x0 + x1) / 2, (y0 + y1) / 2 + (VH / s - (y1 - y0)) / 2, s]; };
+  // The one zoom: the run panel from the first step to the end of its session, framed on the panel's sides.
+  const ZOOM = fit(sp0[0] + 1, ar[1] - 10, 1280, b1[1] + 12);
+  const FULL = [640, C.APP_H / 2, FIT];
+  const cam = C.camera(app, VW, VH, [[0, ...FULL], [2.6, ...FULL], [3.15, ...ZOOM], [5.6, ...ZOOM], [6.15, ...FULL], [D, ...FULL]]);
+  const F = (t, [x, y]) => { const m = cam(t).map(x, y); return [C.STAGE_X + m[0], C.STAGE_Y + m[1]]; };
+  const OFF = (fx) => [C.W * fx, C.H + 40];
+  const cur = C.cursor([[1.95, ...OFF(0.6)], [2.4, ...F(2.4, P.agent), true], [2.75, ...OFF(0.7)]]);
+  const cap = C.captions([
+    [1.9, 5.7, "An Agent step in a workflow<br><em>saves what it found.</em>"],
+    [6.0, 99, "The file is in Files,<br><em>with the rest of the project.</em>"],
+  ]);
+  cam(0);
+  C.run(D, (t) => {
+    cap(t); cam(t); cur(t);
+    // Beat 1: the Agent row opens on its session; the write step lights up.
+    const open = t >= 2.45;
+    $("#agBody").style.display = open ? "" : "none";
+    const bo = out(p(t, 2.45, 2.75)); $("#agBody").style.opacity = bo;
+    $("#agChev svg").style.transform = `rotate(${open ? 90 : 0}deg)`;
+    $("#agentRow").classList.toggle("hov", t >= 2.2 && t < 2.5);
+    $("#st3").classList.toggle("hl", t >= 3.6);
+    // Beat 2: Files, the new check first in invoice-checks.
+    const sw = io(p(t, 5.75, 6.15));
+    $("#act").style.opacity = 1 - sw; $("#files").style.opacity = sw;
+    $("#act").style.visibility = sw < 1 ? "visible" : "hidden"; $("#files").style.visibility = sw > 0 ? "visible" : "hidden";
+    $$(".nav", sb).forEach((n) => { const l = n.textContent.trim(); n.classList.toggle("on", sw < 0.5 ? l === "Monitoring" : l === "Intelligence"); });
+    const nf = out(p(t, 6.5, 6.9)); $("#newf").classList.toggle("new", t >= 6.5);
+    $("#newf").style.boxShadow = t >= 6.5 ? `0 0 0 ${2 * nf}px hsl(var(--highlight) / .55)` : "none";
+  });
+</script>
+</body></html>

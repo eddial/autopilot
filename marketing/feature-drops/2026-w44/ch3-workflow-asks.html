@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<title>A workflow stops, the Agent asks</title>
+<link rel="stylesheet" href="clip.css">
+<link rel="stylesheet" href="app.css">
+<link rel="stylesheet" href="parts/agent-chat.css">
+<link rel="stylesheet" href="chapter.css">
+<style>
+  /* The Agent page: one chat column (agent-chat.tsx, footer max-w-3xl). */
+  .app { --ring: 60 7% 60%; }
+  .agentpage { position: absolute; inset: 0; display: flex; }
+  .chatcol { flex: 1; min-width: 0; display: flex; flex-direction: column; padding: 16px 0 20px; }
+  .chatcol > * { width: 680px; margin-left: auto; margin-right: auto; }
+  .chatcol .msgs { gap: 16px; }
+  .prose { font-size: 14px; line-height: 22px; }
+  .prose p { margin: 0 0 6px; }
+  /* agent-chat.tsx: user bubble rounded-xl bg-muted px-2 py-1.5 text-sm */
+  .bubble { font-size: 14px; line-height: 22px; padding: 6px 8px; background: hsl(var(--muted)); }
+  /* chain-of-thought-block.tsx: header row text-xs muted, the label then a ChevronRight size-3 */
+  .cot-head svg { width: 12px; height: 12px; }
+  .step .txt b { font-weight: 500; color: hsl(var(--foreground)); }
+  .step .dot svg.lu { width: 10px; height: 10px; }
+  /* thinking-placeholder.tsx: text-xs muted, opacity 50 */
+  .waiting { font-size: 12px; line-height: 16px; color: hsl(var(--muted-foreground)); opacity: .5; padding-top: 2px; }
+  .composer .ta div { font-size: 14px; }
+  .composer .ta div.typed { color: hsl(var(--foreground)); }
+  .rb.send { background: hsl(var(--primary)); color: hsl(var(--primary-foreground)); }
+  /* agent-status-indicator.tsx: text-highlight, 20px loader + text-sm label */
+  .status { padding: 0 4px 8px; font-size: 13px; }
+  .status.err { color: hsl(var(--destructive)); }
+
+  /* workflow-run-result-widget.tsx: rounded-lg border bg-card; header px-4 py-3 gap-3 */
+  .rr { margin: 8px 0 10px; border: 1px solid hsl(var(--border)); border-radius: 8px; background: hsl(var(--card)); display: none; }
+  .rr .h { display: flex; align-items: flex-start; gap: 12px; padding: 12px 16px; }
+  .rr .h > .lu { width: 20px; height: 20px; color: hsl(var(--success)); margin-top: 1px; }
+  .rr .nm { display: flex; align-items: center; gap: 8px; font-size: 13px; line-height: 20px; font-weight: 500; }
+  .rr .bdg { display: inline-flex; align-items: center; height: 20px; padding: 0 8px; border-radius: 999px; background: hsl(var(--primary)); color: hsl(var(--primary-foreground)); font-size: 12px; font-weight: 500; }
+  .rr .meta { margin-top: 2px; display: flex; gap: 12px; font-size: 12px; line-height: 16px; color: hsl(var(--muted-foreground)); }
+  .rr .meta span { display: inline-flex; align-items: center; gap: 4px; }
+  .rr .meta svg { width: 12px; height: 12px; }
+  .rr .meta .ok { color: hsl(var(--success)); }
+
+  /* The footer card (workflow-element-widget.tsx): mx-auto mb-2 max-w-3xl, the element card draws its own border.
+     element-card.tsx kind=form: rounded-xl border-input shadow-sm, bg-card; header band request-input-header.tsx. */
+  .fw { margin-bottom: 8px; display: none; }
+  .ec { border: 1px solid hsl(var(--input)); border-radius: 12px; overflow: hidden; background: hsl(var(--card)); box-shadow: 0 1px 2px rgb(0 0 0 / .05); }
+  .ec .hb { border-bottom: 1px solid hsl(var(--muted)); background: hsl(var(--muted)); padding: 10px 16px; font-size: 12px; line-height: 16px; color: hsl(var(--muted-foreground)); }
+  .ec .hb b { font-weight: 600; color: hsl(var(--foreground)); }
+  .ec .hb .dot { margin: 0 6px; opacity: .5; }
+  .ec .bd { padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+  .fh3 { margin: 0; font-size: 13px; line-height: 20px; font-weight: 600; }
+  .fdesc { padding-bottom: 8px; color: hsl(var(--muted-foreground)); font-size: 14px; line-height: 24px; margin-top: -12px; }
+  .frow { display: flex; flex-wrap: wrap; gap: 16px; }
+  .fi { display: flex; flex-direction: column; gap: 4px; width: calc(50% - 8px); }
+  .fi label { font-size: 13px; line-height: 1; font-weight: 500; display: flex; align-items: center; height: 16px; }
+  .fi label .req { color: hsl(var(--destructive)); margin-left: 4px; }
+  .inp { min-height: 36px; border: 1px solid hsl(var(--input)); border-radius: 8px; background: hsl(var(--background)); padding: 8px 12px; font-size: 13px; line-height: 20px; display: flex; align-items: center; white-space: nowrap; }
+  .inp.ph { color: hsl(var(--muted-foreground)); }
+  .inp.foc { box-shadow: 0 0 0 2px hsl(var(--background)), 0 0 0 4px hsl(var(--ring)); }
+  .caret { display: inline-block; width: 1px; height: 16px; background: hsl(var(--foreground)); margin-left: 1px; }
+  .sub { display: flex; }
+  .sbtn { height: 32px; display: inline-flex; align-items: center; gap: 6px; padding: 0 12px; border-radius: 6px; font-size: 13px; font-weight: 500; border: 1px solid hsl(var(--primary)); background: hsl(var(--primary)); color: hsl(var(--primary-foreground)); }
+  .sbtn.press { filter: brightness(1.3); }
+  .sbtn.done { background: hsl(var(--background)); color: hsl(var(--foreground)); border-color: hsl(var(--input)); }
+  .sbtn svg { width: 14px; height: 14px; }
+</style></head>
+<body>
+<div class="frame">
+  <div class="stage">
+    <div class="app" id="app">
+      <div id="sb"></div>
+      <main class="panel both">
+        <div class="agentpage">
+          <div class="chatcol">
+            <div class="msgs" id="msgs">
+              <div class="msg user"><span class="av">EV</span><div class="bubble">Which orders are still waiting to be entered?</div></div>
+              <div class="msg"><span class="avl"></span><div class="prose">Two: Kuipers Hout's order from yesterday afternoon, which is waiting for a delivery date, and a new one from Smit Elektro.</div></div>
+              <div class="msg user"><span class="av">EV</span><div class="bubble">Did anything come in from Smit Elektro today?</div></div>
+              <div class="msg" id="prev"><span class="avl"></span><div class="prose">One order, by email at 09:48: 24 cable trays and 60 mounting brackets, €3,940.00. It hasn't been entered yet.</div></div>
+              <div class="msg user" id="u1"><span class="av">EV</span><div class="bubble" id="u1t"></div></div>
+              <div class="msg" id="a1"><span class="avl" id="av1"></span><div class="prose">
+                <div class="cot-head" id="cot1"><span id="cot1t">Run Workflow</span><span data-lu="chevronRight"></span></div>
+                <div class="step" id="s1"><span class="dot" data-lu="play" style="color:hsl(var(--success))"></span><span class="txt" id="s1t"></span></div>
+                <div class="waiting" id="w1">Waiting for your response...</div>
+                <div class="rr" id="rr"><div class="h"><span data-lu="checkCircle2"></span><div>
+                  <div class="nm">Order intake from email <span class="bdg">Success</span></div>
+                  <div class="meta"><span><span data-lu="clock"></span>5.1s</span><span>6 nodes</span><span class="ok">6 completed</span></div>
+                </div></div></div>
+                <div id="t1"></div>
+              </div></div>
+            </div>
+            <div class="status" id="status"><span id="stl"></span><span id="stt">Using a tool</span></div>
+            <div class="fw" id="card">
+              <div class="ec">
+                <div class="hb">Requested input from <b>@Eva Visser</b><span class="dot">•</span>23 October 2026, 10:14</div>
+                <div class="bd">
+                  <h3 class="fh3">PO number missing</h3>
+                  <div class="fdesc">Smit Elektro's order has no PO number. Add it to draft the sales order in Exact Online.</div>
+                  <div class="frow">
+                    <div class="fi"><label>Customer</label><div class="inp">Smit Elektro</div></div>
+                    <div class="fi"><label>PO number<span class="req">*</span></label><div class="inp ph" id="po">e.g. 4500012877</div></div>
+                  </div>
+                  <div class="sub"><span class="sbtn" id="submit">Submit</span></div>
+                </div>
+              </div>
+            </div>
+            <div class="composer" id="composer">
+              <div class="ta"><div id="ta">Reply to Lleverage…</div></div>
+              <div class="row"><span class="rb" id="plus"></span>
+                <div class="r"><span class="model">Opus 5.5 <span id="mchev"></span></span><span class="rb" id="mic"></span><span class="rb" id="sendb"></span></div></div>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+</div>
+<script src="fa-icons.js"></script>
+<script src="app.js"></script>
+<script src="clip.js"></script>
+<script src="chapter.js"></script>
+<script>
+  CHAPTER({ n: 3, total: 7, module: "Agent", footerLeft: "Feature Drop · Week 44",
+    title: "A workflow needs you?<br><em>The Agent asks on a card.</em>",
+    line: "When the Agent runs a workflow and it stops at a Form, Chat, Record Voice or approval step, the chat asks you on a card, and your answer carries the same run on to its end." });
+  const D = 11.2;
+  window.HOLDS = [[5.1, 0.8], [8.0, 0.6], [10.4, 1.2]];
+  const { $, $$, p, out, show, type } = C;
+  $("#sb").outerHTML = APP.sidebar("Smit Elektro order");
+  $$(".avl").forEach((el) => (el.outerHTML = `<span id="${el.id}" style="display:block;margin-top:2px;flex:none;color:hsl(var(--foreground))">${APP.loader(20)}</span>`));
+  $("#stl").innerHTML = APP.loader(20);
+  $("#mchev").innerHTML = fa("faChevronDown", "", "width:9px;height:9px");
+  $("#plus").innerHTML = lu("plus", "", "width:16px;height:16px"); $("#mic").innerHTML = fa("faMicrophone");
+  $$("[data-lu]").forEach((el) => (el.outerHTML = lu(el.dataset.lu).replace('<svg class="lu ', `<svg ${el.getAttribute("style") ? `style="${el.getAttribute("style")}" ` : ""}class="lu `)));
+  // The step's dot keeps its colour: re-wrap.
+  $("#s1").firstElementChild.outerHTML = `<span class="dot" style="color:hsl(var(--success))">${lu("play")}</span>`;
+
+  const ASK = "Run the order intake on Smit Elektro's email.";
+  const PO = "4500012931";
+  const T1 = "Done. The sales order for Smit Elektro is drafted in Exact Online: SO-20488, €3,940.00, with PO 4500012931.";
+
+  const app = $("#app");
+  const at = (el, fx = 0.5, fy = 0.5) => { const a = app.getBoundingClientRect(), r = el.getBoundingClientRect(), s = a.width / 1280;
+    return [(r.left - a.left + r.width * fx) / s, (r.top - a.top + r.height * fy) / s]; };
+  // Measure in each click's layout: the send button with the request typed; the card shown above the composer.
+  $("#ta").textContent = ASK; $("#sendb").className = "rb send"; $("#sendb").innerHTML = fa("faArrowUp");
+  const P = { send: at($("#sendb")) };
+  $("#u1").style.display = ""; $("#a1").style.display = ""; $("#card").style.display = "block";
+  P.po = at($("#po"), 0.3); P.submit = at($("#submit"));
+  const k0 = at($("#prev"), 0, 0), k1 = at($("#card"), 1, 1), kc = at($("#card"), 0, 0), cmp = at($("#composer"), 1, 1);
+  $("#card").style.display = "";
+
+  const VW = C.STAGE_W, VH = C.STAGE_H, FIT = Math.min(VW / 1280, VH / C.APP_H) * 0.98;
+  const fit = (x0, y0, x1, y1) => { const s = Math.min(VW / (x1 - x0), VH / (y1 - y0)); return [(x0 + x1) / 2, (y0 + y1) / 2 + (VH / s - (y1 - y0)) / 2, s]; };
+  // The one held zoom: the chat column from Eva's request down to the composer, with the card, framed on the column.
+  const ZOOM = fit(kc[0] - 24, k0[1] - 20, k1[0] + 24, cmp[1] + 16);
+  const FULL = [640, C.APP_H / 2, FIT];
+  const cam = C.camera(app, VW, VH, [[0, ...FULL], [5.6, ...FULL], [6.15, ...ZOOM], [8.3, ...ZOOM], [8.9, ...FULL], [D, ...FULL]]);
+  const F = (t, [x, y]) => { const m = cam(t).map(x, y); return [C.STAGE_X + m[0], C.STAGE_Y + m[1]]; };
+  const OFF = (fx) => [C.W * fx, C.H + 40];
+  const cur = C.cursor([[2.4, ...OFF(0.66)], [3.05, ...F(3.05, P.send)], [3.3, ...F(3.3, P.send), true], [3.75, ...OFF(0.8)],
+    [6.0, ...OFF(0.5)], [6.4, ...F(6.4, P.po), true], [6.55, ...F(6.55, P.po)], [7.35, ...F(7.35, P.po)], [7.75, ...F(7.75, P.submit), true], [8.2, ...OFF(0.6)]]);
+  const cap = C.captions([
+    [1.9, 5.3, "Ask the Agent to run a workflow.<br><em>It stops for a PO number.</em>"],
+    [5.6, 8.4, "Fill it in on the card.<br><em>The same run carries on.</em>"],
+    [8.7, 99, "The order is drafted<br><em>in Exact Online.</em>"],
+  ]);
+  C.typing(2.0, 2.95); C.typing(6.55, 7.25);
+  cam(0);
+  C.run(D, (t) => {
+    cap(t); cam(t); cur(t);
+    const sent = t >= 3.35;
+    const k = !sent ? Math.round(ASK.length * p(t, 2.0, 2.95)) : 0;
+    $("#ta").textContent = k ? ASK.slice(0, k) : "Reply to Lleverage…";
+    $("#ta").className = k ? "typed" : "";
+    $("#sendb").className = "rb" + (k ? " send" : ""); $("#sendb").innerHTML = k ? fa("faArrowUp") : fa("s:faPhoneFlip");
+    $("#u1").style.display = sent ? "" : "none"; $("#u1t").textContent = ASK;
+    $("#a1").style.display = t >= 3.5 ? "" : "none";
+    show($("#s1"), t, 3.6, Infinity, -8, 0.25);
+    // The run: running, paused at the form (4.6), carried on after Submit (7.8), finished (8.7).
+    const paused = t >= 4.6 && t < 7.8, ran = t >= 8.7, answered = t >= 7.8;
+    $("#cot1t").textContent = ran ? "Ran Workflow" : "Run Workflow";
+    $("#s1t").innerHTML = (ran ? "Ran Workflow" : "Run Workflow") + " <b>Order intake from email</b>" + (ran ? " (5.1s)" : "");
+    $("#w1").style.display = paused ? "" : "none";
+    const st = !sent ? null : t < 3.6 ? "Thinking" : paused ? "Waiting for you" : !ran ? "Using a tool" : t < 9.6 ? "Responding" : "Done";
+    $("#status").style.visibility = st ? "visible" : "hidden"; $("#stt").textContent = st || "";
+    APP.drive($("#stl"), st && st !== "Done" && st !== "Waiting for you" ? "working" : "static", t);
+    APP.drive($("#av1"), t >= 3.5 && t < 9.6 && !paused ? "working" : "static", t);
+    // The card: fades in at the pause; the PO is typed; Submit, Submitted, then the card fades out.
+    const cOn = t >= 4.7 && t < 8.25;
+    $("#card").style.display = cOn ? "block" : "none";
+    $("#card").style.opacity = out(p(t, 4.7, 4.85)) * (1 - p(t, 8.1, 8.25));
+    const foc = t >= 6.45 && t < 7.7;
+    const n = Math.round(PO.length * p(t, 6.55, 7.25));
+    $("#po").innerHTML = n ? PO.slice(0, n) + (foc ? '<span class="caret"></span>' : "") : foc ? '<span class="caret"></span>' : "e.g. 4500012877";
+    $("#po").className = "inp" + (n || foc ? "" : " ph") + (foc ? " foc" : "");
+    $("#submit").className = "sbtn" + (t >= 7.7 && t < 7.8 ? " press" : "") + (answered ? " done" : "");
+    $("#submit").innerHTML = answered ? lu("check") + "Submitted" : "Submit";
+    // The result card, then the Agent's answer (it writes silently).
+    $("#rr").style.display = ran ? "block" : "none";
+    const ro = out(p(t, 8.7, 8.95)); $("#rr").style.opacity = ro; $("#rr").style.transform = `translateY(${(1 - ro) * 6}px)`;
+    type($("#t1"), T1, t, 9.0, 9.6, null);
+  });
+</script>
+</body></html>

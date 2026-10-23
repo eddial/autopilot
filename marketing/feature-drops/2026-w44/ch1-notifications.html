@@ -1,0 +1,240 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<title>Task notifications</title>
+<link rel="stylesheet" href="clip.css">
+<link rel="stylesheet" href="app.css">
+<link rel="stylesheet" href="parts/agent-chat.css">
+<link rel="stylesheet" href="chapter.css">
+<style>
+  .app { --secondary-foreground: 83 11% 14.1%; }
+  .scene { position: absolute; inset: 0; display: flex; }
+  .scene .panel { position: relative; }
+
+  /* Mila: the Requests page (requests-inbox-page.tsx) with nothing open: the empty detail view. */
+  .rq-head { padding: 16px 32px 0; }
+  .rq-head .ph { padding: 0; }
+  .ovt { width: 32px; height: 32px; border: 1px solid hsl(var(--input)); border-radius: 6px; background: hsl(var(--background)); display: grid; place-items: center; color: hsl(var(--muted-foreground)); }
+  .rq-head .tabs { margin-top: 12px; }
+  .rq-body { position: absolute; left: 32px; right: 32px; top: 100px; bottom: 0; display: flex; padding-top: 16px; }
+  .rq-list { width: 248px; flex: none; display: flex; flex-direction: column; padding: 12px 0; }
+  .rq-handle { width: 8px; flex: none; }
+  .rq-detail { flex: 1; min-width: 0; border-radius: 8px; background: hsl(var(--background)); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; }
+  .rq-detail .circ { width: 64px; height: 64px; border-radius: 999px; background: hsl(var(--muted)); display: grid; place-items: center; color: hsl(var(--muted-foreground)); }
+  .rq-detail .circ svg { width: 24px; height: 24px; }
+  .rq-detail .big { font-size: 18px; line-height: 28px; font-weight: 500; }
+  .rq-srch { display: flex; gap: 8px; padding-bottom: 8px; }
+  .rq-srch .s { flex: 1; min-width: 0; height: 40px; border: 1px solid hsl(var(--input)); border-radius: 8px; background: hsl(var(--background)); display: flex; align-items: center; gap: 10px; padding: 0 12px; color: hsl(var(--muted-foreground)); white-space: nowrap; overflow: hidden; }
+  .rq-srch .s svg, .rq-srch .f svg { width: 13px; height: 13px; }
+  .rq-srch .f { width: 40px; height: 40px; flex: none; border: 1px solid hsl(var(--input)); border-radius: 6px; background: hsl(var(--background)); display: grid; place-items: center; color: hsl(var(--muted-foreground)); }
+  .rq-cards { display: flex; flex-direction: column; gap: 4px; }
+  .rqc { border: 1px solid hsl(var(--border)); border-radius: 8px; padding: 10px; }
+  .rqc h3 { margin: 0; font-size: 13px; line-height: 20px; font-weight: 500; }
+  .rqc .meta { margin-top: 12px; display: flex; align-items: center; justify-content: space-between; font-size: 10px; line-height: 14px; color: hsl(var(--muted-foreground)); }
+  .av16 { width: 16px; height: 16px; border-radius: 999px; display: grid; place-items: center; color: #fff; font-size: 9px; font-weight: 600; }
+
+  /* Notifications drawer (notifications-sidebar.tsx): fixed right, w-[400px], border-l bg-background. */
+  .drawer { position: absolute; top: 0; right: 0; bottom: 0; width: 400px; border-left: 1px solid hsl(var(--border)); background: hsl(var(--background)); display: flex; flex-direction: column; z-index: 5; }
+  .drawer .dh { display: flex; align-items: center; justify-content: space-between; padding: 16px; border-bottom: 1px solid hsl(var(--border)); }
+  .drawer .dh b { font-weight: 600; font-size: 13px; }
+  .drawer .dh span { width: 24px; height: 24px; display: grid; place-items: center; color: hsl(var(--muted-foreground)); }
+  .drawer .dh svg { width: 12px; height: 12px; }
+  /* notification-card.tsx: border-b p-4, unread bg-purple-50 + a 12px bg-primary dot */
+  .nc { position: relative; border-bottom: 1px solid hsl(var(--border)); padding: 16px; }
+  .nc.unread { background: #faf5ff; }
+  .nc.unread::after { content: ""; position: absolute; right: 12px; top: 12px; width: 12px; height: 12px; border-radius: 999px; background: hsl(var(--primary)); }
+  .nc .t { margin-bottom: 8px; display: flex; align-items: center; gap: 8px; font-size: 13px; line-height: 20px; font-weight: 600; }
+  .nc .t svg { width: 16px; height: 16px; color: hsl(var(--muted-foreground)); }
+  .nc .c { margin-bottom: 16px; font-size: 12px; line-height: 16px; }
+  .nc .a { margin-bottom: 8px; display: flex; gap: 8px; }
+  .xb { height: 24px; display: inline-flex; align-items: center; padding: 0 8px; border-radius: 4px; font-size: 12px; font-weight: 500; border: 1px solid transparent; }
+  .xb.pri { background: hsl(var(--primary)); color: hsl(var(--primary-foreground)); }
+  .xb.out { border-color: hsl(var(--input)); background: hsl(var(--background)); }
+  .xb.press { filter: brightness(1.4); }
+  .nc .f { display: flex; align-items: center; justify-content: space-between; font-size: 12px; line-height: 16px; color: hsl(var(--muted-foreground)); }
+  .nc .f .bdg { border: 1px solid hsl(var(--border)); border-radius: 999px; padding: 2px 10px; color: hsl(var(--foreground)); }
+
+  /* Mila's task (person-task-page.tsx): breadcrumb, the task as a request card, Approve / Reject. */
+  .crumb { display: flex; align-items: center; gap: 10px; font-size: 14px; line-height: 20px; color: hsl(var(--muted-foreground)); padding: 20px 32px 0; }
+  .crumb .cur { color: hsl(var(--foreground)); }
+  .crumb svg { width: 14px; height: 14px; }
+  .tbody { padding: 24px; }
+  .rcard { width: 768px; margin: 0 auto; overflow: hidden; border-radius: 12px; border: 1px solid hsl(var(--input)); box-shadow: 0 1px 2px rgb(0 0 0 / .05); }
+  .rcard.res { border-color: hsl(var(--muted)); box-shadow: none; }
+  .rhead { border-bottom: 1px solid hsl(var(--muted)); background: hsl(var(--muted)); padding: 10px 16px; font-size: 12px; line-height: 16px; color: hsl(var(--muted-foreground)); }
+  .rhead b { color: hsl(var(--foreground)); font-weight: 600; }
+  .rhead .sep { margin: 0 6px; opacity: .5; }
+  .rbody { padding: 16px; background: hsl(var(--background)); }
+  .rcard.res .rbody { background: hsl(var(--muted)); }
+  .rbody h2 { margin: 0; font-size: 16px; line-height: 24px; font-weight: 600; }
+  .rbody hr { margin: 12px 0; border: 0; border-top: 1px solid hsl(var(--border)); }
+  .rbody .desc { font-size: 14px; line-height: 22px; margin: 0; }
+  .rbody .due { margin-top: 8px; font-size: 13px; line-height: 20px; }
+  .abtns { display: flex; gap: 8px; margin-top: 12px; }
+  .abtn { height: 32px; display: inline-flex; align-items: center; padding: 0 12px; border-radius: 6px; font-size: 14px; font-weight: 500; color: #fff; }
+  .abtn.ok { background: hsl(var(--success)); } .abtn.no { background: hsl(var(--destructive)); }
+  .abtn.ok.press { background: hsl(145 35% 29%); }
+  .done { display: flex; gap: 4px; margin-top: 12px; border-radius: 12px; padding: 8px 12px; font-size: 14px; line-height: 20px; font-weight: 500; background: hsl(var(--success) / .1); }
+  .done .ic { color: hsl(var(--success)); margin: 2px 4px 0 0; } .done .ic svg { width: 16px; height: 16px; }
+  .done .when { display: block; font-size: 12px; line-height: 16px; font-weight: 400; opacity: .5; }
+
+  /* Eva: the Agent page where she asked for the approval. */
+  .agentpage { position: absolute; inset: 0; display: flex; flex-direction: column; }
+  .agentpage .col { width: 680px; margin: 0 auto; flex: 1; display: flex; flex-direction: column; padding: 16px 0 20px; min-height: 0; }
+  .prose { font-size: 14px; line-height: 22px; }
+  .bubble { font-size: 14px; line-height: 22px; padding: 6px 8px; background: hsl(var(--muted)); }
+  .composer .ta div { font-size: 14px; }
+</style></head>
+<body>
+<div class="frame">
+  <div class="stage">
+    <div class="app" id="app">
+      <!-- Mila's screen -->
+      <div class="scene" id="mila">
+        <div id="sbM"></div>
+        <main class="panel">
+          <div id="mReq">
+            <div class="rq-head">
+              <div class="ph"><h1>Requests</h1><div class="right"><span class="btn out">Raised by you</span></div></div>
+              <div class="tabs"><span class="tab on">All</span><span class="tab">Approvals</span><span class="tab">Inputs</span><span class="tab">Mentions</span></div>
+            </div>
+            <div class="rq-body">
+              <div class="rq-list">
+                <div class="rq-srch"><div class="s"><span data-fa="faMagnifyingGlass"></span>Search requests…</div><div class="f" data-fa="faBarsFilter"></div></div>
+                <div class="rq-cards">
+                  <div class="rqc"><h3>Approve 8% discount for Van Dijk Metaal</h3><div class="meta"><span>23 Oct 2026, 10:41</span><span class="av16" style="background:hsl(15 45% 45%)">MJ</span></div></div>
+                  <div class="rqc"><h3>Confirm delivery date for Kuipers Hout</h3><div class="meta"><span>22 Oct 2026, 16:02</span><span class="av16" style="background:hsl(15 45% 45%)">MJ</span></div></div>
+                  <div class="rqc"><h3>Book invoice 2026-0391 from Smit Elektro</h3><div class="meta"><span>22 Oct 2026, 11:20</span><span class="av16" style="background:hsl(15 45% 45%)">MJ</span></div></div>
+                </div>
+              </div>
+              <div class="rq-handle"></div>
+              <div class="rq-detail"><span class="circ" data-fa="faInbox"></span><span class="big">3 pending tasks assigned to you</span></div>
+            </div>
+          </div>
+          <div id="mTask" style="display:none;position:absolute;inset:0">
+            <div class="crumb"><span>Tasks</span><span data-lu="chevronRight"></span><span class="cur">Approve 8% discount for Van Dijk Metaal</span></div>
+            <div class="tbody">
+              <section class="rcard" id="rcard">
+                <div class="rhead">Requested input from <b>@Mila Jansen</b><span class="sep">•</span>23 October 2026 at 10:41</div>
+                <div class="rbody">
+                  <h2>Approve 8% discount for Van Dijk Metaal</h2>
+                  <hr>
+                  <p class="desc">Van Dijk Metaal asks 8% off their order: €12,300.00 becomes €11,316.00. That's more than the 5% the order desk can give. Eva Visser drafts the sales order in Exact Online once it's approved.</p>
+                  <div class="due">Due today, 16:00</div>
+                  <div class="abtns"><span class="abtn ok" id="approve">Approve</span><span class="abtn no" id="reject">Reject</span></div>
+                  <div class="done" id="done"><span class="ic" data-fa="faCircleCheck"></span><div><b>Approved</b> - You<span class="when">23/10/2026, 10:44 am</span></div></div>
+                </div>
+              </section>
+            </div>
+          </div>
+        </main>
+        <aside class="drawer" id="drM">
+          <div class="dh"><b>Notifications</b><span data-fa="faTimes"></span></div>
+          <div class="nc unread"><div class="t"><span data-fa="faInbox"></span>Eva Visser needs you</div><div class="c">Approve 8% discount for Van Dijk Metaal</div>
+            <div class="a"><span class="xb pri" id="open">Open task</span><span class="xb out">Dismiss</span></div><div class="f"><span class="bdg">Platform</span><span>2 minutes ago</span></div></div>
+          <div class="nc unread"><div class="t"><span data-fa="faClock"></span>Task due in 24 hours</div><div class="c">Confirm delivery date for Kuipers Hout</div>
+            <div class="a"><span class="xb pri">View task</span><span class="xb out">Dismiss</span></div><div class="f"><span class="bdg">Platform</span><span>about 1 hour ago</span></div></div>
+          <div class="nc"><div class="t"><span data-fa="faInbox"></span>Tom de Groot passed you a task</div><div class="c">Book invoice 2026-0391 from Smit Elektro</div>
+            <div class="a"><span class="xb pri">Open task</span></div><div class="f"><span class="bdg">Platform</span><span>1 day ago</span></div></div>
+        </aside>
+      </div>
+      <!-- Eva's screen -->
+      <div class="scene" id="eva" style="visibility:hidden">
+        <div id="sbE"></div>
+        <main class="panel both">
+          <div class="agentpage"><div class="col">
+            <div class="msgs">
+              <div class="msg user"><span class="av">EV</span><div class="bubble">Draft the sales order for Van Dijk Metaal and have Mila approve the 8% discount.</div></div>
+              <div class="msg"><span class="avl"></span><div class="prose">I've sent Mila Jansen a task to approve the 8% discount. I'll draft the sales order as soon as she answers.</div></div>
+            </div>
+            <div class="composer"><div class="ta"><div>Reply to Lleverage…</div></div>
+              <div class="row"><span class="rb lp"></span><div class="r"><span class="model">Opus 5.5 <span class="mchev"></span></span><span class="rb mic"></span><span class="rb call"></span></div></div></div>
+          </div></div>
+        </main>
+        <aside class="drawer" id="drE">
+          <div class="dh"><b>Notifications</b><span data-fa="faTimes"></span></div>
+          <div class="nc unread"><div class="t"><span data-fa="faInbox"></span>Mila Jansen answered your task</div><div class="c">Approve 8% discount for Van Dijk Metaal: Approved – Fine for this order.</div>
+            <div class="a"><span class="xb pri">Open task</span><span class="xb out">Dismiss</span></div><div class="f"><span class="bdg">Platform</span><span>less than a minute ago</span></div></div>
+          <div class="nc"><div class="t"><span data-fa="faClock"></span>Task overdue</div><div class="c">Send the credit note to Bakker Installatietechniek</div>
+            <div class="a"><span class="xb pri">View task</span></div><div class="f"><span class="bdg">Platform</span><span>2 days ago</span></div></div>
+        </aside>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="fa-icons.js"></script>
+<script src="app.js"></script>
+<script src="clip.js"></script>
+<script src="chapter.js"></script>
+<script>
+  CHAPTER({ n: 1, total: 7, module: "Requests", footerLeft: "Feature Drop · Week 44",
+    title: "Know when a task<br><em>needs you.</em>",
+    line: "People hear about their tasks: when one is raised or passed to them, a day before it's due, when it's overdue or expires, and when one they asked for is answered or declined. In the app under the bell, and by email." });
+  const D = 10.4;
+  window.HOLDS = [[3.6, 0.9], [6.7, 0.9], [9.6, 1.3]];
+  const { $, $$, p, out, io } = C;
+  $("#sbM").outerHTML = APP.sidebar("Requests", "Order intake", { bell: 2, recents: ["Kuipers Hout delivery dates", "Credit notes this week"] });
+  $("#sbE").outerHTML = APP.sidebar("Van Dijk Metaal order", "Order intake", { bell: 1, recents: ["Van Dijk Metaal order", "Invoices waiting on a PO"] });
+  const [sbM, sbE] = $$(".sb");
+  $$("[data-fa]").forEach((el) => (el.innerHTML = fa(el.dataset.fa)));
+  $$("[data-lu]").forEach((el) => (el.innerHTML = lu(el.dataset.lu)));
+  $$(".avl").forEach((el) => (el.innerHTML = `<span style="display:block;margin-top:2px;color:hsl(var(--foreground))">${APP.loader(20)}</span>`));
+  $$(".mchev").forEach((el) => (el.innerHTML = fa("faChevronDown", "", "width:9px;height:9px")));
+  $$(".lp").forEach((el) => (el.innerHTML = lu("plus", "", "width:16px;height:16px")));
+  $$(".mic").forEach((el) => (el.innerHTML = fa("faMicrophone")));
+  $$(".call").forEach((el) => (el.innerHTML = fa("s:faPhoneFlip")));
+  const bellM = $("#sb-bell", sbM), bellE = $("#sb-bell", sbE);
+
+  const app = $("#app");
+  const at = (el, fx = 0.5, fy = 0.5) => { const a = app.getBoundingClientRect(), r = el.getBoundingClientRect(), s = a.width / 1280;
+    return [(r.left - a.left + r.width * fx) / s, (r.top - a.top + r.height * fy) / s]; };
+  $("#mTask").style.display = "block"; $("#done").style.display = "none";
+  const P = { bellM: at(bellM), open: at($("#open")), ok: at($("#approve")), bellE: at(bellE) };
+  $("#mTask").style.display = "none";
+  const VW = C.STAGE_W, VH = C.STAGE_H, FIT = Math.min(VW / 1280, VH / C.APP_H) * 0.98;
+  const fit = (x0, y0, x1, y1) => { const s = Math.min(VW / (x1 - x0), VH / (y1 - y0)); return [(x0 + x1) / 2, (y0 + y1) / 2 + (VH / s - (y1 - y0)) / 2, s]; };
+  // The one zoom: the drawer's top, header to the third notification, framed on the drawer's sides.
+  const n3 = at($$("#drM .nc")[2], 1, 1);
+  const DRAW = fit(1280 - 400 - 16, 0, 1280, n3[1] + 12);
+  const FULL = [640, C.APP_H / 2, FIT];
+  const cam = C.camera(app, VW, VH, [[0, ...FULL], [2.95, ...FULL], [3.5, ...DRAW], [4.75, ...DRAW], [5.3, ...FULL], [D, ...FULL]]);
+  const F = (t, [x, y]) => { const m = cam(t).map(x, y); return [C.STAGE_X + m[0], C.STAGE_Y + m[1]]; };
+  const OFF = (fx) => [C.W * fx, C.H + 40];
+  const cur = C.cursor([[2.0, ...OFF(0.2)], [2.5, ...F(2.5, P.bellM), true], [2.8, ...OFF(0.35)],
+    [3.8, ...OFF(0.75)], [4.3, ...F(4.3, P.open), true], [4.6, ...OFF(0.8)],
+    [5.6, ...OFF(0.45)], [6.15, ...F(6.15, P.ok), true], [6.6, ...OFF(0.5)],
+    [7.9, ...OFF(0.2)], [8.4, ...F(8.4, P.bellE), true], [8.75, ...OFF(0.35)]]);
+  const cap = C.captions([
+    [1.9, 4.6, "A task for you?<br><em>The bell tells you.</em>"],
+    [4.9, 7.1, "Open it<br><em>and answer.</em>"],
+    [7.4, 99, "Eva hears back<br><em>as soon as Mila answers.</em>"],
+  ]);
+  cam(0);
+  C.run(D, (t) => {
+    cap(t); cam(t); cur(t);
+    // Beat 1: Mila's bell opens the drawer.
+    const dM = out(p(t, 2.55, 2.85)) * (1 - io(p(t, 4.35, 4.6)));
+    $("#drM").style.display = dM > 0 ? "flex" : "none"; $("#drM").style.transform = `translateX(${(1 - dM) * 400}px)`;
+    $(".sb-ic", bellM.parentNode); bellM.classList.toggle("on", dM > 0.5);
+    $(".sb-bc", bellM).style.display = t >= 4.4 ? "none" : "";
+    $("#open").classList.toggle("press", t >= 4.25 && t < 4.4);
+    // Beat 2: the task opens; she approves.
+    const task = t >= 4.4;
+    $("#mReq").style.display = task ? "none" : ""; $("#mTask").style.display = task ? "block" : "none";
+    const tk = out(p(t, 4.4, 4.7)); $("#mTask").style.opacity = tk;
+    const answered = t >= 6.25;
+    $("#approve").classList.toggle("press", t >= 6.1 && !answered);
+    $("#rcard").classList.toggle("res", answered);
+    $("#done").style.display = answered ? "" : "none";
+    $("#approve").style.opacity = answered ? 0.4 : 1; $("#reject").style.opacity = answered ? 0.25 : 1;
+    const d = out(p(t, 6.25, 6.5)); $("#done").style.opacity = d; $("#done").style.transform = `translateY(${(1 - d) * 6}px)`;
+    $$(".nav", sbM).forEach((n) => n.classList.toggle("on", !task && n.textContent.trim().startsWith("Requests")));
+    // Beat 3: Eva's screen; her bell has one; the drawer shows Mila's answer.
+    const sw = io(p(t, 7.3, 7.7));
+    $("#mila").style.opacity = 1 - sw; $("#eva").style.opacity = sw;
+    $("#mila").style.visibility = sw < 1 ? "visible" : "hidden"; $("#eva").style.visibility = sw > 0 ? "visible" : "hidden";
+    const dE = out(p(t, 8.45, 8.75));
+    $("#drE").style.display = dE > 0 ? "flex" : "none"; $("#drE").style.transform = `translateX(${(1 - dE) * 400}px)`;
+    bellE.classList.toggle("on", dE > 0.5);
+  });
+</script>
+</body></html>
