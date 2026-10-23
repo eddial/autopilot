@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<title>Date metrics</title>
+<link rel="stylesheet" href="clip.css">
+<link rel="stylesheet" href="app.css">
+<link rel="stylesheet" href="chapter.css">
+<style>
+  .app { --ring: 60 7% 60%; }
+  .scene { position: absolute; inset: 0; }
+  .scene .ph { padding-top: 16px; }
+  /* Control → Metrics (metrics-tab.tsx): New metric, then the table Name / Type / Unit / Created at. */
+  .mt-top { display: flex; justify-content: flex-end; margin: 16px 32px 0; }
+  .tbl { margin: 12px 32px 0; border: 1px solid hsl(var(--border)); border-radius: 8px; background: hsl(var(--card)); overflow: hidden; }
+  .tbl .r { display: grid; align-items: center; gap: 12px; height: 44px; padding: 0 14px; border-top: 1px solid hsl(var(--border)); }
+  .tbl .r.h { border-top: 0; height: 40px; font-weight: 600; font-size: 12px; color: hsl(var(--muted-foreground)); }
+  .mtbl .r { grid-template-columns: 1.4fr 0.6fr 0.5fr 0.8fr 24px; }
+  .mtbl .r svg { width: 13px; height: 13px; color: hsl(var(--muted-foreground)); }
+  .mtbl .r.new { background: hsl(var(--highlight) / .08); }
+  /* metric-form-dialog.tsx: "Create New Metric", fields gap-4, labels text-xs medium, Cancel / Create Metric. */
+  .ovl { position: absolute; inset: 0; background: rgb(0 0 0 / .4); z-index: 4; }
+  .dlg { position: absolute; left: 50%; top: 150px; width: 512px; transform: translateX(-50%); border: 1px solid hsl(var(--border)); border-radius: 8px; background: hsl(var(--background)); box-shadow: 0 10px 30px rgb(0 0 0 / .18); padding: 24px; z-index: 5; display: flex; flex-direction: column; gap: 16px; }
+  .dlg .t b { display: block; font-size: 18px; line-height: 28px; font-weight: 600; }
+  .dlg .t span { font-size: 13px; color: hsl(var(--muted-foreground)); }
+  .fld { display: flex; flex-direction: column; gap: 6px; position: relative; }
+  .fld label { font-size: 12px; line-height: 16px; font-weight: 500; }
+  .fld label i { font-style: normal; color: hsl(var(--destructive)); margin-left: 2px; }
+  .inp { height: 36px; border: 1px solid hsl(var(--input)); border-radius: 6px; background: hsl(var(--background)); display: flex; align-items: center; justify-content: space-between; padding: 0 12px; white-space: nowrap; }
+  .inp.ph { color: hsl(var(--muted-foreground)); }
+  .inp.foc { box-shadow: 0 0 0 2px hsl(var(--background)), 0 0 0 4px hsl(var(--ring)); }
+  .inp svg { width: 12px; height: 12px; color: hsl(var(--muted-foreground)); }
+  .caret { display: inline-block; width: 1px; height: 16px; background: hsl(var(--foreground)); margin-left: 1px; }
+  .menu { position: absolute; left: 0; right: 0; top: 62px; border: 1px solid hsl(var(--border)); border-radius: 6px; background: hsl(var(--background)); box-shadow: 0 4px 12px rgb(0 0 0 / .1); padding: 4px; display: none; z-index: 2; }
+  .menu div { padding: 6px 8px; border-radius: 4px; }
+  .menu div.hov { background: hsl(var(--accent)); }
+  .acts { display: flex; justify-content: flex-end; gap: 8px; }
+  .btn.press { filter: brightness(1.4); }
+
+  /* Monitoring → Activity: filter row, the sessions table with the metric column. */
+  .frow { display: flex; align-items: center; gap: 8px; margin: 16px 32px 0; position: relative; }
+  .frow .s { width: 260px; height: 32px; border: 1px solid hsl(var(--input)); border-radius: 6px; background: hsl(var(--background)); display: flex; align-items: center; gap: 8px; padding: 0 10px; color: hsl(var(--muted-foreground)); }
+  .frow .s svg, .fb svg { width: 12px; height: 12px; }
+  .fb { height: 32px; display: inline-flex; align-items: center; gap: 6px; padding: 0 10px; border: 1px solid hsl(var(--input)); border-radius: 6px; background: hsl(var(--background)); font-weight: 500; }
+  .chip { height: 32px; display: none; align-items: center; border: 1px solid hsl(var(--border)); border-radius: 6px; background: hsl(var(--background)); }
+  .chip .v { display: flex; align-items: center; gap: 6px; padding: 0 8px; font-size: 13px; }
+  .chip .v svg, .chip .x svg { width: 10px; height: 10px; }
+  .chip .x { align-self: stretch; display: grid; place-items: center; padding: 0 6px; border-left: 1px solid hsl(var(--border)); }
+  .atbl .r { grid-template-columns: 24px 1.3fr 1fr 0.6fr 1fr; }
+  .atbl .ok { color: hsl(var(--success)); } .atbl .ok svg { width: 14px; height: 14px; }
+  .atbl .tn { font-variant-numeric: tabular-nums; }
+  /* Filter menu and the metric sub-panel (metric-filter.tsx: min-w-220 p-2 gap-2; operator h-8 text-xs; DatePicker xs). */
+  .pop { position: absolute; top: 38px; border: 1px solid hsl(var(--border)); border-radius: 6px; background: hsl(var(--background)); box-shadow: 0 4px 12px rgb(0 0 0 / .1); display: none; z-index: 3; }
+  .fm { left: 268px; width: 240px; padding: 4px; }
+  .fm div { display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-radius: 4px; }
+  .fm div svg { width: 12px; height: 12px; color: hsl(var(--muted-foreground)); }
+  .fm div.hov { background: hsl(var(--accent)); }
+  .mf { left: 268px; width: 260px; }
+  .mf .bh { display: flex; align-items: center; gap: 8px; padding: 12px; border-bottom: 1px solid hsl(var(--border)); font-weight: 500; }
+  .mf .bh svg { width: 10px; height: 10px; color: hsl(var(--muted-foreground)); }
+  .mf .bdy { display: flex; flex-direction: column; gap: 8px; padding: 8px; }
+  .mf .sm { height: 32px; border: 1px solid hsl(var(--input)); border-radius: 8px; display: flex; align-items: center; justify-content: space-between; padding: 0 10px; font-size: 12px; background: hsl(var(--background)); }
+  .mf .sm svg { width: 12px; height: 12px; color: hsl(var(--muted-foreground)); }
+  .mf .dp { justify-content: flex-start; gap: 8px; }
+  .mf .dp.ph { color: hsl(var(--muted-foreground)); }
+  .mf .ft { display: flex; gap: 8px; padding-top: 4px; }
+  .mf .ft .btn { flex: 1; justify-content: center; height: 32px; font-size: 12px; }
+  /* shadcn Calendar in a popover */
+  .cal { position: absolute; left: 536px; top: 38px; width: 252px; padding: 12px; border: 1px solid hsl(var(--border)); border-radius: 6px; background: hsl(var(--background)); box-shadow: 0 4px 12px rgb(0 0 0 / .1); display: none; z-index: 3; }
+  .cal .cap { display: flex; align-items: center; justify-content: space-between; height: 28px; font-weight: 500; }
+  .cal .cap span { width: 28px; height: 28px; border: 1px solid hsl(var(--input)); border-radius: 6px; display: grid; place-items: center; color: hsl(var(--muted-foreground)); }
+  .cal .cap svg { width: 10px; height: 10px; }
+  .cal .g { margin-top: 12px; display: grid; grid-template-columns: repeat(7, 32px); gap: 2px 0; font-size: 13px; }
+  .cal .g b { font-weight: 400; font-size: 12px; color: hsl(var(--muted-foreground)); text-align: center; height: 24px; }
+  .cal .g span { height: 32px; display: grid; place-items: center; border-radius: 6px; }
+  .cal .g span.o { color: hsl(var(--muted-foreground)); opacity: .5; }
+  .cal .g span.td { background: hsl(var(--accent)); }
+  .cal .g span.sel { background: hsl(var(--primary)); color: hsl(var(--primary-foreground)); }
+  .cal .g span.hov { background: hsl(var(--accent)); }
+</style></head>
+<body>
+<div class="frame">
+  <div class="stage">
+    <div class="app" id="app">
+      <div id="sb"></div>
+      <main class="panel">
+        <!-- Control → Metrics -->
+        <div class="scene" id="met">
+          <div class="ph"><h1>Metrics</h1></div>
+          <div class="mt-top"><span class="btn pri" style="height:32px"><span data-fa="faPlus"></span>New metric</span></div>
+          <div class="tbl mtbl">
+            <div class="r h"><span>Name</span><span>Type</span><span>Unit</span><span>Created at</span><span></span></div>
+            <div class="r new" id="newRow" style="display:none"><span>Promised delivery date</span><span>Date</span><span>—</span><span>23 Oct 2026</span><span data-fa="faEllipsis"></span></div>
+            <div class="r"><span>Order value</span><span>Number</span><span>EUR</span><span>2 Oct 2026</span><span data-fa="faEllipsis"></span></div>
+            <div class="r"><span>Lines per order</span><span>Number</span><span>lines</span><span>2 Oct 2026</span><span data-fa="faEllipsis"></span></div>
+            <div class="r"><span>Order channel</span><span>Enum</span><span>—</span><span>18 Sep 2026</span><span data-fa="faEllipsis"></span></div>
+            <div class="r"><span>Needed a person</span><span>Boolean</span><span>—</span><span>18 Sep 2026</span><span data-fa="faEllipsis"></span></div>
+          </div>
+          <div class="ovl" id="ovl"></div>
+          <div class="dlg" id="dlg">
+            <div class="t"><b>Create New Metric</b><span>Define a new metric to track in your workflows</span></div>
+            <div class="fld"><label>Name<i>*</i></label><div class="inp" id="name"></div></div>
+            <div class="fld"><label>Description</label><div class="inp" id="desc">The delivery date the order confirmation promises</div></div>
+            <div class="fld" id="vtf"><label>Value Type<i>*</i></label><div class="inp" id="vt"><span id="vtv">Number</span><span data-fa="faChevronDown"></span></div>
+              <div class="menu" id="vmenu"><div>Number</div><div>String</div><div>Boolean</div><div>Enum</div><div id="optDate">Date</div></div></div>
+            <div class="fld" id="unitf"><label>Unit</label><div class="inp ph">e.g., ms, tokens, %</div></div>
+            <div class="acts"><span class="btn out">Cancel</span><span class="btn pri" id="create">Create Metric</span></div>
+          </div>
+        </div>
+        <!-- Monitoring → Activity -->
+        <div class="scene" id="act" style="visibility:hidden">
+          <div class="ph"><h1>Activity</h1></div>
+          <div class="frow">
+            <div class="s"><span data-fa="faMagnifyingGlass"></span>Search sessions…</div>
+            <span class="fb" id="fbtn"><span data-fa="faBarsFilter"></span>Filter</span>
+            <span class="chip" id="chip"><span class="v"><span data-fa="faChartLine"></span>Promised delivery date On 30 Oct 2026</span><span class="x" data-fa="faXmark"></span></span>
+            <div class="pop fm" id="fm"><div><span data-fa="faCalendar"></span>Date</div><div><span data-fa="faSitemap"></span>Workflow</div><div><span data-fa="faWaveSquare"></span>Status</div><div><span data-fa="faChartLine"></span>Order value</div><div id="optPdd"><span data-fa="faChartLine"></span>Promised delivery date</div><div><span data-fa="faSliders"></span>Advanced</div></div>
+            <div class="pop mf" id="mf"><div class="bh"><span data-fa="faChevronLeft"></span>Promised delivery date</div>
+              <div class="bdy"><div class="sm">On<span data-fa="faChevronDown"></span></div><div class="sm dp ph" id="dp"><span data-lu="calendar"></span><span id="dpv">Select date</span></div>
+                <div class="ft"><span class="btn pri" id="apply">Apply</span></div></div></div>
+            <div class="cal" id="cal"><div class="cap"><span data-fa="faChevronLeft"></span>October 2026<span data-fa="faChevronRight"></span></div><div class="g" id="cg"></div></div>
+          </div>
+          <div class="tbl atbl">
+            <div class="r h"><span></span><span>Workflow</span><span>Started</span><span>Duration</span><span>Promised delivery date</span></div>
+            <div id="rows"></div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+</div>
+<script src="fa-icons.js"></script>
+<script src="app.js"></script>
+<script src="clip.js"></script>
+<script src="chapter.js"></script>
+<script>
+  CHAPTER({ n: 7, total: 7, module: "Monitoring", footerLeft: "Feature Drop · Week 44",
+    title: "Track a date<br><em>with every run.</em>",
+    line: "A metric can hold a date: the Track Metric step records a day, Activity shows it as a date, and Activity and Requests filter on it with a date picker." });
+  const D = 11.6;
+  window.HOLDS = [[4.8, 0.9], [7.0, 0.6], [10.6, 1.4]];
+  const { $, $$, p, out, io } = C;
+  $("#sb").outerHTML = APP.sidebar("Control");
+  const sb = $(".sb");
+  LU.calendar = '<path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/>';
+  $$("[data-fa]").forEach((el) => (el.innerHTML = fa(el.dataset.fa)));
+  $$("[data-lu]").forEach((el) => (el.innerHTML = lu(el.dataset.lu, "", "width:12px;height:12px")));
+  // Order intake runs, each recording the promised delivery date from the order confirmation.
+  const RUNS = [["Order intake from email", "23 Oct, 10:52", "12s", "30 Oct 2026"], ["Order intake from email", "23 Oct, 10:31", "14s", "4 Nov 2026"], ["Order intake from email", "23 Oct, 10:14", "11s", "30 Oct 2026"],
+    ["Order intake from email", "23 Oct, 09:47", "13s", "28 Oct 2026"], ["Order intake from email", "23 Oct, 09:20", "12s", "3 Nov 2026"], ["Order intake from email", "22 Oct, 16:05", "15s", "29 Oct 2026"]];
+  $("#rows").innerHTML = RUNS.map(([w, s, d, m]) => `<div class="r" data-m="${m}"><span class="ok">${fa("faCircleCheck")}</span><span>${w}</span><span>${s}</span><span>${d}</span><span class="tn">${m}</span></div>`).join("");
+  // October 2026 starts on a Thursday.
+  const cells = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"].map((d) => `<b>${d}</b>`).concat([27, 28, 29, 30].map((d) => `<span class="o">${d}</span>`), Array.from({ length: 31 }, (_, i) => `<span${i + 1 === 23 ? ' class="td"' : ""} data-d="${i + 1}">${i + 1}</span>`));
+  $("#cg").innerHTML = cells.join("");
+  const d30 = $('#cg [data-d="30"]');
+
+  const app = $("#app");
+  const at = (el, fx = 0.5, fy = 0.5) => { const a = app.getBoundingClientRect(), r = el.getBoundingClientRect(), s = a.width / 1280;
+    return [(r.left - a.left + r.width * fx) / s, (r.top - a.top + r.height * fy) / s]; };
+  // Measure each click in its layout: the value menu open; on Activity, the filter menu, the sub-panel, the calendar.
+  $("#vmenu").style.display = "block";
+  const P = { name: at($("#name"), 0.3), vt: at($("#vt"), 0.3), date: at($("#optDate"), 0.3) };
+  $("#vmenu").style.display = "";
+  $("#unitf").style.display = "none"; P.create = at($("#create")); $("#unitf").style.display = "";
+  const g0 = at($("#dlg"), 0, 0), g1 = at($("#dlg"), 1, 1);
+  $("#act").style.visibility = "visible";
+  $("#fm").style.display = "block"; P.fbtn = at($("#fbtn")); P.pdd = at($("#optPdd"), 0.4); $("#fm").style.display = "";
+  $("#mf").style.display = "block"; $("#cal").style.display = "block"; P.dp = at($("#dp"), 0.4); P.d30 = at(d30); P.apply = at($("#apply"));
+  const f0 = at($(".frow"), 0, 0), c1 = at($("#cal"), 1, 1), t1 = at($(".atbl"), 1, 1);
+  $("#mf").style.display = ""; $("#cal").style.display = ""; $("#act").style.visibility = "hidden";
+  const VW = C.STAGE_W, VH = C.STAGE_H, FIT = Math.min(VW / 1280, VH / C.APP_H) * 0.98;
+  const fit = (x0, y0, x1, y1) => { const s = Math.min(VW / (x1 - x0), VH / (y1 - y0)); return [(x0 + x1) / 2, (y0 + y1) / 2 + (VH / s - (y1 - y0)) / 2, s]; };
+  // The one zoom: the Create New Metric dialog, framed on its edges.
+  const ZOOM = fit(g0[0] - 28, g0[1] - 28, g1[0] + 28, g1[1] + 64);
+  const FULL = [640, C.APP_H / 2, FIT];
+  const cam = C.camera(app, VW, VH, [[0, ...FULL], [1.9, ...FULL], [2.35, ...ZOOM], [4.6, ...ZOOM], [5.15, ...FULL], [D, ...FULL]]);
+  const F = (t, [x, y]) => { const m = cam(t).map(x, y); return [C.STAGE_X + m[0], C.STAGE_Y + m[1]]; };
+  const OFF = (fx) => [C.W * fx, C.H + 40];
+  const cur = C.cursor([[2.0, ...OFF(0.5)], [2.4, ...F(2.4, P.name), true], [3.0, ...F(3.0, P.name)], [3.35, ...F(3.35, P.vt), true], [3.55, ...F(3.55, P.vt)], [3.95, ...F(3.95, P.date), true], [4.3, ...F(4.3, P.create)], [4.55, ...F(4.55, P.create), true], [5.0, ...OFF(0.6)],
+    [6.3, ...OFF(0.4)], [6.75, ...F(6.75, P.fbtn), true], [7.2, ...F(7.2, P.pdd), true], [7.65, ...F(7.65, P.dp), true], [8.15, ...F(8.15, P.d30), true], [8.6, ...F(8.6, P.apply), true], [9.1, ...OFF(0.55)]]);
+  const cap = C.captions([
+    [1.9, 5.5, "A metric can be a date.<br><em>Pick Date as its type.</em>"],
+    [5.8, 99, "Activity shows the day,<br><em>and filters on it.</em>"],
+  ]);
+  const NAME = "Promised delivery date";
+  C.typing(2.45, 3.0);
+  cam(0);
+  C.run(D, (t) => {
+    cap(t); cam(t); cur(t);
+    // Beat 1: name, Value Type → Date (the Unit field goes), Create Metric; the row lands in the table.
+    const nf = t >= 2.4 && t < 3.3, n = Math.round(NAME.length * p(t, 2.45, 3.0));
+    $("#name").innerHTML = (n ? NAME.slice(0, n) : "") + (nf ? '<span class="caret"></span>' : "");
+    if (!n && !nf) $("#name").innerHTML = '<span style="color:hsl(var(--muted-foreground))">e.g., Response Time, Token Count</span>';
+    $("#name").classList.toggle("foc", nf);
+    const vm = t >= 3.4 && t < 4.0, dt = t >= 4.0;
+    $("#vmenu").style.display = vm ? "block" : "none"; $("#vt").classList.toggle("foc", vm);
+    $("#optDate").classList.toggle("hov", t >= 3.8 && t < 4.0);
+    $("#vtv").textContent = dt ? "Date" : "Number";
+    $("#unitf").style.display = dt ? "none" : "";
+    $("#create").classList.toggle("press", t >= 4.5 && t < 4.6);
+    const gone = io(p(t, 4.6, 4.85));
+    $("#dlg").style.opacity = 1 - gone; $("#ovl").style.opacity = 1 - gone;
+    $("#dlg").style.display = gone >= 1 ? "none" : "flex"; $("#ovl").style.display = gone >= 1 ? "none" : "";
+    $("#newRow").style.display = t >= 4.7 ? "grid" : "none";
+    // Beat 2: Activity, the date column; filter on 30 Oct.
+    const sw = io(p(t, 5.4, 5.8));
+    $("#met").style.opacity = 1 - sw; $("#act").style.opacity = sw;
+    $("#met").style.visibility = sw < 1 ? "visible" : "hidden"; $("#act").style.visibility = sw > 0 ? "visible" : "hidden";
+    $$(".nav", sb).forEach((nv) => { const l = nv.textContent.trim(); nv.classList.toggle("on", sw < 0.5 ? l === "Control" : l === "Monitoring"); });
+    const fmOn = t >= 6.8 && t < 7.25, mfOn = t >= 7.25 && t < 8.65, calOn = t >= 7.7 && t < 8.2, picked = t >= 8.2, applied = t >= 8.65;
+    $("#fm").style.display = fmOn ? "block" : "none"; $("#optPdd").classList.toggle("hov", t >= 7.05 && t < 7.25);
+    $("#mf").style.display = mfOn ? "block" : "none"; $("#cal").style.display = calOn ? "block" : "none";
+    d30.className = picked ? "sel" : t >= 8.0 && t < 8.2 ? "hov" : "";
+    $("#dpv").textContent = picked ? "October 30, 2026" : "Select date"; $("#dp").classList.toggle("ph", !picked);
+    $("#apply").classList.toggle("press", t >= 8.55 && !applied); $("#apply").style.opacity = picked ? 1 : 0.5;
+    $("#chip").style.display = applied ? "flex" : "none";
+    $$("#rows .r").forEach((r) => (r.style.display = !applied || r.dataset.m === "30 Oct 2026" ? "grid" : "none"));
+  });
+</script>
+</body></html>

@@ -1,0 +1,238 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<title>Reassign a person for the rest of a run</title>
+<link rel="stylesheet" href="clip.css">
+<link rel="stylesheet" href="app.css">
+<link rel="stylesheet" href="chapter.css">
+<style>
+  /* requests-inbox-page.tsx (origin/main 23 Oct): header "Requests" with "Raised by you" + the overview toggle, tabs,
+     then the body (px-8 pt-4): list panel (22%, min 220px), an 8px handle (PR 8996), the detail panel. */
+  .app { --ring: 60 7% 60%; --secondary-foreground: 83 11% 14.1%; }
+  .rq-head { padding: 16px 32px 0; }
+  .rq-head .ph { padding: 0; }
+  .ovt { width: 32px; height: 32px; border: 1px solid hsl(var(--input)); border-radius: 6px; background: hsl(var(--background)); display: grid; place-items: center; color: hsl(var(--muted-foreground)); }
+  .ovt svg { width: 16px; height: 16px; }
+  .rq-head .tabs { margin-top: 12px; }
+  .rq-head .tabs .add { margin-left: -12px; width: 28px; height: 28px; display: grid; place-items: center; color: hsl(var(--muted-foreground)); }
+  .rq-head .tabs .add svg { width: 16px; height: 16px; }
+  .rq-body { position: absolute; left: 32px; right: 32px; top: 100px; bottom: 0; display: flex; padding-top: 16px; }
+  .rq-list { width: 248px; flex: none; display: flex; flex-direction: column; padding: 12px 0; }
+  .rq-handle { width: 8px; flex: none; }
+  .rq-detail { flex: 1; min-width: 0; border-radius: 8px; background: hsl(var(--background)); position: relative; }
+  /* Filter row: search, filter (md-icon 40px), hide-list toggle (PR 8998) */
+  .rq-srch { display: flex; gap: 8px; padding-bottom: 8px; }
+  .rq-srch .s { flex: 1; min-width: 0; height: 40px; border: 1px solid hsl(var(--input)); border-radius: 8px; background: hsl(var(--background)); display: flex; align-items: center; gap: 10px; padding: 0 12px; color: hsl(var(--muted-foreground)); white-space: nowrap; overflow: hidden; }
+  .rq-srch .s svg { width: 13px; height: 13px; }
+  .rq-srch .f { width: 40px; height: 40px; flex: none; border: 1px solid hsl(var(--input)); border-radius: 6px; background: hsl(var(--background)); display: grid; place-items: center; color: hsl(var(--muted-foreground)); }
+  .rq-srch .f svg { width: 13px; height: 13px; }
+  .rq-srch .f.tg svg { width: 16px; height: 16px; }
+  /* requests-list.tsx: card rounded-lg border p-2.5; title text-13 medium line-clamp-2, hugging its height (PR 8989) */
+  .rq-cards { display: flex; flex-direction: column; gap: 4px; }
+  .rqc { border: 1px solid hsl(var(--border)); border-radius: 8px; padding: 10px; }
+  .rqc.sel { border-color: hsl(var(--highlight)); background: hsl(var(--highlight) / .1); }
+  .rqc h3 { margin: 0; font-size: 13px; line-height: 20px; font-weight: 500; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .rqc .meta { margin-top: 12px; display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 10px; line-height: 14px; color: hsl(var(--muted-foreground)); }
+  .rqc .r { display: flex; align-items: center; gap: 8px; }
+  .prio { display: flex; height: 12px; align-items: flex-end; gap: 1px; }
+  .prio i { width: 3px; border-radius: 2px; background: hsl(var(--border)); }
+  .prio i.on { background: hsl(var(--muted-foreground)); } .prio.high i.on { background: hsl(var(--warning)); }
+  .av { width: 16px; height: 16px; border-radius: 999px; display: grid; place-items: center; color: #fff; font-size: 9px; font-weight: 600; }
+  /* request-detail-panel.tsx: scroll column p-4, then the request's form card */
+  .dt { padding: 16px; }
+  /* element-card.tsx RequestElementCard kind=form; header band request-input-header.tsx */
+  .ec { border: 1px solid hsl(var(--input)); border-radius: 12px; overflow: hidden; background: hsl(var(--card)); box-shadow: 0 1px 2px rgb(0 0 0 / .05); }
+  .ec .hb { border-bottom: 1px solid hsl(var(--muted)); background: hsl(var(--muted)); padding: 10px 16px; font-size: 12px; line-height: 16px; color: hsl(var(--muted-foreground)); display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .ec .hb .l { display: flex; align-items: center; gap: 6px; }
+  .ec .hb .chev svg { width: 10px; height: 10px; transition: none; }
+  .ec .hb b { font-weight: 600; color: hsl(var(--foreground)); }
+  .ec .hb .dot { margin: 0 6px; opacity: .5; }
+  .ec .hb .pen { width: 20px; height: 20px; border-radius: 4px; display: grid; place-items: center; color: hsl(var(--muted-foreground)); }
+  .ec .hb .pen.on { background: hsl(var(--accent)); color: hsl(var(--foreground)); }
+  .ec .hb .pen svg { width: 12px; height: 12px; }
+  /* Assignee history under the band: ml-1 border-l pl-3 space-y-1 opacity-80 */
+  .hist { display: none; padding: 8px 16px 10px; border-bottom: 1px solid hsl(var(--muted)); background: hsl(var(--muted)); font-size: 12px; line-height: 16px; color: hsl(var(--muted-foreground)); }
+  .hist ul { margin: 0 0 0 4px; padding: 0 0 0 12px; list-style: none; border-left: 1px solid hsl(var(--border)); opacity: .8; }
+  .hist li + li { margin-top: 4px; }
+  .hist b { font-weight: 600; color: hsl(var(--foreground)); }
+  .ec .bd { padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+  .fh3 { margin: 0; font-size: 13px; line-height: 20px; font-weight: 600; }
+  .fdesc { padding-bottom: 8px; color: hsl(var(--muted-foreground)); font-size: 14px; line-height: 24px; margin-top: -12px; }
+  .frow { display: flex; flex-wrap: wrap; gap: 16px; }
+  .fi { display: flex; flex-direction: column; gap: 4px; width: 100%; }
+  .fi.md { width: calc(50% - 8px); } .fi.sm { width: calc(33.333% - 10.67px); }
+  .fi label { font-size: 13px; line-height: 1; font-weight: 500; display: flex; align-items: center; height: 16px; }
+  .fi label .req { color: hsl(var(--destructive)); margin-left: 4px; }
+  .inp { position: relative; min-height: 36px; border: 1px solid hsl(var(--input)); border-radius: 8px; background: hsl(var(--background)); padding: 8px 12px; font-size: 13px; line-height: 20px; display: flex; align-items: center; justify-content: space-between; white-space: nowrap; }
+  .inp svg { width: 12px; height: 12px; color: hsl(var(--muted-foreground)); }
+  .sub { display: flex; gap: 8px; }
+  .sub .btn.pri { border: 1px solid hsl(var(--primary)); height: 32px; font-size: 13px; }
+
+  /* The reassign popover (PR 8995): PopoverContent align=end side=bottom, w-[320px] p-0; AssigneeChecklist (cmdk). */
+  .pop { position: absolute; width: 320px; display: none; flex-direction: column; border: 1px solid hsl(var(--border)); border-radius: 6px;
+    background: hsl(var(--background)); box-shadow: 0 4px 6px -1px rgb(0 0 0 / .1), 0 2px 4px -2px rgb(0 0 0 / .1); z-index: 5; }
+  .pop .srch { display: flex; align-items: center; gap: 8px; height: 44px; padding: 0 12px; border-bottom: 1px solid hsl(var(--border)); color: hsl(var(--muted-foreground)); font-size: 13px; }
+  .pop .srch svg { width: 14px; height: 14px; opacity: .5; }
+  .pop .list { padding: 4px; }
+  .pop .gh { padding: 6px 8px; font-size: 12px; line-height: 16px; font-weight: 500; color: hsl(var(--muted-foreground)); }
+  .pop .it { display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-radius: 4px; }
+  .pop .it.hov { background: hsl(var(--accent)); }
+  .cb { width: 16px; height: 16px; flex: none; border: 1px solid hsl(var(--primary)); border-radius: 4px; display: grid; place-items: center; }
+  .cb.on { background: hsl(var(--primary)); color: hsl(var(--primary-foreground)); }
+  .cb svg { width: 10px; height: 10px; }
+  .pop .av5 { width: 20px; height: 20px; flex: none; border-radius: 999px; display: grid; place-items: center; color: #fff; font-size: 9px; font-weight: 600; }
+  .pop .nm { display: flex; flex-direction: column; min-width: 0; }
+  .pop .nm span { font-size: 13px; line-height: 18px; }
+  .pop .nm small { font-size: 12px; line-height: 16px; color: hsl(var(--muted-foreground)); }
+  .pop .rd { width: 16px; height: 16px; flex: none; border-radius: 999px; }
+  .pop .ft { display: flex; justify-content: flex-end; align-items: center; gap: 4px; border-top: 1px solid hsl(var(--border)); padding: 6px 8px; }
+  .xb { height: 24px; display: inline-flex; align-items: center; padding: 0 8px; border-radius: 4px; font-size: 12px; font-weight: 500; white-space: nowrap; border: 1px solid transparent; }
+  .xb.ic { width: 24px; padding: 0; justify-content: center; color: hsl(var(--muted-foreground)); }
+  .xb.ic svg { width: 12px; height: 12px; }
+  .xb.out { border-color: hsl(var(--input)); background: hsl(var(--background)); }
+  .xb.pri { background: hsl(var(--primary)); color: hsl(var(--primary-foreground)); }
+  .xb.press { filter: brightness(.85); }
+
+  /* Toast (sonner, bottom-right): title + description */
+  .toast { position: absolute; right: 24px; bottom: 24px; width: 356px; padding: 16px; border: 1px solid hsl(var(--border)); border-radius: 8px; background: hsl(var(--background));
+    box-shadow: 0 4px 12px rgb(0 0 0 / .1); display: none; gap: 2px; flex-direction: column; z-index: 6; }
+  .toast b { font-size: 13px; line-height: 20px; font-weight: 600; }
+  .toast span { font-size: 13px; line-height: 20px; color: hsl(var(--muted-foreground)); }
+</style></head>
+<body>
+<div class="frame">
+  <div class="stage">
+    <div class="app" id="app">
+      <div id="sb"></div>
+      <main class="panel">
+        <div class="rq-head">
+          <div class="ph"><h1>Requests</h1><div class="right"><span class="btn out" style="height:32px">Raised by you</span><span class="ovt" id="ovt"></span></div></div>
+          <div class="tabs"><span class="tab">All</span><span class="tab">Approvals</span><span class="tab">Inputs</span><span class="tab">Mentions</span><span class="tab on">To Book</span><span class="add" data-fa="faPlus"></span></div>
+        </div>
+        <div class="rq-body">
+          <div class="rq-list">
+            <div class="rq-srch"><div class="s"><span data-fa="faMagnifyingGlass"></span>Search requests…</div><div class="f" data-fa="faBarsFilter"></div><div class="f tg" id="hide"></div></div>
+            <div class="rq-cards" id="cards"></div>
+          </div>
+          <div class="rq-handle"></div>
+          <div class="rq-detail" id="detail">
+            <div class="dt">
+              <div class="ec" id="card">
+                <div class="hb" id="band"><span class="l"><span class="chev" id="chev"></span><span>Requested input from <b id="who">@Tom de Groot</b><span class="dot">•</span>23 October 2026 at 09:12</span></span><span class="pen" id="pen" data-fa="faPencil"></span></div>
+                <div class="hist" id="hist"><ul>
+                  <li>Assigned to <b>Tom de Groot</b> • 23 Oct 2026, 09:12</li>
+                  <li><b>Eva Visser</b> re-assigned to <b>Mila Jansen</b> • 23 Oct 2026, 10:02</li>
+                </ul></div>
+                <div class="bd">
+                  <h3 class="fh3">Select supplier</h3>
+                  <div class="fdesc">Invoice 2026-0412 came in by email. Pick the supplier it belongs to, then submit to check the invoice against its purchase order.</div>
+                  <div class="frow">
+                    <div class="fi md"><label>Supplier<span class="req">*</span></label><div class="inp">Bakker Installatietechniek <span data-fa="faChevronDown"></span></div></div>
+                    <div class="fi md"><label>Invoice number</label><div class="inp">2026-0412</div></div>
+                    <div class="fi md"><label>PO number</label><div class="inp">4500012877</div></div>
+                    <div class="fi md"><label>Amount (EUR)</label><div class="inp">4,812.50</div></div>
+                  </div>
+                  <div class="sub"><span class="btn pri">Submit</span></div>
+                </div>
+              </div>
+            </div>
+            <div class="pop" id="pop">
+              <div class="srch"><span data-fa="faMagnifyingGlass"></span>Search people...</div>
+              <div class="list">
+                <div class="gh">Project Members</div>
+                <div class="it" id="pEV"><span class="cb"></span><span class="av5" style="background:hsl(280 30% 42%)">EV</span><span class="nm"><span>Eva Visser</span><small>eva.visser@demo.nl</small></span></div>
+                <div class="it" id="pMJ"><span class="cb" id="cbMJ"></span><span class="av5" style="background:hsl(15 45% 45%)">MJ</span><span class="nm"><span>Mila Jansen</span><small>mila.jansen@demo.nl</small></span></div>
+                <div class="it" id="pTG"><span class="cb" id="cbTG"></span><span class="av5" style="background:hsl(170 35% 35%)">TG</span><span class="nm"><span>Tom de Groot</span><small>tom.degroot@demo.nl</small></span></div>
+                <div class="gh">Roles</div>
+                <div class="it"><span class="cb"></span><span class="rd" style="background:hsl(210 45% 45%)"></span><span class="nm"><span>Accounts payable</span></span></div>
+              </div>
+              <div class="ft"><span class="xb ic" data-fa="faTimes"></span><span class="xb out" id="rTask">Reassign task</span><span class="xb pri" id="rPerson">Reassign person</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="toast" id="toast"><b>Assignees updated</b><span>Reassigned for the rest of this run</span></div>
+      </main>
+    </div>
+  </div>
+</div>
+<script src="fa-icons.js"></script>
+<script src="app.js"></script>
+<script src="clip.js"></script>
+<script src="chapter.js"></script>
+<script>
+  CHAPTER({ n: 2, total: 7, module: "Requests", footerLeft: "Feature Drop · Week 44",
+    title: "Hand someone the rest<br><em>of a run.</em>",
+    line: "Reassign a form step to someone else, and Reassign person gives them every open step of that run that was with the first person, not only this one." });
+  const D = 11.6;
+  window.HOLDS = [[5.0, 0.6], [7.9, 1.0], [10.6, 1.2]];
+  const { $, $$, p, out } = C;
+  $("#sb").outerHTML = APP.sidebar("Requests");
+  const SBT = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="X" y1="3" x2="X" y2="21"/></svg>';
+  $("#ovt").innerHTML = SBT.replace(/X/g, 15); $("#hide").innerHTML = SBT.replace(/X/g, 9);
+  const PEOPLE = { EV: "hsl(280 30% 42%)", TG: "hsl(170 35% 35%)", MJ: "hsl(15 45% 45%)" };
+  const prio = (n, hi) => `<span class="prio${hi ? " high" : ""}">${[4, 8, 12].map((h, i) => `<i class="${i < n ? "on" : ""}" style="height:${h}px"></i>`).join("")}</span>`;
+  const REQ = [["Book invoice 2026-0412 from Bakker Installatietechniek", "23 Oct 2026, 09:12", 2, 0, "TG", true],
+    ["Book invoice 2026-0398 from Kuipers Hout", "23 Oct 2026, 08:40", 2, 0, "TG"],
+    ["Book invoice 2026-0391 from Smit Elektro", "22 Oct 2026, 16:05", 3, 1, "TG"],
+    ["Book invoice 2026-0377 from Van Dijk Metaal", "22 Oct 2026, 11:31", 1, 0, "MJ"]];
+  $("#cards").innerHTML = REQ.map(([t, d, n, hi, who, sel], i) => `<div class="rqc${sel ? " sel" : ""}"><h3>${t}</h3><div class="meta"><span>${d}</span><span class="r">${prio(n, hi)}<span class="av" id="ca${i}" style="background:${PEOPLE[who]}">${who}</span></span></div></div>`).join("");
+  $$("[data-fa]").forEach((el) => (el.innerHTML = fa(el.dataset.fa)));
+  $("#chev").innerHTML = fa("faChevronRight");
+  const CHECK = fa("faCheck");
+
+  const app = $("#app");
+  const at = (el, fx = 0.5, fy = 0.5) => { const a = app.getBoundingClientRect(), r = el.getBoundingClientRect(), s = a.width / 1280;
+    return [(r.left - a.left + r.width * fx) / s, (r.top - a.top + r.height * fy) / s]; };
+  const VW = C.STAGE_W, VH = C.STAGE_H, FIT = Math.min(VW / 1280, VH / C.APP_H) * 0.98;
+  const fit = (x0, y0, x1, y1) => { const s = Math.min(VW / (x1 - x0), VH / (y1 - y0)); return [(x0 + x1) / 2, (y0 + y1) / 2 + (VH / s - (y1 - y0)) / 2, s]; };
+  // The popover sits under the pencil, its right edge on the pencil's (align end).
+  const det = $("#detail"), dr = det.getBoundingClientRect(), pr = $("#pen").getBoundingClientRect(), sc = app.getBoundingClientRect().width / 1280;
+  $("#pop").style.left = ((pr.right - dr.left) / sc - 320 + 6) + "px"; $("#pop").style.top = ((pr.bottom - dr.top) / sc + 6) + "px";
+  // Measure in the final layout: the popover open.
+  $("#pop").style.display = "flex";
+  const P = { pen: at($("#pen")), tg: at($("#cbTG")), mj: at($("#cbMJ")), rp: at($("#rPerson")), band: at($("#who"), 0.5) };
+  const c0 = at($("#card"), 0, 0), c1 = at($("#card"), 1, 1), po1 = at($("#pop"), 1, 1);
+  $("#pop").style.display = "none";
+  // The one zoom: the request card and the popover under it, framed on the detail panel's left edge and the card's right.
+  const dl = at(det, 0, 0);
+  const ZOOM = fit(dl[0] - 24, c0[1] - 28, c1[0] + 28, Math.max(c1[1], po1[1]) + 28);
+  const FULL = [640, C.APP_H / 2, FIT];
+  const cam = C.camera(app, VW, VH, [[0, ...FULL], [1.9, ...FULL], [2.5, ...ZOOM], [10.1, ...ZOOM], [10.7, ...FULL], [D, ...FULL]]);
+  const F = (t, [x, y]) => { const m = cam(t).map(x, y); return [C.STAGE_X + m[0], C.STAGE_Y + m[1]]; };
+  const OFF = (fx) => [C.W * fx, C.H + 40];
+  const cur = C.cursor([[2.3, ...OFF(0.7)], [2.85, ...F(2.85, P.pen), true], [3.1, ...F(3.1, P.pen)], [3.7, ...F(3.7, P.tg), true], [3.95, ...F(3.95, P.tg)],
+    [4.45, ...F(4.45, P.mj), true], [4.7, ...F(4.7, P.mj)], [5.9, ...F(5.9, P.rp)], [6.3, ...F(6.3, P.rp), true], [6.8, ...OFF(0.8)],
+    [8.3, ...OFF(0.45)], [8.85, ...F(8.85, P.band), true], [9.4, ...OFF(0.5)]]);
+  const cap = C.captions([
+    [1.9, 5.5, "Tom is out today?<br><em>Pick someone else.</em>"],
+    [5.8, 8.2, "Reassign person hands Mila<br><em>the rest of the run.</em>"],
+    [8.5, 99, "Every change stays<br><em>on the step.</em>"],
+  ]);
+  cam(0);
+  C.run(D, (t) => {
+    cap(t); cam(t); cur(t);
+    // Beat 1: the pencil opens the popover; Tom off, Mila on.
+    const open = t >= 2.9 && t < 6.35;
+    $("#pop").style.display = open ? "flex" : "none";
+    const po = out(p(t, 2.9, 3.05)); $("#pop").style.opacity = po; $("#pop").style.transform = `translateY(${(1 - po) * -4}px)`;
+    $("#pen").classList.toggle("on", open);
+    const tgOn = t < 3.75, mjOn = t >= 4.5;
+    $("#cbTG").className = "cb" + (tgOn ? " on" : ""); $("#cbTG").innerHTML = tgOn ? CHECK : "";
+    $("#cbMJ").className = "cb" + (mjOn ? " on" : ""); $("#cbMJ").innerHTML = mjOn ? CHECK : "";
+    $("#pTG").classList.toggle("hov", t >= 3.55 && t < 4.2);
+    $("#pMJ").classList.toggle("hov", t >= 4.25 && t < 5.4);
+    $("#rPerson").classList.toggle("press", t >= 6.2 && t < 6.35);
+    // Beat 2: saved. Mila's name in the band, her initials on the card, the toast.
+    const saved = t >= 6.35;
+    $("#who").textContent = saved ? "@Mila Jansen" : "@Tom de Groot";
+    $("#ca0").textContent = saved ? "MJ" : "TG"; $("#ca0").style.background = PEOPLE[saved ? "MJ" : "TG"];
+    const ts = out(p(t, 6.45, 6.75)) * (1 - p(t, 9.8, 10.1));
+    $("#toast").style.display = ts > 0 ? "flex" : "none"; $("#toast").style.opacity = ts; $("#toast").style.transform = `translateY(${(1 - Math.min(1, ts * 1.2)) * 12}px)`;
+    // Beat 3: the band opens on its history.
+    const hs = t >= 8.9;
+    $("#hist").style.display = hs ? "block" : "none";
+    const ho = out(p(t, 8.9, 9.15)); $("#hist").style.opacity = ho;
+    $("#chev").style.display = saved ? "" : "none";
+    $("#chev svg").style.transform = `rotate(${hs ? 90 : 0}deg)`;
+  });
+</script>
+</body></html>

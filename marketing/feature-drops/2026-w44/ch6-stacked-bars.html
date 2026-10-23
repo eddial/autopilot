@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<title>Stacked bar charts</title>
+<link rel="stylesheet" href="clip.css">
+<link rel="stylesheet" href="app.css">
+<link rel="stylesheet" href="chapter.css">
+<style>
+  .app { --forest: 145 30% 32%; }
+  /* Overview (dashboard-grid): page header, then cards rounded-xl border bg-card p-5. */
+  .ov { position: absolute; inset: 0; padding: 0 32px; }
+  .ov .ph { padding: 16px 0 0; }
+  .grid { margin-top: 20px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .wc { border: 1px solid hsl(var(--border)); border-radius: 12px; background: hsl(var(--card)); padding: 20px; }
+  .wc.span2 { grid-column: span 2; } .wc.span3 { grid-column: span 3; }
+  .wc h3 { margin: 0 0 20px; font-size: 13px; line-height: 20px; font-weight: 400; color: hsl(var(--muted-foreground)); }
+  .stat { display: flex; align-items: center; gap: 16px; }
+  .stat .ib { width: 44px; height: 44px; border-radius: 8px; background: hsl(var(--muted)); display: grid; place-items: center; color: hsl(var(--muted-foreground)); }
+  .stat .ib svg { width: 18px; height: 18px; }
+  .stat .n { font-size: 30px; line-height: 36px; font-weight: 500; }
+  .stat .l { font-size: 12px; line-height: 16px; letter-spacing: .05em; text-transform: uppercase; color: hsl(var(--muted-foreground)); }
+  .wc.new { box-shadow: 0 0 0 2px hsl(var(--highlight) / .55); }
+  /* Chart: dashed horizontal grid, 11px ticks, stacked bars (top segment radius 4), legend 12px under the chart. */
+  .chart { position: relative; }
+  .chart svg { display: block; overflow: visible; }
+  .chart .tk { font-size: 11px; fill: hsl(var(--muted-foreground)); }
+  .lg { display: flex; justify-content: center; gap: 16px; margin-top: 8px; font-size: 12px; line-height: 16px; color: hsl(var(--muted-foreground)); }
+  .lg span { display: inline-flex; align-items: center; gap: 6px; }
+  .lg i { width: 8px; height: 8px; border-radius: 2px; display: inline-block; }
+
+  /* Add widget dialog (add-widget-modal): max-w-5xl, h-90vh, p-0; header, two columns, footer. */
+  .ovl { position: absolute; inset: 0; background: rgb(0 0 0 / .4); z-index: 4; }
+  .dlg { position: absolute; left: 50%; top: 5%; width: 1024px; height: 90%; transform: translateX(-50%); border: 1px solid hsl(var(--border)); border-radius: 8px; background: hsl(var(--background)); box-shadow: 0 10px 30px rgb(0 0 0 / .18); display: flex; flex-direction: column; z-index: 5; overflow: hidden; }
+  .dlg .dh { padding: 16px 24px; border-bottom: 1px solid hsl(var(--border)); }
+  .dlg .dh b { display: block; font-size: 18px; line-height: 28px; font-weight: 600; }
+  .dlg .dh span { font-size: 13px; color: hsl(var(--muted-foreground)); }
+  .dlg .bd { flex: 1; display: flex; min-height: 0; }
+  .dlg .lc { flex: 1; padding: 24px; display: flex; flex-direction: column; gap: 20px; overflow: hidden; }
+  .dlg .rc { width: 420px; border-left: 1px solid hsl(var(--border)); padding: 24px; }
+  .dlg .df { display: flex; justify-content: space-between; padding: 16px 24px; border-top: 1px solid hsl(var(--border)); }
+  .dlg .df .r { display: flex; gap: 8px; }
+  .fl { display: flex; flex-direction: column; gap: 8px; }
+  .fl > label { font-size: 13px; font-weight: 500; line-height: 16px; }
+  .fl .hint { font-size: 12px; line-height: 16px; color: hsl(var(--muted-foreground)); }
+  .sel { height: 40px; border: 1px solid hsl(var(--input)); border-radius: 8px; background: hsl(var(--background)); display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 0 12px; white-space: nowrap; }
+  .sel svg { width: 12px; height: 12px; color: hsl(var(--muted-foreground)); }
+  .sel.ph { color: hsl(var(--muted-foreground)); }
+  .sel.foc { box-shadow: 0 0 0 2px hsl(var(--background)), 0 0 0 4px hsl(60 7% 60%); }
+  .two { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .qrow { display: flex; align-items: center; gap: 8px; }
+  .qrow .sel { flex: 1; } .qrow .w120 { flex: none; width: 120px; } .qrow .w100 { flex: none; width: 100px; }
+  .qrow .by { color: hsl(var(--muted-foreground)); }
+  .vis { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .vc { border: 1px solid hsl(var(--input)); border-radius: 6px; background: hsl(var(--background)); padding: 12px; display: flex; flex-direction: column; gap: 4px; }
+  .vc b { display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 500; }
+  .vc b svg { width: 14px; height: 14px; }
+  .vc small { font-size: 12px; line-height: 16px; color: hsl(var(--muted-foreground)); }
+  .vc.on { background: hsl(var(--secondary)); border-color: hsl(var(--secondary)); }
+  .vc.hov { background: hsl(var(--accent)); }
+  .menu { position: absolute; width: 100%; top: 44px; left: 0; border: 1px solid hsl(var(--border)); border-radius: 6px; background: hsl(var(--background)); box-shadow: 0 4px 12px rgb(0 0 0 / .1); padding: 4px; display: none; z-index: 2; }
+  .menu div { padding: 6px 8px; border-radius: 4px; }
+  .menu div.hov { background: hsl(var(--accent)); }
+  .pvl { font-size: 13px; font-weight: 500; margin-bottom: 12px; display: block; }
+  .btn.dis { opacity: .5; }
+  .btn.press { filter: brightness(1.4); }
+</style></head>
+<body>
+<div class="frame">
+  <div class="stage">
+    <div class="app" id="app">
+      <div id="sb"></div>
+      <main class="panel">
+        <div class="ov">
+          <div class="ph"><h1>Overview</h1><div class="right"><span class="btn out"><span data-fa="faPlus"></span>Add widget</span></div></div>
+          <div class="grid" id="grid">
+            <div class="wc"><h3>Orders today</h3><div class="stat"><span class="ib" data-fa="faCartShopping"></span><div><div class="n">38</div><div class="l">Sales orders</div></div></div></div>
+            <div class="wc"><h3>Waiting on a PO</h3><div class="stat"><span class="ib" data-fa="faClock"></span><div><div class="n">3</div><div class="l">Held orders</div></div></div></div>
+            <div class="wc"><h3>Handling time</h3><div class="stat"><span class="ib" data-fa="faBolt"></span><div><div class="n">2m 10s</div><div class="l">Per order, today</div></div></div></div>
+            <div class="wc span3" id="neww"><h3>Orders per day</h3><div class="chart" id="chBig"></div></div>
+          </div>
+        </div>
+        <div class="ovl" id="ovl"></div>
+        <div class="dlg" id="dlg">
+          <div class="dh"><b>Connect to data</b><span>Pick where the data comes from, and how it should look.</span></div>
+          <div class="bd">
+            <div class="lc" id="lc">
+              <div class="fl"><label>Source</label><div class="sel">Data tables<span data-fa="faChevronDown"></span></div></div>
+              <div class="two">
+                <div class="fl"><label>Which table</label><div class="sel">Sales orders<span data-fa="faChevronDown"></span></div></div>
+                <div class="fl"><label>Which view</label><div class="sel">All<span data-fa="faChevronDown"></span></div></div>
+              </div>
+              <div class="qrow"><span class="sel w120">Count<span data-fa="faChevronDown"></span></span><span class="sel">Records<span data-fa="faChevronDown"></span></span><span class="by">by</span><span class="sel"><span data-fa="faCalendar" style="display:inline-flex;gap:6px"></span>Order date<span data-fa="faChevronDown"></span></span><span class="sel w100">Day<span data-fa="faChevronDown"></span></span></div>
+              <div class="fl"><label>Visualisation</label>
+                <div class="vis" id="vis">
+                  <div class="vc" id="vBar"><b><span data-lu="barChart3"></span>Bar chart</b><small>Compare values side by side across categories.</small></div>
+                  <div class="vc" id="vStack"><b><span data-lu="chartColumnStacked"></span>Stacked bar</b><small>Show what each bar is made of, in coloured segments.</small></div>
+                  <div class="vc"><b><span data-lu="alignLeft"></span>Horizontal bar</b><small>Compare values with bars that run left to right.</small></div>
+                </div></div>
+              <div class="fl" id="split"><label>Split by</label><div style="position:relative"><div class="sel ph" id="splitSel"><span id="splitV">None</span><span data-fa="faChevronDown"></span></div>
+                <div class="menu" id="menu"><div>None</div><div id="optStatus">Status</div><div>Customer</div><div>Channel</div></div></div>
+                <span class="hint" id="hint">One line per value of this column, or bars stacked by it</span></div>
+            </div>
+            <div class="rc"><span class="pvl">Preview</span><div class="wc"><h3>Orders per day</h3><div class="chart" id="chPrev"></div></div></div>
+          </div>
+          <div class="df"><span class="btn ghost">Back</span><span class="r"><span class="btn out">Cancel</span><span class="btn pri" id="add">Add Widget</span></span></div>
+        </div>
+      </main>
+    </div>
+  </div>
+</div>
+<script src="fa-icons.js"></script>
+<script src="app.js"></script>
+<script src="clip.js"></script>
+<script src="chapter.js"></script>
+<script>
+  CHAPTER({ n: 6, total: 7, module: "Overview", footerLeft: "Feature Drop · Week 44",
+    title: "See what each bar<br><em>is made of.</em>",
+    line: "A dashboard bar chart on a data table can be stacked: pick Stacked bar, choose the column to split by, and each bar shows a coloured segment per value. The Agent builds them too." });
+  const D = 8.2;
+  window.HOLDS = [[5.1, 1.1], [7.4, 1.4]];
+  const { $, $$, p, out, io, clamp } = C;
+  $("#sb").outerHTML = APP.sidebar("Overview");
+  Object.assign(LU, {
+    barChart3: '<path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/>',
+    chartColumnStacked: '<path d="M11 13H7"/><path d="M19 9h-4"/><path d="M3 3v16a2 2 0 0 0 2 2h16"/><rect x="15" y="5" width="4" height="12" rx="1"/><rect x="7" y="8" width="4" height="9" rx="1"/>',
+    alignLeft: '<path d="M15 12H3"/><path d="M17 18H3"/><path d="M21 6H3"/>',
+  });
+  $$("[data-fa]").forEach((el) => (el.innerHTML = fa(el.dataset.fa) + (el.style.display === "inline-flex" ? "" : "")));
+  $$("[data-lu]").forEach((el) => (el.innerHTML = lu(el.dataset.lu)));
+
+  // Orders per day, split by Status: Open (primary), Confirmed (forest), Delivered (chart-2 teal).
+  const DAYS = ["16 Oct", "17 Oct", "18 Oct", "19 Oct", "20 Oct", "21 Oct", "22 Oct", "23 Oct"];
+  const SER = [["Delivered", "hsl(170 35% 35%)", [22, 25, 8, 6, 24, 27, 23, 9]], ["Confirmed", "hsl(145 30% 32%)", [9, 8, 3, 2, 11, 9, 10, 17]], ["Open", "hsl(230 35% 15%)", [2, 3, 1, 0, 4, 3, 5, 12]]];
+  const TOT = DAYS.map((_, i) => SER.reduce((s, x) => s + x[2][i], 0));
+  function chart(el, w, h) {
+    el.innerHTML = `<svg width="${w}" height="${h}"></svg><div class="lg">${[...SER].reverse().map(([n, c]) => `<span><i style="background:${c}"></i>${n}</span>`).join("")}</div>`;
+    return { svg: $("svg", el), lg: $(".lg", el), w, h };
+  }
+  const MAX = 40;
+  function draw(c, k) { // k: 0 = plain bars (one colour), 1 = stacked
+    const L = 28, B = 22, cw = c.w - L, ch = c.h - B, bw = Math.min(32, (cw / DAYS.length) * 0.6);
+    let g = "";
+    [0, 10, 20, 30, 40].forEach((v) => { const y = ch - (v / MAX) * ch; g += `<line x1="${L}" x2="${c.w}" y1="${y}" y2="${y}" stroke="hsl(48 22% 87%)" stroke-dasharray="3 3"/><text class="tk" x="${L - 6}" y="${y + 4}" text-anchor="end">${v}</text>`; });
+    DAYS.forEach((d, i) => {
+      const x = L + (i + 0.5) * (cw / DAYS.length) - bw / 2;
+      g += `<text class="tk" x="${x + bw / 2}" y="${c.h - 4}" text-anchor="middle">${d}</text>`;
+      let y0 = ch;
+      SER.forEach(([, col, v], si) => {
+        const hh = (v[i] / MAX) * ch, y = y0 - hh, top = si === SER.length - 1;
+        const fill = k < 1 ? `color-mix(in srgb, hsl(230 35% 15%) ${100 - k * 100}%, ${col})` : col;
+        g += top ? `<path d="M${x},${y0} L${x},${y + 4} Q${x},${y} ${x + 4},${y} L${x + bw - 4},${y} Q${x + bw},${y} ${x + bw},${y + 4} L${x + bw},${y0} Z" fill="${fill}"/>` : `<rect x="${x}" y="${y}" width="${bw}" height="${Math.max(0, hh)}" fill="${fill}"/>`;
+        y0 = y;
+      });
+    });
+    c.svg.innerHTML = g;
+    c.lg.style.opacity = k;
+  }
+  const prev = chart($("#chPrev"), 330, 220), big = chart($("#chBig"), 926, 240);
+
+  const app = $("#app");
+  const at = (el, fx = 0.5, fy = 0.5) => { const a = app.getBoundingClientRect(), r = el.getBoundingClientRect(), s = a.width / 1280;
+    return [(r.left - a.left + r.width * fx) / s, (r.top - a.top + r.height * fy) / s]; };
+  $("#menu").style.display = "block";
+  const P = { stack: at($("#vStack")), split: at($("#splitSel"), 0.3), status: at($("#optStatus"), 0.3), add: at($("#add")) };
+  $("#menu").style.display = "";
+  const v0 = at($("#vis"), 0, 0), v1 = at($("#vis"), 1, 1), h1 = at($("#hint"), 1, 1), lc = at($("#lc"), 0, 0), lc1 = at($("#lc"), 1, 1);
+  const VW = C.STAGE_W, VH = C.STAGE_H, FIT = Math.min(VW / 1280, VH / C.APP_H) * 0.98;
+  const fit = (x0, y0, x1, y1) => { const s = Math.min(VW / (x1 - x0), VH / (y1 - y0)); return [(x0 + x1) / 2, (y0 + y1) / 2 + (VH / s - (y1 - y0)) / 2, s]; };
+  // The one zoom: the Visualisation cards and Split by, framed on the options column's edges.
+  const ZOOM = fit(lc[0], v0[1] - 36, lc1[0], h1[1] + 20);
+  const FULL = [640, C.APP_H / 2, FIT];
+  const cam = C.camera(app, VW, VH, [[0, ...FULL], [1.9, ...FULL], [2.45, ...ZOOM], [4.1, ...ZOOM], [4.65, ...FULL], [D, ...FULL]]);
+  const F = (t, [x, y]) => { const m = cam(t).map(x, y); return [C.STAGE_X + m[0], C.STAGE_Y + m[1]]; };
+  const OFF = (fx) => [C.W * fx, C.H + 40];
+  const cur = C.cursor([[2.3, ...OFF(0.55)], [2.8, ...F(2.8, P.stack), true], [3.05, ...F(3.05, P.stack)], [3.45, ...F(3.45, P.split), true], [3.6, ...F(3.6, P.split)], [3.95, ...F(3.95, P.status), true], [4.4, ...OFF(0.6)],
+    [5.6, ...OFF(0.85)], [6.1, ...F(6.1, P.add), true], [6.45, ...OFF(0.9)]]);
+  const cap = C.captions([
+    [1.9, 5.5, "Pick Stacked bar<br><em>and what to split it by.</em>"],
+    [5.8, 99, "Each bar shows<br><em>a segment per status.</em>"],
+  ]);
+  cam(0);
+  C.run(D, (t) => {
+    cap(t); cam(t); cur(t);
+    const stacked = t >= 2.85, split = t >= 4.0, menu = t >= 3.5 && t < 4.0;
+    $("#vBar").classList.toggle("on", !stacked); $("#vStack").classList.toggle("on", stacked);
+    $("#vStack").classList.toggle("hov", t >= 2.6 && !stacked);
+    $("#menu").style.display = menu ? "block" : "none";
+    $("#optStatus").classList.toggle("hov", t >= 3.75 && t < 4.0);
+    $("#splitSel").className = "sel" + (split ? "" : " ph") + (menu ? " foc" : "");
+    $("#splitV").textContent = split ? "Status" : "None";
+    $("#hint").textContent = !stacked ? "One line per value of this column, or bars stacked by it" : !split ? "Pick the column that splits each bar into segments" : "Each bar is split into a coloured segment per value of this column";
+    $("#add").classList.toggle("dis", stacked && !split);
+    $("#add").classList.toggle("press", t >= 6.0 && t < 6.15);
+    draw(prev, io(p(t, 4.5, 5.0)));
+    // Added: the dialog closes; the widget is on the Overview.
+    const gone = io(p(t, 6.15, 6.45));
+    $("#dlg").style.opacity = 1 - gone; $("#ovl").style.opacity = 1 - gone;
+    $("#dlg").style.display = gone >= 1 ? "none" : "flex"; $("#ovl").style.display = gone >= 1 ? "none" : "";
+    $("#neww").style.visibility = t >= 6.3 ? "visible" : "hidden";
+    const nw = out(p(t, 6.3, 6.7)); $("#neww").style.opacity = nw; $("#neww").style.transform = `translateY(${(1 - nw) * 10}px)`;
+    $("#neww").style.boxShadow = t >= 6.3 ? `0 0 0 ${2 * clamp((t - 6.3) / 0.3) * (1 - clamp((t - 7.6) / 0.4))}px hsl(var(--highlight) / .55)` : "none";
+    draw(big, 1);
+  });
+</script>
+</body></html>
