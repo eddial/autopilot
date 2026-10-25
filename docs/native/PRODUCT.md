@@ -95,7 +95,8 @@ Like Claude's start screen: the pilot, "What should I take on?", and the reply b
 the brief (the session's first prompt) and pickers for workstream (suggested by routing), priority,
 machine and model. Send creates the task and starts its session at once; "Save without starting"
 puts it in New. Also from: a global shortcut over any app (selected text becomes the brief), the
-share sheet on Mac and phone, `tasks.create` over MCP, and `autopilot new` in a terminal.
+share sheet on the Mac, `tasks.create` over MCP, and `autopilot new` in a terminal. (The iPhone
+share sheet needs a paid Apple developer membership; see [PLAN.md](PLAN.md#apple-account).)
 
 ### Signals and workstreams
 

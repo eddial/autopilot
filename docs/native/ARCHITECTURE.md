@@ -33,8 +33,8 @@ machine stays a different connection, not a different code path.
   Keychain, the Claude login with its connectors, and `gh`.
 - The app connects over a Unix socket that only the user can open: no network port, no token.
 - Quitting from the menu bar stops the agent after a warning if sessions are running.
-- One app update (electron-updater) replaces the UI and the bundled server together; the app
-  restarts the agent after an update.
+- One update replaces the UI and the bundled server together and restarts the agent. With a free
+  Apple account that is `autopilot update` (pull and rebuild); with a paid one, electron-updater.
 
 ### 2. The iPhone as a client of the Mac
 
@@ -68,11 +68,11 @@ desktop app, an Expo mobile app and shared contracts.
 | Effects, services, schema, RPC | Effect 4 (`effect`, `@effect/platform-node`, `@effect/sql`), Effect Schema for every contract |
 | Store | SQLite (`@effect/sql-sqlite-node`), event log plus projections, one transaction per command |
 | API transport | Effect RPC over WebSocket; Unix socket locally, TLS for paired devices |
-| Sessions | `claude --remote-control` in a pseudo-terminal owned by the server (`node-pty`); tmux optional for terminal attach |
+| Sessions | `claude --remote-control` in a pseudo-terminal owned by the server (`node-pty`); no tmux |
 | Signals and watchers | `claude -p --json-schema` with the signal's read-only tools, as today |
 | MCP | `@modelcontextprotocol/sdk`: streamable HTTP on the server, `autopilot mcp` as a stdio bridge |
 | Desktop | Electron, React 19, Vite, Tailwind 4, TanStack Router, Legend List, `@effect/atom-react` |
-| Mobile | Expo with a dev client and EAS builds, React Native, React Navigation native stack, Legend List, `@expo/ui`, `expo-secure-store`, `expo-notifications`, share extension |
+| Mobile | Expo with a dev client, built locally with Xcode (`expo run:ios --device`), React Native, React Navigation native stack, Legend List, `@expo/ui`, `expo-secure-store`, `expo-sqlite`, `expo-notifications`; a share extension once there is a paid Apple membership |
 | Keys and crypto | `jose` and `@noble/curves` for device keys and tokens; Keychain on macOS via `@napi-rs/keyring` |
 | Tooling | pnpm workspaces, Vitest (`@effect/vitest`), oxlint, tsc |
 
@@ -103,8 +103,7 @@ The phone takes input while the Mac is unreachable and sends it when the Mac is 
   …".
 - **Outbox**: every write (answer, reply, new task, start, snooze, done) is stored with its
   idempotency key and a per-device sequence number, applied to the screen at once, and sent in
-  order when a route works again. The share extension writes to the same outbox through the app
-  group.
+  order when a route works again.
 - **Replay is safe**: the server ignores a command whose idempotency key it has already applied, so
   a flaky connection never doubles anything.
 - **Conflicts** are the only real work, and few:
