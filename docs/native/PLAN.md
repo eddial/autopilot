@@ -95,7 +95,7 @@ yourself, with these limits:
 | Push | Not available (and the relay is out of scope anyway) | APNs, for the later relay |
 
 The Expo config strips the capabilities a free account cannot sign (app groups, push, Sign in with
-Apple), the way T3 Code's personal-team plugin does, so builds work on either account. Upgrading
+Apple) with a config plugin, so builds work on either account. Upgrading
 later needs no code change.
 
 ## Migration off Linear

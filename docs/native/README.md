@@ -37,8 +37,8 @@ is, so the top row is always something to act on.
 | Decision | Choice | Why |
 | --- | --- | --- |
 | Control plane | Autopilot's own server, not Linear | Linear stays a signal source (team tickets), not where you steer |
-| Stack | TypeScript and Effect throughout, like T3 Code | One language and one contract across server, desktop, mobile and MCP; the agent tooling (Claude Agent SDK, MCP SDK) is TypeScript-first |
-| Desktop | Electron with React, styled like Claude | The same choice Claude desktop and T3 Code made; one UI codebase with a future web client |
+| Stack | TypeScript and Effect throughout | One language and one contract across server, desktop, mobile and MCP; the agent tooling (Claude Agent SDK, MCP SDK) is TypeScript-first |
+| Desktop | Electron with React, styled like Claude | The same choice Claude desktop made; one UI codebase with a future web client |
 | Mobile | Expo (React Native), iPhone only for now | Shares the contracts and client runtime with the Mac app; Android stays possible later from the same code |
 | Remote access | Tailscale, free personal plan | No router setup; the server puts the Mac's Tailscale name in the pairing code |
 | Offline phone | Outbox on the iPhone, replayed when the Mac is back | Idempotency keys make replay safe |

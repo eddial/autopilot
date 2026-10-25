@@ -40,7 +40,7 @@ machine stays a different connection, not a different code path.
 
 The server adds a network listener for paired devices: TLS, device keys, and by default only
 loopback, private LAN and Tailscale addresses. Routes are tried in order (LAN, then Tailscale)
-and the client switches back when a faster route returns, as T3 Code does. The
+and the client switches back when a faster route returns. The
 iPhone only reaches Autopilot while the Mac is awake; push notifications without the Mac need a
 relay, which is out of scope for now.
 
@@ -59,8 +59,7 @@ snapshot of the event log plus replay, then clients follow.
 
 ## Stack
 
-Modelled on T3 Code (pingdotgg/t3code), which runs the same shape: an Effect server, an Electron
-desktop app, an Expo mobile app and shared contracts.
+One language and one contract across the server, the Mac app, the iPhone app and MCP.
 
 | Layer | Choice |
 | --- | --- |
