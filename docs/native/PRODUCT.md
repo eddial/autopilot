@@ -144,6 +144,21 @@ the Duo asks.
 The app keeps interactive content inside asymmetric safe areas, uses the fold's reserved region
 (`ReservedRegion`) for anything custom, and does not assume a fixed screen size.
 
+**Bars move to the side.** On the outer display, and on the inner display in landscape, iOS puts
+navigation buttons, toolbar items and the tab bar into one vertical bar along the hardware edge,
+shared with the status bar. In Split View each app's bar sits on its outer edge (Autopilot left,
+Claude right). Inner portrait keeps ordinary horizontal bars. Order, top to bottom:
+
+1. Back (only on a task).
+2. The prominent action: New task on the queue, Open session on a task (Clay).
+3. The other actions: view and filter on the queue; Snooze and Done on a task.
+4. A gap, then the tabs: Queue, Signals, Servers.
+
+In the full-screen split layout only the task column joins the vertical bar; the list column keeps
+its buttons in its own header. Only bars owned by the system containers move: the Expo app has to
+use the native stack header and native tabs (UINavigationController and UITabBarController
+underneath), not hand-built bars, and keep the composer and other custom chrome off that edge.
+
 ## The pilot
 
 Claude's pixel mascot in pilot green (`#5DB08F`) with a captain's peaked cap, gold wings and
