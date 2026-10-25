@@ -8,15 +8,15 @@ One server program plays up to two roles; every app is a client.
 | --- | --- | --- |
 | **Main** | Holds the store, runs the tick (signals, watchers, health, routing review), serves the API and MCP, assigns sessions | Exactly one |
 | **Runner** | Runs Claude Code sessions for the main | Any; the main is also a runner |
-| **Client** | The Mac, iPhone and Android apps, the CLI, any agent over MCP | Any; holds no data of its own beyond a cache |
+| **Client** | The Mac and iPhone apps, the CLI, any agent over MCP | Any; holds no data of its own beyond a cache |
 
-Apps never read the database. They use the same API whether the main is on the same Mac or on a
-server, so "everything on my Mac" and "headless server, Mac as client" are one code path with a
-different connection.
+In scope now: the Mac is main, runner and client; the iPhone is a client. Apps never read the
+database. They use the same API locally and remotely, so a Mac that is only a client of another
+machine stays a different connection, not a different code path.
 
 ## Topologies
 
-### 1. Everything on one Mac (built first)
+### 1. The Mac: server and client
 
 ```
  Autopilot.app (Electron)                     ~/Library/Application Support/Autopilot/
@@ -36,13 +36,15 @@ different connection.
 - One app update (electron-updater) replaces the UI and the bundled server together; the app
   restarts the agent after an update.
 
-### 2. Mac plus iPhone and Android (phase 3–4)
+### 2. The iPhone as a client of the Mac
 
 The server adds a network listener for paired devices: TLS, device keys, and by default only
 loopback, private LAN and Tailscale addresses. Routes are tried in order (LAN, then Tailscale)
-and the client switches back when a faster route returns, as T3 Code does.
+and the client switches back when a faster route returns, as T3 Code does. The
+iPhone only reaches Autopilot while the Mac is awake; push notifications without the Mac need a
+relay, which is out of scope for now.
 
-### 3. Headless main, Mac as client (kept open)
+### 3. Out of scope for now: headless main, Mac as client only
 
 The same server runs on Linux or a Mac mini as a systemd or launchd service
 (`autopilot service install`), signed in with `claude auth login` (not a `setup-token` token,
@@ -78,7 +80,7 @@ apps/
   server/          the autopilot server and CLI: store, tick, launcher, watchers, health, routing review, API, MCP
   desktop/         Electron shell: window, tray, notifications, global shortcut, updater, agent install
   web/             the React UI rendered by desktop (and a browser client later)
-  mobile/          Expo app for iPhone, then Android
+  mobile/          Expo app for iPhone
 packages/
   contracts/       Effect Schema: entities, commands, events, update kinds, RPC groups, MCP tool definitions
   client-runtime/  connection, routes, auth, snapshot + deltas, cache, offline outbox; shared by web and mobile
@@ -121,19 +123,19 @@ sessions; the server watches them and records changes as events.
   file only). Every RPC and MCP tool declares the scope it needs.
 - **Source content is data**: mail, messages and tickets never become instructions; only `owner`
   updates do. Authorship comes from the token, not a comment prefix.
-- **Secrets** in the macOS Keychain; on Linux a file readable only by the service user. Never in
-  the repo or the event log.
+- **Secrets** in the macOS Keychain on the Mac and secure storage on the iPhone. Never in the repo
+  or the event log.
 - **Sessions** keep running with `bypassPermissions` as today; hard limits stay as deny rules in
   the engine's `.claude/settings.json`.
 
 ## Keeping the door open
 
-Built in from the start, though only topology 1 ships first:
+Cheap seams built in now, so the out-of-scope setups need no rewrite later:
 
 - The UI only talks to the API, never to the database.
 - Roles are configuration; sessions start through a runner interface (local first).
 - Devices and tokens have their own tables even with one device.
 - The API carries a version; the server accepts the previous app version.
 - Every write carries an idempotency key.
-- CI builds and tests `apps/server` on Linux, so nothing Mac-only slips into it. Mac-only pieces
-  (Keychain, launchd) sit behind small services with a Linux implementation.
+- Mac-only pieces of the server (Keychain, launchd) sit behind small services, so another
+  platform needs only a new implementation of each.

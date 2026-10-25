@@ -1,18 +1,17 @@
 # Plan
 
-Mac first, then iPhone, then Android. The Mac-as-client and headless-server setups are designed in
-from the start and built later. Each phase ends with something usable.
+Scope: the Mac runs the server and the app; the iPhone is a client of the Mac. Each phase ends with
+something usable. Everything else is listed under [Later](#later-out-of-scope).
 
 ## Phase 0 · Foundations
 
 - pnpm workspace with `apps/` and `packages/` beside today's engine; TypeScript strict, Effect 4,
-  Vitest, oxlint; CI on macOS and Linux.
+  Vitest, oxlint; CI on macOS.
 - `packages/contracts`: entities, update kinds, commands, events, RPC groups, typed errors, API
   version, MCP tool definitions, JSON Schema export.
 - Short decision records for the choices in [README.md](README.md).
 
-**Done when** the contracts build and export, CI is green on both platforms, and the MCP tool list
-is reviewed.
+**Done when** the contracts build and export, CI is green, and the MCP tool list is reviewed.
 
 ## Phase 1 · Server on the Mac, no Linear
 
@@ -53,20 +52,16 @@ reaches live sessions, watchers wake tasks, and nothing touches the Linear Autop
 
 **Done when** you can answer, start and create tasks from the phone away from home.
 
-## Phase 4 · Android
+## Later (out of scope)
 
-The same Expo app on Android: share target, notifications, a home-screen widget with the Your turn
-count, foldable and split-screen layouts. Internal testing track on Play.
+Designed for, not planned:
 
-## Phase 5 · Expansion (designed now, built later)
-
-- Mac as client only, pointed at a remote main.
-- Headless Linux server: static build or Docker image, systemd unit, `autopilot service install`.
-- Remote runners (`autopilot join`), session placement by workstream and capacity.
-- Move the main role between machines (snapshot plus replay).
-- Push relay for APNs and FCM, with actionable notifications (answer a decision from the lock
-  screen).
-- Web client from `apps/web`.
+- Android, from the same Expo app.
+- A Mac that is only a client of another machine.
+- A headless server (Linux or a Mac mini) and remote runners; moving the main role between machines.
+- A push relay for APNs, so the iPhone gets notifications while the Mac sleeps, with answers from
+  the lock screen.
+- A web client from `apps/web`.
 
 ## Migration off Linear
 
