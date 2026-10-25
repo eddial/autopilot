@@ -44,7 +44,12 @@ and the client switches back when a faster route returns, as T3 Code does. The
 iPhone only reaches Autopilot while the Mac is awake; push notifications without the Mac need a
 relay, which is out of scope for now.
 
-### 3. Out of scope for now: headless main, Mac as client only
+### 3. Phase 4: an always-on Mac as main, the MacBook as client
+
+The same app on a Mac mini runs the server; the MacBook pairs with it like the iPhone and uses the
+same routes. This is what keeps the queue running while the laptop sleeps.
+
+### 4. Out of scope for now: headless server
 
 The same server runs on Linux or a Mac mini as a systemd or launchd service
 (`autopilot service install`), signed in with `claude auth login` (not a `setup-token` token,
@@ -88,6 +93,28 @@ packages/
 prompts/           the signal, workstream, routing-review and session instructions (today's Markdown, moved)
 home/              unchanged: a person's config (workstreams and signals as Markdown), now read by the server
 ```
+
+## Offline on the iPhone
+
+The phone takes input while the Mac is unreachable and sends it when the Mac is back.
+
+- **Cache**: the last queue snapshot and opened tasks are kept on the phone (SQLite through
+  `expo-sqlite`), so it opens instantly and stays readable offline, marked "Offline, last synced
+  …".
+- **Outbox**: every write (answer, reply, new task, start, snooze, done) is stored with its
+  idempotency key and a per-device sequence number, applied to the screen at once, and sent in
+  order when a route works again. The share extension writes to the same outbox through the app
+  group.
+- **Replay is safe**: the server ignores a command whose idempotency key it has already applied, so
+  a flaky connection never doubles anything.
+- **Conflicts** are the only real work, and few:
+  - an answer to an ask that was already answered on the Mac: the server returns `Conflict`; the
+    phone shows "Answered on the Mac" and offers to send your text as a new instruction;
+  - an action on a task that was closed meanwhile: offer to reopen it;
+  - a new task never conflicts.
+- **When it sends**: on app launch and foreground, when the network changes, and opportunistically
+  through iOS background tasks; iOS decides how often, so the reliable moment is the next time the
+  app opens. A pending count shows until the outbox is empty.
 
 ## Data model
 

@@ -4,8 +4,9 @@ Autopilot today files work as Linear issues and steers sessions through Linear c
 Native replaces Linear as the control plane with Autopilot's own server and apps, built to sit
 beside Claude Code rather than compete with it.
 
-**Scope:** the Mac runs both the server and the app; an iPhone app is a client of that Mac. Android,
-a headless server and a Mac that is only a client are out of scope for now; the design leaves room
+**Scope:** the Mac runs both the server and the app; an iPhone app is a client of that Mac. After
+the iPhone, an always-on Mac can run the server with the MacBook as a client. Android and a headless
+server are out of scope for now; the design leaves room
 for them (see [PLAN.md](PLAN.md#later-out-of-scope)).
 
 This folder is the plan. Nothing here is built yet.
@@ -39,6 +40,8 @@ is, so the top row is always something to act on.
 | Stack | TypeScript and Effect throughout, like T3 Code | One language and one contract across server, desktop, mobile and MCP; the agent tooling (Claude Agent SDK, MCP SDK) is TypeScript-first |
 | Desktop | Electron with React, styled like Claude | The same choice Claude desktop and T3 Code made; one UI codebase with a future web client |
 | Mobile | Expo (React Native), iPhone only for now | Shares the contracts and client runtime with the Mac app; Android stays possible later from the same code |
-| Where it runs | The Mac is server and client; the iPhone is a client | Server installed as a launchd agent by the app; a Mac that is only a client, or a headless server, stays possible by design |
+| Remote access | Tailscale, free personal plan | No router setup; the server puts the Mac's Tailscale name in the pairing code |
+| Offline phone | Outbox on the iPhone, replayed when the Mac is back | Idempotency keys make replay safe |
+| Where it runs | The Mac is server and client; the iPhone is a client; later an always-on Mac as server with the MacBook as client | Server installed as a launchd agent by the app; a Mac that is only a client, or a headless server, stays possible by design |
 | Visual language | Claude's warm greys, serif headings over sans body, Clay for "your turn", pilot green for Autopilot | It lives next to Claude all day |
 | Mascot | Claude's pixel mascot in pilot green, captain's cap and aviators (option B) | |

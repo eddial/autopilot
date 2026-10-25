@@ -48,16 +48,31 @@ reaches live sessions, watchers wake tasks, and nothing touches the Linear Autop
   API version handshake.
 - Expo app: queue, task, reply, New task, share extension, notifications from the Mac while the
   push relay does not exist yet (local notifications on reconnect).
+- Works offline: the last snapshot stays readable, and answers, new tasks and other actions go into
+  an outbox on the phone that is sent when the Mac is reachable again (see
+  [ARCHITECTURE.md](ARCHITECTURE.md#offline-on-the-iphone)).
+- Tailscale (free personal plan) for reaching the Mac away from home; its name goes into the
+  pairing code next to the LAN address.
 - TestFlight distribution.
 
-**Done when** you can answer, start and create tasks from the phone away from home.
+**Done when** you can answer, start and create tasks from the phone away from home, including
+while the Mac is unreachable, and everything arrives once it is back.
+
+## Phase 4 · MacBook as a client of an always-on Mac
+
+- An always-on Mac (a Mac mini) runs the main server; the MacBook's app pairs with it like the
+  iPhone does, and stops running its own server.
+- First-run setup offers "This Mac" or "Connect to another Mac"; Servers gets a way to move the
+  data from the MacBook to the Mac mini (snapshot plus replay).
+
+**Done when** the queue keeps running with the MacBook closed, and the MacBook and iPhone see the
+same queue.
 
 ## Later (out of scope)
 
 Designed for, not planned:
 
 - Android, from the same Expo app.
-- A Mac that is only a client of another machine.
 - A headless server (Linux or a Mac mini) and remote runners; moving the main role between machines.
 - A push relay for APNs, so the iPhone gets notifications while the Mac sleeps, with answers from
   the lock screen.
@@ -75,7 +90,6 @@ Designed for, not planned:
 
 - Linear import: one-time import of open issues, or start empty?
 - Apple developer account for signing and notarising the Mac app and for TestFlight.
-- Tailscale as the assumed route for phones away from home, or something else.
 - Bundle id and product name (Autopilot).
 - Keep tmux for terminal attach, or drop it once the server owns the pseudo-terminal.
 - Signals: keep `claude -p` or move to the Claude Agent SDK; needs a check that claude.ai
