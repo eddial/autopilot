@@ -27,6 +27,9 @@ something usable. Everything else is listed under [Later](#later-out-of-scope).
 - No import from Linear: the queue starts empty and signals are switched on one at a time, each
   with a dry-run preview, as `/autopilot:add` does today.
 - launchd install for the server in the user session.
+- Connector detection for onboarding: a short headless `claude` run reports which MCP servers
+  (including claude.ai connectors) are connected; `gh auth status` covers GitHub. A dry-run preview
+  over the last day for chosen signals.
 
 **Done when** a full day runs on the Mac with the CLI only: signals file tasks, `autopilot answer`
 reaches live sessions, watchers wake tasks, and nothing touches the Linear Autopilot team.
@@ -40,6 +43,8 @@ reaches live sessions, watchers wake tasks, and nothing touches the Linear Autop
   [Apple account](#apple-account).
 - Screens: queue with answering in place and bulk actions, task conversation, New task, Signals and
   workstreams, Servers (machines, devices, agents).
+- Onboarding wizard from [PRODUCT.md](PRODUCT.md#onboarding); the iPhone and Tailscale steps arrive
+  with phase 3.
 - Claude look and the pilot from [PRODUCT.md](PRODUCT.md).
 - Retire the Linear control plane: the Linear signal stays for team tickets and their mirrors.
 

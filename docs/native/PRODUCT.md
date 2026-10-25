@@ -70,6 +70,23 @@ bottom. Each update has a kind, and the kind decides where the task goes.
 A task has at most one open ask (`decision`, `question`, `review`, `blocked`). It closes when you
 answer, and the answer stays attached to it.
 
+## Onboarding
+
+Five steps to a working queue, then two optional ones offered only when they add something. Each
+step asks only what it needs; everything else has a sensible default and lives in Settings.
+
+| Step | Asks | Why here |
+| --- | --- | --- |
+| 1 · Get ready | Nothing, unless a check fails: Claude Code installed, signed in with a Claude account (so connectors work), Remote Control available. One switch: keep working in the background | Nothing else works without these; showing them as checks means no reading for most people |
+| 2 · Sources | Which of your Claude connectors to listen to. Detected, not typed: Slack and Gmail suggested, Linear, GitHub (through the `gh` CLI) and Fathom offered; connectors you don't have yet link to Claude's settings | Starting with one or two keeps the first queue small and right |
+| 3 · Preview | Nothing, except "Not for me" on anything wrong. A dry run over yesterday shows what would have been filed, followed up and left alone, grouped into suggested workstreams | Shows the value before anything is switched on, and the corrections become routing rules |
+| 4 · Workstreams | Accept or edit the suggested workstreams: what lands there, when it's urgent, and only for code work a repository | Workstreams come from real items instead of a blank form |
+| 5 · Switch on | Nothing; optionally start one of the previewed items now | Signals start from now (no backfill); trying one task shows the loop end to end |
+| Later · Your iPhone | Scan a pairing code on home Wi-Fi | Offered from Servers or after the first day, not during setup |
+| Later · Away from home | Install Tailscale on the phone, test with Wi-Fi off, keep the Mac awake while plugged in | Only after pairing, and only for people who want the queue on the go |
+
+Autonomy levels, watchers, schedules, models and agent tokens are not part of onboarding.
+
 ## Screens
 
 ### Mac, full window: three columns
