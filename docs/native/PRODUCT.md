@@ -113,11 +113,19 @@ scope), and pairing by QR code or `autopilot join <code>`.
 
 The pilot with the Your turn count. Its menu lists those tasks and opens the quick-add box.
 
-### Phone
+### iPhone Duo
 
-Same model as the narrow Mac window: the queue as the home screen, a task replaces it, the reply
-box at the bottom, swipe to start a new task, a "New task…" box at the bottom of the queue. On
-foldables and in split screen it runs beside the Claude app.
+The phone is an iPhone Duo. Layout follows size classes, never orientation, as Apple's guidance for
+the Duo asks.
+
+| Display | Size class | Autopilot shows |
+| --- | --- | --- |
+| Outer, 5.4" (about 466×678 pt) | Compact width, like any iPhone | The queue; a task replaces it; "New task…" at the bottom |
+| Inner, 7.6" (about 626×890 pt), in Split View beside Claude | Compact width per app | The queue or one task, next to the Claude session |
+| Inner, full screen | Regular in both directions | List and task side by side, navigation behind the sidebar button |
+
+The app keeps interactive content inside asymmetric safe areas, uses the fold's reserved region
+(`ReservedRegion`) for anything custom, and does not assume a fixed screen size.
 
 ## The pilot
 

@@ -138,6 +138,22 @@ sessions; the server watches them and records changes as events.
   (`updates.post`) instead of Linear comments; answers arrive as new turns in the same session.
 - The `/ticket` hook in Claude Code reads the task through the same API.
 
+## Writing back from sessions
+
+Today sessions write back through the Linear connector in Claude. Without Linear, Autopilot is its
+own connector: an MCP server named `autopilot`, served by the server on the Mac.
+
+| Caller | How it gets the tools | Scope | When |
+| --- | --- | --- | --- |
+| Sessions Autopilot starts | The launcher adds `--mcp-config` with `autopilot mcp` (stdio) and a token for that task. Remote Control sessions still run on the Mac, so the tools work while you steer from the iPhone | `session` (own task) | Phase 1, critical |
+| Signal runs (`claude -p`) | `--mcp-config` with a signal token; `match_items` and `file_item` replace Linear's search and save tools | `signal` | Phase 1 |
+| Any Claude Code session on the Mac | The Autopilot plugin's `.mcp.json` | `read` and `create` | Phase 1 |
+| Claude Desktop on the same Mac | Its local MCP config | chosen per token | Phase 2 |
+| Claude on claude.ai and the phone app | A custom connector is called from Anthropic's cloud, so it needs a public HTTPS address with OAuth; a Mac behind Tailscale is not reachable. Possible later with Tailscale Funnel plus OAuth on the server | per OAuth grant | Later |
+
+Answers travel the other way through the session's terminal, which the server owns: an answer is
+recorded on the task, then typed into the live session.
+
 ## Security
 
 - **No open ports by default.** Locally a Unix socket only the user can open; for devices,
