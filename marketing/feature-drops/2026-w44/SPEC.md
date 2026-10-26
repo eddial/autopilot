@@ -42,5 +42,5 @@ UI read from origin/main on 23 Oct: the sidebar after #8934 (pins, Agent section
 Monitoring / Control, the bell in the bottom row) is in `app.js`; per-screen sources are noted in each chapter's CSS.
 
 Also new (cover card 2): next-step suggestions (#8962) · Requests views keep their filters (#8992, #8994, #8998,
-#8993) · sidebar regroup and settings in one place (#8934, #8834) · Notion and BigQuery by OAuth (#9096) · tasks that
+#8993) · sidebar regroup and settings in one place (#8934, #8834) · Notion and BigQuery by OAuth (#9096) ·
 Stop the Agent from Slack (#8940) · dark mode in midnight blue (#8750).
