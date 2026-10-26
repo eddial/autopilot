@@ -6,7 +6,7 @@
 // - canvas: one steady window on a drifting paper background. The chapter title takes the captions' place, words rise
 //   in through a mask, the content fades between chapters, and a chapter line under the logo shows the cut. Square and
 //   landscape frames give the stage the whole width under the captions, and the app plane grows to fill it.
-// Motion (word reveals, the background, the camera's push during holds) is on in canvas and off in classic; ?motion=1
+// Motion (word reveals, the background) is on in canvas and off in classic; ?motion=1
 // or ?motion=0 overrides it. render-plane.mjs draws the app as a flat image (window.LAYOUT says where), so zooms and
 // pans never re-draw its text. The background drifts on the video's own clock (?t0=, seconds of the parts before this
 // one), so it carries on across cuts.
@@ -247,10 +247,9 @@ const C = (() => {
     const held = (t) => t + holds.reduce((s, [at, d]) => s + (at < t ? d : 0), 0);
     TL2RAW = (t) => held(Math.max(0, loc(t))); PART_FROM = from;
     duration = to - from + lead + holds.reduce((s, [, d]) => s + d, 0);
-    // The camera pushes in 3.5% over each hold and eases back after it.
-    const rawHolds = []; let acc = 0;
-    for (const [at, d] of holds) { rawHolds.push([at + acc, d]); acc += d; }
-    const drift = (r) => 1 + 0.035 * rawHolds.reduce((s, [a, d]) => s + io(p(r, a, a + d)) * (1 - io(p(r, a + d, a + d + 0.8))), 0);
+    // A hold freezes the camera where it is. It never pushes in: a few percent of zoom on every hold reads as a
+    // micro-zoom and distracts (Week 44 review). The only zooms are the ones keyed in a clip's camera.
+    const drift = () => 1;
 
     const frame = $$(".frame").find((f) => getComputedStyle(f).display !== "none") || $(".frame");
     const amb = MOTION ? ambient(frame) : null;
