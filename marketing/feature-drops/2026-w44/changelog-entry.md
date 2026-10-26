@@ -1,7 +1,7 @@
 {% update date="2026-10-26" tags="new-releases,improvements,fixes" %}
 ## Week 44: runs that keep going
 
-{% embed url="https://www.youtube.com/watch?v=<id>" %}
+{% embed url="https://www.youtube.com/watch?v=dwDaQDdUay4" %}
 
 This week is about runs that keep going. A workflow the Agent runs asks you on a card when it needs an answer, the rest of a run can move to someone else in one go, and a run that stops halfway carries on from where it was.
 
