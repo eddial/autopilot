@@ -15,13 +15,12 @@ OUT=feature-drop-$YEAR-w$WEEK.mp4
 MUSIC=${MUSIC:-music/muted-trumpet-jazz.mp3}
 CREDIT=${CREDIT:-"Music: Muted Trumpet Jazz Study Session by Alex Morgan · CC BY 4.0"}
 PARTS="card-m1.mp4=feature-drop-cards.html?card=1
-fd1-notifications.mp4=ch1-notifications.html
-fd2-reassign.mp4=ch2-reassign.html
-fd3-workflow-asks.mp4=ch3-workflow-asks.html
-fd4-continue.mp4=ch4-continue.html
-fd5-agent-files.mp4=ch5-agent-files.html
-fd6-stacked-bars.mp4=ch6-stacked-bars.html
-fd7-date-metrics.mp4=ch7-date-metrics.html
+fd1-reassign.mp4=ch1-reassign.html
+fd2-workflow-asks.mp4=ch2-workflow-asks.html
+fd3-continue.mp4=ch3-continue.html
+fd4-agent-files.mp4=ch4-agent-files.html
+fd5-stacked-bars.mp4=ch5-stacked-bars.html
+fd6-date-metrics.mp4=ch6-date-metrics.html
 card-m2.mp4=feature-drop-cards.html?card=2
 card-m3.mp4=feature-drop-cards.html?card=3"
 CLIP_QUERY="credit=$CREDIT" node cards.mjs feature-drop-cards.html card   # card-1.png: the cover, composed, is the thumbnail

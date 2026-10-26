@@ -1,15 +1,15 @@
 Lleverage Feature Drop Week #44 🎁
 
-A run that waits on a person is only as fast as the moment that person notices.
+Most back-office work isn't hard. It's waiting: for a PO number, for someone who's out today, for a run that broke halfway to be started over.
 
-Until this week, a task for Mila sat in Requests until she happened to look. Now she hears about it: in the app and by email when it lands, a day before it's due, and when it's overdue. Eva hears back the moment Mila answers.
+This week we took a lot of that waiting out.
 
-An autonomous back office still has people in it. Orders and invoices run on their own, and people step in for the discount, the missing PO, the price that doesn't match. Those moments have to reach the right person fast, or the whole process waits.
+When a workflow the Agent runs stops for a PO number, it asks you on a card in the chat, and the same run carries on. If Tom is out, you hand Mila the rest of the run in one go instead of step by step. And when a run breaks halfway, Continue picks it up where it stopped, with everything it already did.
 
-So when a workflow the Agent runs stops for a PO number, it now asks you on a card and carries the same run on. If Tom is out, you hand Mila the rest of the run in one go. And a run that breaks halfway continues where it stopped.
+That's the autonomous back office in practice: orders and invoices run on their own, people step in where they're needed, and the process doesn't stall around them.
 
 My favourite: Continue. Nothing is lost when a run trips.
 
-Plus stacked bar charts, date metrics and more. Full changelog in the comments.
+Plus Agent steps that save to Files, stacked bar charts, date metrics and more. Full changelog in the comments.
 
 Music: Muted Trumpet Jazz Study Session by Alex Morgan, CC BY 4.0
