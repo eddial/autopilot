@@ -44,6 +44,20 @@ export const repoDir = (repo: string) =>
   repo === 'autopilot' ? ROOT : /^[~/]/.test(repo) ? path.resolve(home(repo)) : path.join(config.repos_dir, repo);
 
 export type Md = { name: string; meta: Record<string, any>; body: string };
+
+// A workstream with `repos: [path, …]` works in the one an issue names by the folder's name: its label, or a
+// GitHub link or <name>#<n> reference in its description or attachments. Anything else works in `repo:`.
+export function repoFor(ws: Md, issue: any): string {
+  const repos = new Map<string, string>(([] as string[]).concat(ws.meta.repos || []).map(r => [path.basename(r), r]));
+  const labels: string[] = (issue.labels?.nodes ?? []).map((l: any) => l.name);
+  const text = [issue.description ?? '', ...(issue.attachments?.nodes ?? []).map((a: any) => a.url)].join('\n');
+  const esc = (n: string) => n.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const names = [...repos.keys()];
+  const named = names.find(n => labels.includes(n))
+    ?? names.find(n => new RegExp(`github\\.com/[\\w.-]+/${esc(n)}(?![\\w.-])|(?<![\\w/.-])${esc(n)}#\\d+`).test(text));
+  return named ? repos.get(named)! : ws.meta.repo ?? '';
+}
+
 export function readMd(file: string): Md {
   const text = fs.readFileSync(file, 'utf8');
   const m = text.match(/^---\n([\s\S]*?)\n---\n?([\s\S]*)$/);

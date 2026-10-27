@@ -3,7 +3,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import { randomUUID } from 'node:crypto';
 import path from 'node:path';
-import { ROOT, HOME, home, config, repoDir, readDir, section, instructions, withState, readState, run, log, transient, unwatch, claude, type Session } from './lib.ts';
+import { ROOT, HOME, home, config, repoDir, repoFor, readDir, section, instructions, withState, readState, run, log, transient, unwatch, claude, type Session } from './lib.ts';
 
 const TMUX = 'autopilot';
 // Every comment Autopilot writes starts with this; a comment without it is the owner steering the issue.
@@ -28,7 +28,7 @@ export async function gql(query: string, variables: Record<string, unknown> = {}
   if (!r.ok || j.errors) throw new Error(`Linear: ${r.status} ${JSON.stringify(j.errors ?? j).slice(0, 500)}`);
   return j.data;
 }
-const ISSUE = 'id identifier title description createdAt project { name } state { name type } attachments { nodes { url } }';
+const ISSUE = 'id identifier title description createdAt project { name } state { name type } labels { nodes { name } } attachments { nodes { url } }';
 const issuesIn = async (filter: object) =>
   (await gql(`query($f: IssueFilter) { issues(filter: $f, first: 100) { nodes { ${ISSUE} } } }`, { f: filter })).issues.nodes;
 export const comment = (issueId: string, body: string) =>
@@ -184,7 +184,8 @@ async function start(issue: any) {
   // .claude/worktrees/<ID> where the Claude app keeps its own, so the app lists the session under the repo.
   // A workstream with a folder works in that folder. Everything else runs in the Autopilot folder, so its
   // sessions sit together in the app, and keeps its files in worktrees_dir/<workstream>/<ID>/.
-  const repo = ws.meta.repo ? repoDir(ws.meta.repo) : '';
+  const chosen = repoFor(ws, issue);
+  const repo = chosen ? repoDir(chosen) : '';
   const folder = !repo && ws.meta.folder ? path.resolve(home(ws.meta.folder)) : '';
   const files = repo ? '' : path.join(folder || path.join(config.worktrees_dir, ws.name), id);
   const key = sourceTicket(issue);
