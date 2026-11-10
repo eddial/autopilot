@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<title>Drafts you can copy or send</title>
+<link rel="stylesheet" href="clip.css">
+<link rel="stylesheet" href="app.css">
+<link rel="stylesheet" href="parts/agent-chat.css">
+<link rel="stylesheet" href="chapter.css">
+<style>
+  /* The Agent page: one chat column (agent-chat.tsx, footer max-w-3xl). */
+  .app { --ring: 60 7% 60%; }
+  .agentpage { position: absolute; inset: 0; display: flex; }
+  .chatcol { flex: 1; min-width: 0; display: flex; flex-direction: column; padding: 16px 0 20px; }
+  .chatcol > * { width: 680px; margin-left: auto; margin-right: auto; }
+  .chatcol .msgs { gap: 16px; }
+  .prose { font-size: 14px; line-height: 22px; }
+  .prose p { margin: 0 0 8px; }
+  .bubble { font-size: 14px; line-height: 22px; padding: 6px 8px; background: hsl(var(--muted)); }
+  .step .dot svg.lu { width: 10px; height: 10px; }
+  .composer .ta div { font-size: 14px; }
+  .composer .ta div.typed { color: hsl(var(--foreground)); }
+  .status { padding: 0 4px 8px; font-size: 13px; }
+  /* Email card and message box (parts/email-card.tsx, parts/message-box.tsx): Card divided = rounded-lg (12px) border
+     bg-card divide-y. Header px-3 py-2: the glyph (lucide Mail / MessageSquare, size-3), text-xs font-medium label,
+     then Copy (quiet button, ml-auto -my-1, faCopy → faCheck "Copied" in text-success) or the muted status.
+     Rows px-3 py-1.5: label text-xs muted w-14, value text-xs. Body px-3 py-2.5 text-sm pre-wrap, line-clamp-4 when
+     long, then "Show full email" (link button). */
+  .card { border: 1px solid hsl(var(--border)); border-radius: 12px; background: hsl(var(--card)); overflow: hidden; }
+  .card > * + * { border-top: 1px solid hsl(var(--border)); }
+  .card .hd { display: flex; align-items: center; gap: 8px; padding: 8px 12px; min-height: 36px; }
+  .card .hd .gl { width: 12px; height: 12px; display: grid; place-items: center; color: hsl(var(--foreground)); }
+  .card .hd .gl svg { width: 12px; height: 12px; }
+  .card .hd b { font-size: 12px; line-height: 16px; font-weight: 500; }
+  .card .hd .dest { font-size: 12px; line-height: 16px; color: hsl(var(--muted-foreground)); }
+  .card .hd .st { margin-left: auto; font-size: 12px; line-height: 16px; color: hsl(var(--muted-foreground)); }
+  .cbtn { margin: -4px 0 -4px auto; height: 30px; display: inline-flex; align-items: center; gap: 6px; padding: 0 12px; border-radius: 10px; font-size: 14px; font-weight: 500; color: hsl(var(--muted-foreground)); }
+  .cbtn svg { width: 14px; height: 14px; fill: currentColor; }
+  .cbtn.hov { background: hsl(var(--accent)); color: hsl(var(--foreground)); }
+  .cbtn .ok { color: hsl(var(--success)); }
+  .card .kv { display: flex; gap: 12px; padding: 6px 12px; font-size: 12px; line-height: 16px; border-top: 0; }
+  .card .hd + .kv { border-top: 1px solid hsl(var(--border)); }
+  .card .kv span:first-child { width: 56px; flex: none; color: hsl(var(--muted-foreground)); }
+  .card .kv .strong { font-weight: 500; }
+  .card .bd { padding: 10px 12px; font-size: 14px; line-height: 20px; }
+  .card .bd .tx { white-space: pre-wrap; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 4; overflow: hidden; }
+  .card .bd .more { margin-top: 4px; font-size: 14px; line-height: 20px; font-weight: 500; color: hsl(var(--primary)); }
+  .card .bd .tx.full { -webkit-line-clamp: unset; display: block; }
+  /* The footer approval (workflow-element-widget → approval element card, kind approval): rounded-xl border-input
+     shadow-sm, body p-4; title text-base semibold, a rule, the description, then the buttons. Approve is the success
+     button in the agent chat (#9998), relabelled Send for a Slack or Teams send (withSendButton). */
+  .fw { margin-bottom: 8px; }
+  .fw .card { margin-bottom: 8px; }
+  .ec { border: 1px solid hsl(var(--input)); border-radius: 12px; overflow: hidden; background: hsl(var(--background)); box-shadow: 0 1px 2px rgb(0 0 0 / .05); padding: 16px; }
+  .ec h3 { margin: 0; font-size: 16px; line-height: 24px; font-weight: 600; }
+  .ec hr { border: 0; border-top: 1px solid hsl(var(--border)); margin: 12px 0; }
+  .ec .md { font-size: 14px; line-height: 22px; }
+  .ec .bt { margin-top: 12px; display: flex; gap: 8px; }
+  .bb { height: 30px; display: inline-flex; align-items: center; padding: 0 12px; border-radius: 10px; font-size: 14px; font-weight: 500; border: 1px solid hsl(var(--input)); background: hsl(var(--background)); }
+  .bb.ok { background: hsl(var(--success)); border-color: hsl(var(--success)); color: #fff; }
+  .bb.press { filter: brightness(.88); }
+  .rs { display: none; border: 1px solid hsl(var(--border)); border-radius: 6px; padding: 8px 12px; font-size: 14px; font-style: italic; color: hsl(var(--muted-foreground)); margin-bottom: 8px; }
+</style></head>
+<body>
+<div class="frame">
+  <div class="stage">
+    <div class="app" id="app">
+      <div id="sb"></div>
+      <main class="panel both">
+        <div class="agentpage">
+          <div class="chatcol">
+            <div class="msgs" id="msgs">
+              <div class="msg user"><span class="av">EV</span><div class="bubble">Draft an email to Kuipers Hout asking for the missing PO number on order 2026-1187.</div></div>
+              <div class="msg" id="a1"><span class="avl" id="av1"></span><div class="prose">
+                <p id="t1"></p>
+                <div class="card" id="mail">
+                  <div class="hd"><span class="gl" id="mgl"></span><b>Email</b><span class="cbtn" id="copy"><span id="cpi"></span><span id="cpt">Copy</span></span></div>
+                  <div class="kv"><span>To</span><span>inkoop@kuipershout.nl</span></div>
+                  <div class="kv"><span>Subject</span><span class="strong">PO number for order 2026-1187</span></div>
+                  <div class="bd"><div class="tx" id="body"></div><div class="more">Show full email</div></div>
+                </div>
+              </div></div>
+              <div class="msg user" id="u2"><span class="av">EV</span><div class="bubble">Also let #order-desk in Slack know we're waiting on it.</div></div>
+              <div class="msg" id="a2"><span class="avl" id="av2"></span><div class="prose">
+                <p id="t2"></p>
+                <div class="step" id="step2"><span class="dot" id="sdot"></span><span class="txt">Slack: Send Message</span></div>
+                <p id="t3"></p>
+              </div></div>
+            </div>
+            <div class="status" id="status"><span id="stl"></span><span id="stt"></span></div>
+            <div class="fw" id="fw">
+              <div class="card" id="mbox">
+                <div class="hd"><span class="gl" id="sgl"></span><b>Slack</b><span class="dest">#order-desk</span><span class="st">Waiting for you to send</span></div>
+                <div class="bd"><div class="tx">We're waiting on Kuipers Hout for the PO number on order 2026-1187. I've emailed them and will post here once it's in.</div></div>
+              </div>
+              <div class="ec">
+                <h3>Allow a change in Slack?</h3>
+                <hr>
+                <div class="md">The agent wants to use your Slack connection to send Message.</div>
+                <div class="bt"><span class="bb ok" id="send">Send</span><span class="bb">Deny</span></div>
+              </div>
+            </div>
+            <div class="rs" id="rs">Response submitted</div>
+            <div class="composer" id="composer">
+              <div class="ta"><div id="ta">Reply to Lleverage…</div></div>
+              <div class="row"><span class="rb" id="plus"></span>
+                <div class="r"><span class="model">Opus 5.5 <span id="mchev"></span></span><span class="rb" id="mic"></span><span class="rb" id="sendb"></span></div></div>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+</div>
+<script src="fa-icons.js"></script>
+<script src="app.js"></script>
+<script src="clip.js"></script>
+<script src="chapter.js"></script>
+<script>
+  CHAPTER({ n: 6, total: 7, module: "Agent", footerLeft: "Feature Drop · Week 46",
+    title: "Drafts you can<br><em>copy or send.</em>",
+    line: "An email the Agent writes for you comes as an email card with Copy. A Slack or Teams message waits in a box naming the channel, with Send." });
+  const D = 12.6;
+  window.HOLDS = [[4.75, 0.7], [10.2, 0.6], [12.4, 1.0]];
+  const { $, $$, p, out, type } = C;
+  Object.assign(LU, { // lucide-react Mail and MessageSquare, the cards' fallback glyphs
+    mail: '<rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>',
+    messageSquare: '<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>' });
+  $("#sb").outerHTML = APP.sidebar("Order 2026-1187", "Order intake", { recents: ["Order 2026-1187", "Invoices waiting on a PO", "Weekly order report"] });
+  $$(".avl").forEach((el) => (el.outerHTML = `<span id="${el.id}" style="display:block;margin-top:2px;flex:none;color:hsl(var(--foreground))">${APP.loader(20)}</span>`));
+  $("#stl").innerHTML = APP.loader(20);
+  $("#sdot").innerHTML = lu("wrench");
+  $("#mgl").innerHTML = lu("mail"); $("#sgl").innerHTML = lu("messageSquare");
+  $("#mchev").innerHTML = fa("faChevronDown", "", "width:9px;height:9px");
+  $("#plus").innerHTML = lu("plus", "", "width:16px;height:16px"); $("#mic").innerHTML = fa("faMicrophone");
+  $("#sendb").innerHTML = fa("s:faPhoneFlip");
+  const BODY = "Hi,\n\nThanks for order 2026-1187 of 4 November. The PO number was missing from it, and we need it before we can confirm the order.\n\nCould you reply with it? We'll confirm the delivery date as soon as we have it.\n\nKind regards,\nEva Visser";
+  $("#body").textContent = BODY;
+  const T1 = "Here's the email for Kuipers Hout.";
+  const T2 = "I'll post it in #order-desk.";
+  const T3 = "Posted in #order-desk.";
+  const U2 = "Also let #order-desk in Slack know we're waiting on it.";
+  const cp = (ok) => { $("#cpi").innerHTML = fa(ok ? "faCheck" : "faCopy", ok ? "ok" : ""); $("#cpt").textContent = ok ? "Copied" : "Copy"; };
+
+  const app = $("#app");
+  const at = (el, fx = 0.5, fy = 0.5) => { const a = app.getBoundingClientRect(), r = el.getBoundingClientRect(), s = a.width / 1280;
+    return [(r.left - a.left + r.width * fx) / s, (r.top - a.top + r.height * fy) / s]; };
+  const VW = C.STAGE_W, VH = C.STAGE_H, FIT = Math.min(VW / 1280, VH / C.APP_H) * 0.98;
+  const fit = (x0, y0, x1, y1) => { const s = Math.min(VW / (x1 - x0), VH / (y1 - y0)); return [(x0 + x1) / 2, (y0 + y1) / 2 + (VH / s - (y1 - y0)) / 2, s]; };
+  // Layout 1 (the copy click): the email answer, nothing after it, no footer card.
+  const L1 = () => { $("#u2").style.display = "none"; $("#a2").style.display = "none"; $("#fw").style.display = "none"; $("#rs").style.display = "none";
+    $("#status").style.visibility = "hidden"; $("#t1").textContent = T1; };
+  // Layout 2 (the send click): the second request, the step, the footer card shown.
+  const L2 = () => { $("#u2").style.display = ""; $("#a2").style.display = ""; $("#step2").style.display = ""; $("#fw").style.display = "";
+    $("#t2").textContent = T2; $("#t3").textContent = ""; $("#status").style.visibility = "visible"; };
+  L1();
+  const P = { copy: at($("#copy")) };
+  const m0 = at($("#a1"), 0, 0), m1 = at($("#mail"), 1, 1);
+  L2();
+  P.send = at($("#send"));
+  L1();
+  // The one zoom: the Agent's answer with the email card, framed on its edges.
+  const ZOOM = fit(m0[0] - 24, m0[1] - 12, m1[0] + 24, m1[1] + 16);
+  const FULL = [640, C.APP_H / 2, FIT];
+  const cam = C.camera(app, VW, VH, [[0, ...FULL], [1.9, ...FULL], [2.5, ...ZOOM], [5.4, ...ZOOM], [6.0, ...FULL], [D, ...FULL]]);
+  const F = (t, [x, y]) => { const m = cam(t).map(x, y); return [C.STAGE_X + m[0], C.STAGE_Y + m[1]]; };
+  const OFF = (fx) => [C.W * fx, C.H + 40];
+  const cur = C.cursor([[3.75, ...OFF(0.75)], [4.3, ...F(4.3, P.copy)], [4.55, ...F(4.55, P.copy), true], [5.1, ...OFF(0.8)],
+    [9.45, ...OFF(0.35)], [9.95, ...F(9.95, P.send)], [10.2, ...F(10.2, P.send), true], [10.7, ...OFF(0.45)]]);
+  const cap = C.captions([
+    [1.9, 3.9, "Ask for an email.<br><em>It comes as an email card.</em>"],
+    [4.2, 5.9, "Copy takes the subject<br><em>and the body together.</em>"],
+    [6.2, 99, "A Slack message waits<br><em>until you press Send.</em>"],
+  ]);
+  C.typing(6.3, 7.5);
+  cam(0);
+  C.run(D, (t) => {
+    cap(t); cam(t); cur(t);
+    // Beat 1: the Agent writes its answer and the email card lands (silent).
+    type($("#t1"), T1, t, 0.3, 0.8, null);
+    const mo = out(p(t, 0.9, 1.3));
+    $("#mail").style.opacity = mo; $("#mail").style.transform = `translateY(${(1 - mo) * 8}px)`;
+    APP.drive($("#av1"), t < 1.3 ? "working" : "static", t);
+    // Beat 2: Copy.
+    $("#copy").classList.toggle("hov", t >= 4.25 && t < 5.2);
+    cp(t >= 4.6);
+    // Beat 3: the second request typed and sent, then the Slack box and its approval above the composer.
+    const typed = t >= 6.3 && t < 7.7;
+    $("#ta").classList.toggle("typed", typed);
+    if (typed) type($("#ta"), U2, t, 6.3, 7.5, null); else $("#ta").textContent = "Reply to Lleverage…";
+    const sent2 = t >= 7.7;
+    $("#u2").style.display = sent2 ? "" : "none";
+    $("#a2").style.display = t >= 8.0 ? "" : "none";
+    type($("#t2"), T2, t, 8.0, 8.4, null);
+    $("#step2").style.display = t >= 8.5 ? "" : "none";
+    const answered = t >= 10.4;
+    const fo = out(p(t, 8.8, 9.2));
+    $("#fw").style.display = t >= 8.8 && !answered ? "" : "none";
+    $("#fw").style.opacity = fo; $("#fw").style.transform = `translateY(${(1 - fo) * 8}px)`;
+    $("#send").classList.toggle("press", t >= 10.15 && t < 10.4);
+    $("#rs").style.display = answered && t < 11.2 ? "block" : "none";
+    type($("#t3"), T3, t, 11.4, 11.7, null);
+    const st = !sent2 ? null : t < 8.8 ? "Thinking" : !answered ? "Waiting for you" : t < 11.3 ? "Using a tool" : t < 11.8 ? "Responding" : null;
+    $("#status").style.visibility = st ? "visible" : "hidden"; $("#stt").textContent = st || "";
+    APP.drive($("#stl"), st && st !== "Waiting for you" ? "working" : "static", t);
+    APP.drive($("#av2"), sent2 && t < 11.8 && st !== "Waiting for you" ? "working" : "static", t);
+  });
+</script>
+</body></html>

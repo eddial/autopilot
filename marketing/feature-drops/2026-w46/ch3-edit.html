@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<title>Change a page by hand</title>
+<link rel="stylesheet" href="clip.css">
+<link rel="stylesheet" href="app.css">
+<link rel="stylesheet" href="chapter.css">
+<style>
+  /* Edit mode for pages (production 301302d, PR 10007): custom-page-view.tsx, page-edit-controls.tsx (the pencil is a
+     Toggle, tooltip "Edit page"), page-settings.tsx (cog, Page width), page-details-fields.tsx (TitleInput text-2xl
+     semibold with a transparent border; Textarea "Add a description"), dashboard-grid: grid-cell.tsx (CellToolbar pill
+     above the cell on hover; EmptyGridCell "Add" with border-2 dashed), grid-resize-handle.tsx (-right-2 w-4, a h-8
+     w-1 rounded bar). The grid is 4 columns at this width, gap-x-5 gap-y-5. Widgets: border bg-card rounded-lg p-5. */
+  .app { --ring: 60 1% 39.2%; }
+  .view { position: absolute; inset: 0; display: flex; flex-direction: column; }
+  .ph { padding-top: 16px; align-items: flex-start; min-height: 92px; }
+  .ttl { min-width: 0; flex: 1; }
+  .ttl h1 { display: flex; align-items: center; gap: 8px; }
+  .ttl .pin { color: hsl(var(--muted-foreground)); display: grid; place-items: center; width: 24px; height: 24px; }
+  .ttl .pin svg { width: 13px; height: 13px; }
+  .ttl .d { font-size: 14px; line-height: 20px; color: hsl(var(--muted-foreground)); margin-top: 2px; }
+  .fields { display: none; flex-direction: column; gap: 4px; margin: -6px 0 0 -6px; }
+  .ti { max-width: 576px; height: 44px; display: flex; align-items: center; padding: 0 6px; border: 1px solid transparent; border-radius: 6px; font-size: 24px; line-height: 32px; font-weight: 600; letter-spacing: -.025em; white-space: nowrap; }
+  .ti.hov, .ti.focus { border-color: hsl(var(--input)); }
+  .ti.focus { box-shadow: 0 0 0 2px hsl(var(--ring) / .25); }
+  .ti .caret { display: inline-block; width: 1.5px; height: 26px; background: hsl(var(--foreground)); margin-left: 1px; }
+  .ta2 { max-width: 672px; border: 1px solid hsl(var(--input)); border-radius: 6px; background: hsl(var(--background)); padding: 5px 12px; font-size: 14px; line-height: 20px; height: 52px; }
+  .ib { width: 32px; height: 32px; border-radius: 6px; display: grid; place-items: center; border: 1px solid hsl(var(--input)); background: hsl(var(--background)); color: hsl(var(--foreground)); }
+  .ib svg { width: 14px; height: 14px; }
+  .tgl { height: 32px; width: 42px; border-radius: 6px; display: grid; place-items: center; border: 1px solid hsl(var(--input)); background: hsl(var(--background)); color: hsl(var(--muted-foreground)); }
+  .tgl svg { width: 14px; height: 14px; }
+  .tgl.on { background: hsl(var(--muted)); color: hsl(var(--foreground)); }
+  .edit .grid { margin-top: 40px; }
+  .grid { margin: 16px 32px 0; display: grid; grid-template-columns: repeat(4, 1fr); column-gap: 20px; row-gap: 20px; }
+  .cell { position: relative; }
+  .wc { position: relative; height: 100%; background: hsl(var(--card)); border: 1px solid hsl(var(--border)); border-radius: 12px; padding: 20px; overflow: hidden; }
+  .edit .cell.w { cursor: grab; }
+  .wc .wt { font-size: 16px; line-height: 24px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .wc .wi { font-size: 13px; line-height: 18px; color: hsl(var(--muted-foreground)); margin-top: 2px; }
+  .wc .big { margin-top: 18px; font-size: 30px; line-height: 36px; font-weight: 500; letter-spacing: -.02em; display: flex; align-items: baseline; gap: 6px; }
+  .wc .big small { font-size: 14px; font-weight: 400; color: hsl(var(--muted-foreground)); letter-spacing: 0; }
+  .wc .tr { margin-top: 8px; font-size: 13px; color: hsl(var(--muted-foreground)); }
+  .bars { display: flex; align-items: flex-end; gap: 14px; height: 190px; margin-top: 22px; padding-bottom: 20px; position: relative; border-bottom: 1px solid hsl(var(--border)); }
+  .bar { flex: 1; position: relative; border-radius: 4px 4px 0 0; background: hsl(200 35% 42%); }
+  .bar span { position: absolute; bottom: -20px; left: 0; right: 0; text-align: center; font-size: 11px; color: hsl(var(--muted-foreground)); }
+  .bar i { position: absolute; top: -17px; left: 0; right: 0; text-align: center; font-size: 11px; font-style: normal; }
+  .hb { margin-top: 14px; display: flex; flex-direction: column; gap: 9px; }
+  .hb div { display: grid; grid-template-columns: 200px 1fr 52px; align-items: center; gap: 12px; font-size: 13px; }
+  .hb i { height: 14px; border-radius: 0 3px 3px 0; background: hsl(170 35% 35%); }
+  .hb em { font-style: normal; text-align: right; font-variant-numeric: tabular-nums; }
+  /* EmptyGridCell: min-h-200, rounded-lg border-2 border-dashed border-border; a size-10 rounded-lg bg-muted plus; Add. */
+  .add { display: none; min-height: 200px; border: 2px dashed hsl(var(--border)); border-radius: 12px; align-items: center; justify-content: center; flex-direction: column; gap: 8px; color: hsl(var(--muted-foreground)); font-size: 14px; font-weight: 500; }
+  .add .pl { width: 40px; height: 40px; border-radius: 12px; background: hsl(var(--muted)); display: grid; place-items: center; }
+  .add .pl svg { width: 18px; height: 18px; }
+  /* CellToolbar: absolute left-0 top-0, -translate-y-[calc(100%+6px)], rounded-full border bg-background py-0.5 pl-3 pr-0.5 shadow-sm. */
+  .tb { position: absolute; left: 0; top: 0; transform: translateY(calc(-100% - 6px)); display: flex; align-items: center; gap: 2px; border: 1px solid hsl(var(--border)); border-radius: 999px; background: hsl(var(--background)); padding: 2px 2px 2px 12px; box-shadow: 0 1px 2px rgb(0 0 0 / .05); opacity: 0; z-index: 3; white-space: nowrap; }
+  .tb b { font-size: 12px; line-height: 16px; font-weight: 500; color: hsl(var(--muted-foreground)); margin-right: 4px; }
+  .tb span { width: 28px; height: 28px; border-radius: 6px; display: grid; place-items: center; color: hsl(var(--muted-foreground)); }
+  .tb span svg { width: 12px; height: 12px; }
+  .rh { position: absolute; right: -8px; top: 0; height: 100%; width: 16px; display: flex; align-items: center; justify-content: center; opacity: 0; z-index: 3; cursor: col-resize; }
+  .rh i { width: 4px; height: 32px; border-radius: 999px; background: hsl(var(--muted-foreground)); }
+</style></head>
+<body>
+<div class="frame">
+  <div class="stage">
+    <div class="app" id="app">
+      <div id="sb"></div>
+      <main class="panel" id="main">
+        <div class="view" id="pv">
+          <div class="ph">
+            <div class="ttl">
+              <div id="ro"><h1>Order desk <span class="pin" data-fa="faThumbtack"></span></h1><div class="d">What the order desk needs today: orders waiting on a PO, handling time and orders per customer.</div></div>
+              <div class="fields" id="fields"><div class="ti" id="ti"><span id="tit">Order desk</span><span class="caret" id="caret"></span></div>
+                <div class="ta2">What the order desk needs today: orders waiting on a PO, handling time and orders per customer.</div></div>
+            </div>
+            <div class="right"><span class="ib" id="cog" data-fa="faGear"></span><span class="tgl" id="pen" data-fa="faPen"></span><span class="ib" id="agb"></span></div>
+          </div>
+          <div class="grid" id="grid">
+            <div class="cell w" id="c1" style="grid-column: span 1"><div class="tb"><b>Waiting on a PO</b><span data-fa="faGear"></span><span data-fa="faComment"></span><span data-fa="faClone"></span><span data-fa="faTrash"></span></div>
+              <div class="wc"><div class="wt">Waiting on a PO</div><div class="wi">Open orders the Agent can't draft in Exact Online yet</div><div class="big tnum">14 <small>orders</small></div><div class="tr">6 fewer than Monday</div></div><div class="rh"><i></i></div></div>
+            <div class="cell w" id="c2" style="grid-column: span 2"><div class="tb" id="tb2"><b>Handling time per day</b><span data-fa="faGear"></span><span data-fa="faComment"></span><span data-fa="faClone"></span><span data-fa="faTrash"></span></div>
+              <div class="wc"><div class="wt">Handling time per day</div><div class="wi">Minutes from email to draft order, this week</div><div class="bars" id="bars"></div></div><div class="rh" id="rh2"><i></i></div></div>
+            <div class="cell add" id="add" style="grid-column: span 1"><span class="pl" data-fa="faPlus"></span>Add</div>
+            <div class="cell w" id="c3" style="grid-column: span 4"><div class="tb"><b>Orders per customer</b><span data-fa="faGear"></span><span data-fa="faComment"></span><span data-fa="faClone"></span><span data-fa="faTrash"></span></div>
+              <div class="wc"><div class="wt">Orders per customer</div><div class="wi">This month</div><div class="hb" id="hb"></div></div></div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+</div>
+<script src="fa-icons.js"></script>
+<script src="app.js"></script>
+<script src="clip.js"></script>
+<script src="chapter.js"></script>
+<script>
+  CHAPTER({ n: 3, total: 7, module: "Pages", footerLeft: "Feature Drop · Week 46",
+    title: "Change a page<br><em>by hand.</em>",
+    line: "The pencil on a page turns on edit mode: move, resize, add and remove widgets, rename the page and set its width. Every change saves as it's made." });
+  const D = 11.8;
+  window.HOLDS = [[3.4, 0.4], [6.75, 0.5], [10.15, 0.6], [D - 0.3, 0.9]];
+  const { $, $$, p, out, io, type } = C;
+  $("#sb").outerHTML = APP.sidebar("Pages");
+  $$("[data-fa]").forEach((el) => (el.innerHTML = fa(el.dataset.fa)));
+  $("#agb").innerHTML = APP.loader(20);
+  const DAYS = [["Mon", 3.1], ["Tue", 2.6], ["Wed", 2.4], ["Thu", 2.1], ["Fri", 1.8]];
+  $("#bars").innerHTML = DAYS.map(([d, v]) => `<div class="bar" style="height:${(v / 3.1) * 100}%"><i>${v} min</i><span>${d}</span></div>`).join("");
+  const CUST = [["Van Dijk Metaal", 38], ["Kuipers Hout", 31], ["Smit Elektro", 24], ["Bakker Installatietechniek", 17], ["Noord Coatings", 14], ["Brouwer Verpakking", 11], ["De Graaf Transport", 7]];
+  $("#hb").innerHTML = CUST.map(([n, v]) => `<div><span>${n}</span><i style="width:${(v / 38) * 100}%"></i><em>${v}</em></div>`).join("");
+  const NEWT = "Order desk Rotterdam";
+
+  const app = $("#app");
+  const at = (el, fx = 0.5, fy = 0.5) => { const a = app.getBoundingClientRect(), r = el.getBoundingClientRect(), s = a.width / 1280;
+    return [(r.left - a.left + r.width * fx) / s, (r.top - a.top + r.height * fy) / s]; };
+  const setEdit = (on) => {
+    $("#pv").classList.toggle("edit", on);
+    $("#ro").style.display = on ? "none" : ""; $("#fields").style.display = on ? "flex" : "none";
+    $("#cog").style.display = on ? "" : "none"; $("#pen").classList.toggle("on", on);
+    $("#add").style.display = on ? "flex" : "none";
+  };
+  // Measure each click in its layout: the pencil with edit mode off; the handle and the title with it on.
+  const P = { pen: at($("#pen")) };
+  setEdit(true);
+  $("#rh2").style.opacity = 1;
+  P.rh = at($("#rh2")); P.w2 = at($("#c2"), 0.45, 0.55);
+  const colW = (at($("#c2"), 1, 0)[0] - at($("#c2"), 0, 0)[0] + 20) / 2; // one column and its gap
+  P.rh2 = [P.rh[0] + colW, P.rh[1]];
+  $("#tit").textContent = "Order desk"; $("#caret").style.display = "none";
+  P.ti = at($("#tit"), 1, 0.5); P.ti = [P.ti[0] + 4, P.ti[1]];
+  $("#rh2").style.opacity = ""; setEdit(false);
+  const VW = C.STAGE_W, VH = C.STAGE_H, FIT = Math.min(VW / 1280, VH / C.APP_H) * 0.98;
+  const fit = (x0, y0, x1, y1) => { const s = Math.min(VW / (x1 - x0), VH / (y1 - y0)); return [(x0 + x1) / 2, (y0 + y1) / 2 + (VH / s - (y1 - y0)) / 2, s]; };
+  // No zoom: any shot of 1.3x or more would cut through the full-width widget, so the page stays in full view.
+  const FULL = [640, C.APP_H / 2, FIT];
+  const cam = C.camera(app, VW, VH, [[0, ...FULL], [D, ...FULL]]);
+  const F = (t, [x, y]) => { const m = cam(t).map(x, y); return [C.STAGE_X + m[0], C.STAGE_Y + m[1]]; };
+  const OFF = (fx) => [C.W * fx, C.H + 40];
+  const cur = C.cursor([[1.9, ...OFF(0.8)], [2.4, ...F(2.4, P.pen)], [2.6, ...F(2.6, P.pen), true], [3.0, ...OFF(0.75)],
+    [4.6, ...OFF(0.55)], [5.1, ...F(5.1, P.w2)], [5.4, ...F(5.4, P.rh)], [5.6, ...F(5.6, P.rh), true], [6.4, ...F(6.4, P.rh2)], [6.6, ...F(6.6, P.rh2)], [7.0, ...OFF(0.7)],
+    [8.5, ...OFF(0.45)], [8.9, ...F(8.9, P.ti)], [9.1, ...F(9.1, P.ti), true], [9.45, ...OFF(0.5)]]);
+  const cap = C.captions([
+    [1.9, 4.5, "Click the pencil.<br><em>The page opens for editing.</em>"],
+    [4.8, 7.9, "Drag a widget's edge.<br><em>It takes the space you give it.</em>"],
+    [8.2, 99, "Rename it in place.<br><em>Each change saves as you go.</em>"],
+  ]);
+  C.typing(9.35, 9.9);
+  cam(0);
+  C.run(D, (t) => {
+    cap(t); cam(t); cur(t);
+    setEdit(t >= 2.65);
+    // Hovering the chart shows its toolbar and resize handle; the drag widens it from two columns to three.
+    const hov = t >= 5.05 && t < 6.8;
+    $("#tb2").style.opacity = hov ? out(p(t, 5.05, 5.2)) : 0;
+    $("#rh2").style.opacity = hov ? 1 : 0;
+    const dragX = t < 5.6 ? 0 : colW * io(p(t, 5.6, 6.4));
+    const span = dragX > colW / 2 ? 3 : 2;
+    $("#c2").style.gridColumn = `span ${span}`;
+    $("#add").style.display = t >= 2.65 && span === 2 ? "flex" : "none";
+    // The title field: hover, focus with the caret at its end, the new words, then Enter.
+    const focus = t >= 9.1 && t < 10.1;
+    $("#ti").classList.toggle("hov", t >= 8.85 && t < 9.1);
+    $("#ti").classList.toggle("focus", focus);
+    $("#caret").style.display = focus && (Math.floor(t * 2.2) % 2 === 0 || (t > 9.35 && t < 9.9)) ? "inline-block" : "none";
+    const add = " Rotterdam", k = Math.round(add.length * p(t, 9.35, 9.9));
+    $("#tit").textContent = "Order desk" + add.slice(0, k);
+  });
+</script>
+</body></html>

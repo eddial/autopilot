@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<title>New requests, posted in Teams</title>
+<link rel="stylesheet" href="clip.css">
+<link rel="stylesheet" href="app.css">
+<link rel="stylesheet" href="chapter.css">
+<style>
+  /* Organisation Settings › Channels (settings-page-layout.tsx TabbedSettingsPageLayout: h-screen bg-background, a
+     1120px column; TopBar with the logo and "Back to platform"; PageHeader "<org> Organisation Settings"
+     (page-title, text-xl semibold); UnderlineTabs; the page description; then channels-settings.tsx sections). */
+  .sp { position: absolute; inset: 0; background: hsl(var(--background)); display: flex; justify-content: center; }
+  .spc { width: 1120px; display: flex; flex-direction: column; }
+  .tb { height: 56px; display: flex; align-items: center; gap: 8px; padding: 0 24px; }
+  .tb .lg { width: 32px; height: 32px; display: grid; place-items: center; margin-left: -8px; }
+  .tb .lg img { width: 20px; height: 20px; }
+  .gh { height: 30px; display: inline-flex; align-items: center; gap: 6px; padding: 0 12px; border-radius: 10px; font-size: 14px; font-weight: 500; }
+  .gh svg { width: 14px; height: 14px; fill: currentColor; }
+  .phd { padding: 8px 24px 12px; font-size: 20px; line-height: 28px; font-weight: 600; }
+  .tabs { margin: 0 24px; display: flex; gap: 20px; border-bottom: 1px solid hsl(var(--border)); }
+  .tabs span { position: relative; padding: 6px 0; font-size: 14px; line-height: 20px; font-weight: 500; color: hsl(var(--muted-foreground)); white-space: nowrap; }
+  .tabs span.on { color: hsl(var(--foreground)); }
+  .tabs span.on::after { content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 2px; border-radius: 2px 2px 0 0; background: hsl(var(--foreground)); }
+  .scroll { flex: 1; min-height: 0; overflow: hidden; position: relative; }
+  .sc { position: absolute; left: 0; right: 0; top: 0; padding: 20px 24px 32px; display: flex; flex-direction: column; gap: 24px; }
+  .muted { color: hsl(var(--muted-foreground)); font-size: 14px; line-height: 20px; }
+  /* SettingsSection: Card (rounded-lg border bg-card); CardHeader p-6 pb-3, CardTitle text-base font-medium,
+     CardDescription text-sm muted; CardContent p-6 pt-0. */
+  .ss { background: hsl(var(--card)); border: 1px solid hsl(var(--border)); border-radius: 12px; }
+  .ss .sh { padding: 24px 24px 12px; }
+  .ss .sh h3 { margin: 0 0 6px; font-size: 16px; line-height: 22px; font-weight: 500; }
+  .ss .sb2 { padding: 0 24px 24px; }
+  /* ProviderRow: border-b px-4 py-4; a 40px bg-secondary tile; title body-strong; Badge; description; meta. */
+  .pnl { border: 1px solid hsl(var(--border)); border-radius: 12px; }
+  .prow { display: flex; align-items: center; justify-content: space-between; padding: 16px; }
+  .prow + .prow { border-top: 1px solid hsl(var(--border)); }
+  .prow .l { display: flex; gap: 12px; align-items: flex-start; }
+  .tile { width: 40px; height: 40px; border-radius: 12px; background: hsl(var(--secondary)); display: grid; place-items: center; }
+  .tile svg { width: 20px; height: 20px; fill: currentColor; }
+  .prow b { font-size: 14px; line-height: 20px; font-weight: 600; }
+  .badge2 { display: inline-flex; align-items: center; height: 18px; padding: 0 7px; border: 1px solid; border-radius: 6px; font-size: 12px; font-weight: 500; margin-left: 8px; vertical-align: 1px; }
+  .badge2.ok { border-color: hsl(var(--success) / .3); background: hsl(var(--success) / .1); color: hsl(var(--success)); }
+  .badge2.out { border-color: hsl(var(--border)); }
+  .ob { height: 30px; display: inline-flex; align-items: center; gap: 6px; padding: 0 12px; border-radius: 10px; font-size: 14px; font-weight: 500; border: 1px solid hsl(var(--input)); background: hsl(var(--background)); white-space: nowrap; }
+  .ob svg { width: 14px; height: 14px; fill: currentColor; }
+  .sel { width: 224px; height: 32px; display: flex; align-items: center; justify-content: space-between; padding: 0 12px; border: 1px solid hsl(var(--input)); border-radius: 10px; background: hsl(var(--background)); font-size: 14px; }
+  .sel svg { width: 10px; height: 10px; fill: hsl(var(--muted-foreground)); }
+  .ib-hd { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
+  .ib-hd h4 { margin: 0; font-size: 14px; line-height: 20px; font-weight: 600; }
+  .dp { margin-top: 4px; display: flex; align-items: center; gap: 8px; }
+  /* Table (ui/table.tsx): rounded-lg border bg-card; text-sm; cells border-b, first pl-6, last pr-6. */
+  .tbl { margin-top: 12px; border: 1px solid hsl(var(--border)); border-radius: 12px; overflow: hidden; background: hsl(var(--card)); }
+  .tbl table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 14px; line-height: 20px; }
+  .tbl th { text-align: left; font-weight: 500; color: hsl(var(--muted-foreground)); height: 40px; padding: 0 12px; border-bottom: 1px solid hsl(var(--border)); font-size: 13px; }
+  .tbl td { padding: 10px 12px; border-bottom: 1px solid hsl(var(--border)); vertical-align: middle; }
+  .tbl tr:last-child td { border-bottom: 0; }
+  .tbl th:first-child, .tbl td:first-child { padding-left: 24px; }
+  .tbl th:last-child, .tbl td:last-child { padding-right: 12px; width: 1px; }
+  .chip { display: inline-flex; align-items: center; border-radius: 10px; background: hsl(var(--border)); padding: 4px 8px; font: 12px/16px "Roboto Mono", ui-monospace, monospace; color: hsl(var(--muted-foreground)); box-shadow: inset 0 0 0 1px hsl(var(--border)); }
+  .tbl .sel { width: 200px; }
+  .sw { display: flex; align-items: center; gap: 8px; }
+  .swt { width: 44px; height: 24px; border-radius: 999px; border: 2px solid transparent; background: hsl(var(--input)); position: relative; flex: none; }
+  .swt i { position: absolute; left: 0; top: 0; width: 20px; height: 20px; border-radius: 999px; background: hsl(var(--background)); box-shadow: 0 4px 6px -1px rgb(0 0 0 / .1), 0 2px 4px -2px rgb(0 0 0 / .1); }
+  .trash { width: 32px; height: 32px; display: grid; place-items: center; color: hsl(var(--muted-foreground)); }
+  .trash svg { width: 14px; height: 14px; fill: currentColor; }
+  /* Toast (ui/toast): bottom right, card, title semibold, description muted. */
+  .toast { position: absolute; right: 24px; bottom: 24px; width: 380px; background: hsl(var(--card)); border: 1px solid hsl(var(--border)); border-radius: 12px; padding: 16px; box-shadow: 0 10px 15px -3px rgb(0 0 0 / .1), 0 4px 6px -4px rgb(0 0 0 / .1); font-size: 14px; line-height: 20px; }
+  .toast b { display: block; font-weight: 600; }
+  .toast span { color: hsl(var(--muted-foreground)); }
+  /* The Teams channel, drawn neutrally: a channel header and its posts. The post is the text channels-service sends
+     (channel-request-notification-service.ts): "**New request:** <title>", "Project: …", "Assigned to: …",
+     "[Open the request in Lleverage](…)", as Markdown paragraphs, from the Llev app. */
+  .tm { position: absolute; inset: 0; background: hsl(0 0% 96.5%); display: flex; flex-direction: column; opacity: 0; }
+  .tm-h { height: 64px; flex: none; display: flex; align-items: center; gap: 12px; padding: 0 32px; background: #fff; border-bottom: 1px solid hsl(0 0% 88%); }
+  .tm-h .ct { width: 32px; height: 32px; border-radius: 8px; background: hsl(0 0% 90%); display: grid; place-items: center; font-weight: 600; color: hsl(0 0% 35%); }
+  .tm-h b { font-size: 18px; line-height: 24px; font-weight: 600; }
+  .tm-h .tab { margin-left: 16px; align-self: stretch; display: flex; align-items: center; position: relative; font-size: 14px; font-weight: 600; }
+  .tm-h .tab::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 3px; border-radius: 3px 3px 0 0; background: hsl(0 0% 20%); }
+  .tm-b { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 16px; padding: 24px 32px 28px; }
+  .compose { margin-top: auto; }
+  .day { text-align: center; font-size: 12px; color: hsl(0 0% 45%); }
+  .post { width: 760px; display: flex; gap: 12px; background: #fff; border-radius: 8px; padding: 14px 16px; box-shadow: 0 1px 2px rgb(0 0 0 / .08); font-size: 14px; line-height: 20px; color: hsl(0 0% 14%); }
+  .post .pa { width: 32px; height: 32px; border-radius: 999px; flex: none; display: grid; place-items: center; color: #fff; font-size: 12px; font-weight: 600; background: hsl(170 35% 35%); }
+  .post .pa.bot { border-radius: 8px; background: hsl(210 33.3% 11.8%); }
+  .post .pa.bot img { width: 18px; height: 18px; }
+  .post .who { font-size: 13px; color: hsl(0 0% 40%); margin-bottom: 4px; }
+  .post .who b { color: hsl(0 0% 14%); font-weight: 600; margin-right: 8px; }
+  .post p { margin: 0 0 8px; } .post p:last-child { margin: 0; }
+  .post a { color: hsl(232 45% 45%); text-decoration: underline; text-underline-offset: 2px; }
+  .compose { height: 44px; border: 1px solid hsl(0 0% 85%); border-radius: 8px; background: #fff; display: flex; align-items: center; padding: 0 14px; font-size: 14px; color: hsl(0 0% 50%); width: 760px; }
+</style></head>
+<body>
+<div class="frame">
+  <div class="stage">
+    <div class="app" id="app">
+      <div class="sp" id="sp"><div class="spc">
+        <div class="tb"><span class="lg"><img src="design-system/logo/ident-dark.svg" alt=""></span><span class="gh"><span data-fa="faArrowLeft"></span>Back to platform</span></div>
+        <div class="phd">Bakker Groothandel Organisation Settings</div>
+        <div class="tabs"><span>Organisation</span><span>Plan &amp; usage</span><span>Members &amp; seats</span><span>Theme</span><span>Projects</span><span>Notifications</span><span class="on">Channels</span><span>Secrets</span><span>Variables</span><span>SSO</span><span>Domains</span></div>
+        <div class="scroll"><div class="sc" id="sc">
+          <div class="muted">Connect Slack and Microsoft Teams once for the whole organisation. Optionally pin conversations to projects.</div>
+          <div class="ss"><div class="sh"><h3>Workspaces</h3><div class="muted">One connection per workspace. Conversations follow their channel pin, then the workspace default pin; with neither, Llev runs org-level with each member's own project access.</div></div>
+            <div class="sb2"><div class="pnl">
+              <div class="prow"><div class="l"><span class="tile" data-fa="faComments"></span><div><b>Slack</b><span class="badge2 out">Not connected</span><div class="muted" style="margin-top:4px">Install the Lleverage app into a Slack workspace.</div></div></div><span class="ob"><span data-fa="faPlug"></span>Connect</span></div>
+              <div class="prow"><div class="l"><span class="tile" data-fa="faComments"></span><div><b>Microsoft Teams</b><span class="badge2 ok">Active</span><div class="muted" style="margin-top:4px">Upload the Llev app package into a Microsoft Teams tenant.</div></div></div><span class="ob"><span data-fa="faPlug"></span>Reconnect</span></div>
+            </div></div></div>
+          <div class="ss"><div class="sh"><h3>Teams identity matching</h3><div class="muted">Declare trusted Teams sign-in domains when they differ from organisation email domains.</div></div>
+            <div class="sb2"><div class="pnl" style="padding:16px;display:flex;flex-direction:column;gap:16px">
+              <div><h4 style="margin:0;font-size:14px;line-height:20px;font-weight:600">Trusted domain mappings</h4><div class="muted" style="margin-top:4px">A Teams address on the alias domain may match a Lleverage user with the same local part on the canonical domain. Matching is directional and applies only inside this organisation.</div></div>
+              <div style="border:1px solid hsl(var(--border));border-radius:10px;padding:8px 12px;display:flex;justify-content:space-between;align-items:center"><span style="font:13px/20px 'Roboto Mono',monospace">bakkergroothandel.onmicrosoft.com maps to bakkergroothandel.nl</span><span class="trash" data-fa="faTrashCan"></span></div>
+              <div style="display:grid;grid-template-columns:1fr 1fr auto;gap:12px;align-items:end">
+                <div><div style="font-size:14px;font-weight:500;margin-bottom:8px">Teams alias domain</div><div class="sel" style="width:auto;color:hsl(var(--muted-foreground))">tenant.onmicrosoft.com</div></div>
+                <div><div style="font-size:14px;font-weight:500;margin-bottom:8px">Organisation email domain</div><div class="sel" style="width:auto;color:hsl(var(--muted-foreground))">example.com</div></div>
+                <span class="ob" style="background:hsl(var(--highlight));border-color:hsl(var(--highlight));color:#fff;opacity:.5"><span data-fa="faPlus"></span>Add mapping</span></div>
+            </div></div></div>
+          <div class="ss" id="pins"><div class="sh"><h3>Channel pins</h3><div class="muted">Pin individual channels to specific projects. Everything else follows the workspace default pin, or runs org-level when there is none.</div></div>
+            <div class="sb2">
+              <div class="ib-hd"><div><h4>Microsoft Teams · Bakker Groothandel</h4>
+                  <div class="dp"><span class="muted">Default pin</span><span class="sel">Order intake<span data-fa="faChevronDown"></span></span></div>
+                  <div class="muted" style="margin-top:4px">New conversations start pinned to the default project. With no default pin they run org-level: each member works with the projects they can access.</div></div>
+                <div style="display:flex;gap:8px"><span class="ob"><span data-fa="faUserGroup"></span>Map members</span><span class="ob"><span data-fa="faPlus"></span>Pin a channel</span></div></div>
+              <div class="tbl" id="tbl"><table>
+                <thead><tr><th>Channel</th><th>Pinned to</th><th>Requests</th><th>Updated</th><th></th></tr></thead>
+                <tbody>
+                  <tr><td><span class="chip">19:4f1a9c7e2b0d@thread.tacv2</span></td><td><span class="sel">Order intake<span data-fa="faChevronDown"></span></span></td>
+                    <td><span class="sw"><span class="swt" id="sw1"><i></i></span>Post new requests</span></td><td>3 days ago</td><td><span class="trash" data-fa="faTrashCan"></span></td></tr>
+                  <tr><td><span class="chip">19:8d27e5b01c4a@thread.tacv2</span></td><td><span class="sel">Supplier invoices<span data-fa="faChevronDown"></span></span></td>
+                    <td><span class="sw"><span class="swt"><i></i></span>Post new requests</span></td><td>last week</td><td><span class="trash" data-fa="faTrashCan"></span></td></tr>
+                </tbody></table></div>
+            </div></div>
+        </div></div>
+      </div>
+      <div class="toast" id="toast"><b>Request posts on</b><span>New requests in the pinned project are posted in this channel.</span></div>
+      </div>
+      <div class="tm" id="tm">
+        <div class="tm-h"><span class="ct">O</span><b>Order desk</b><span class="tab">Posts</span></div>
+        <div class="tm-b">
+          <div class="day">Today</div>
+          <div class="post"><span class="pa">MJ</span><div><div class="who"><b>Mila Jansen</b>09:12</div><p>Morning all. Van Dijk Metaal called: they want delivery of order 2026-1179 moved to Friday.</p></div></div>
+          <div class="post" id="p1"><span class="pa bot"><img src="design-system/logo/ident-white.svg" alt=""></span><div><div class="who"><b>Llev</b>09:41</div>
+            <p><b>New request:</b> Check the prices on order 2026-1187 from Kuipers Hout</p><p>Project: Order intake</p><p>Assigned to: Tom de Groot</p><p><a>Open the request in Lleverage</a></p></div></div>
+          <div class="post" id="p2"><span class="pa bot"><img src="design-system/logo/ident-white.svg" alt=""></span><div><div class="who"><b>Llev</b>09:44</div>
+            <p><b>Request reassigned:</b> Check the prices on order 2026-1187 from Kuipers Hout</p><p>Project: Order intake</p><p>Assigned to: Mila Jansen</p><p><a>Open the request in Lleverage</a></p></div></div>
+          <div class="compose">Reply in Order desk</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="fa-icons.js"></script>
+<script src="app.js"></script>
+<script src="clip.js"></script>
+<script src="chapter.js"></script>
+<script>
+  CHAPTER({ n: 7, total: 7, module: "Requests", footerLeft: "Feature Drop · Week 46",
+    title: "New requests,<br><em>posted in Teams.</em>",
+    line: "In Organisation Settings › Channels, a pinned Teams channel can post new and reassigned requests from its project, with a link to each one." });
+  const D = 11.6;
+  window.HOLDS = [[3.95, 0.8], [7.6, 1.0], [10.7, 1.2]];
+  const { $, $$, p, out } = C;
+  $$("[data-fa]").forEach((el) => (el.innerHTML = fa(el.dataset.fa)));
+  // The page scrolled down to Channel pins, the way an owner reaches the switch.
+  const sc = $("#sc"), app = $("#app");
+  const at = (el, fx = 0.5, fy = 0.5) => { const a = app.getBoundingClientRect(), r = el.getBoundingClientRect(), s = a.width / 1280;
+    return [(r.left - a.left + r.width * fx) / s, (r.top - a.top + r.height * fy) / s]; };
+  // Scrolled to the bottom of the page, where Channel pins is.
+  sc.style.top = `${$(".scroll").clientHeight - sc.offsetHeight}px`;
+  const VW = C.STAGE_W, VH = C.STAGE_H, FIT = Math.min(VW / 1280, VH / C.APP_H) * 0.98;
+  const P = { sw: at($("#sw1")) };
+  const fit = (x0, y0, x1, y1) => { const s = Math.min(VW / (x1 - x0), VH / (y1 - y0)); return [(x0 + x1) / 2, y0 + VH / s / 2, s]; };   // top-aligned
+  // The settings column is wider than a 1.3x shot, so the switch is clicked in the full view. The one zoom is the
+  // channel: its header and posts, framed from the top of the window on the posts' edges, as the channel fades in.
+  $("#p1").style.display = ""; $("#p2").style.display = "";
+  const q0 = at($("#p1"), 0, 0), q1 = at($("#p2"), 1, 1);
+  const ZOOM = fit(q0[0] - 32, 0, q1[0] + 32, q1[1] + 24);
+  const FULL = [640, C.APP_H / 2, FIT];
+  const cam = C.camera(app, VW, VH, [[0, ...FULL], [5.45, ...FULL], [6.05, ...ZOOM], [D, ...ZOOM]]);
+  const F = (t, [x, y]) => { const m = cam(t).map(x, y); return [C.STAGE_X + m[0], C.STAGE_Y + m[1]]; };
+  const OFF = (fx) => [C.W * fx, C.H + 40];
+  const cur = C.cursor([[3.0, ...OFF(0.55)], [3.5, ...F(3.5, P.sw)], [3.75, ...F(3.75, P.sw), true], [4.3, ...OFF(0.6)]]);
+  const cap = C.captions([
+    [1.9, 5.5, "Pin a Teams channel to a project.<br><em>Turn on Post new requests.</em>"],
+    [5.8, 8.6, "A request comes in.<br><em>It's posted in the channel.</em>"],
+    [8.9, 99, "Reassign it.<br><em>The channel hears that too.</em>"],
+  ]);
+  cam(0);
+  C.run(D, (t) => {
+    cap(t); cam(t); cur(t);
+    // The switch: off, then on (bg-foreground, thumb translate-x-5).
+    const on = out(p(t, 3.78, 3.95));
+    $("#sw1").style.background = on > 0.5 ? "hsl(var(--foreground))" : "hsl(var(--input))";
+    $("#sw1 i").style.transform = `translateX(${20 * on}px)`;
+    const to = out(p(t, 4.0, 4.3)) * (1 - p(t, 5.3, 5.6));
+    $("#toast").style.opacity = to; $("#toast").style.transform = `translateY(${(1 - out(p(t, 4.0, 4.3))) * 12}px)`;
+    // To the channel: the settings page gives way to the Teams channel.
+    const x = p(t, 5.5, 5.95);
+    $("#sp").style.opacity = 1 - x; $("#tm").style.opacity = x; $("#tm").style.visibility = x > 0 ? "visible" : "hidden";
+    const a1 = out(p(t, 6.6, 7.0)), a2 = out(p(t, 9.6, 10.0));
+    $("#p1").style.display = t >= 6.6 ? "" : "none"; $("#p1").style.opacity = a1; $("#p1").style.transform = `translateY(${(1 - a1) * 10}px)`;
+    $("#p2").style.display = t >= 9.6 ? "" : "none"; $("#p2").style.opacity = a2; $("#p2").style.transform = `translateY(${(1 - a2) * 10}px)`;
+  });
+</script>
+</body></html>

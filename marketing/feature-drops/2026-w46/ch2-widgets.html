@@ -1,0 +1,228 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<title>The Agent builds custom widgets</title>
+<link rel="stylesheet" href="clip.css">
+<link rel="stylesheet" href="app.css">
+<link rel="stylesheet" href="chapter.css">
+<style>
+  /* A page (pages/components/custom-page-view.tsx, pages-header.tsx) beside the Agent sidebar. Live widgets sit in
+     grid cards; each draws ChartFrame (charts/chart-frame.tsx: title body-strong, "Updated … ago" small muted, a quiet
+     refresh icon button) and LiveWidgetFooter ("Source: …"). The new one is an HTML widget (LLE-17899): its markup
+     runs in the widget frame on the Lleverage look and reads the page's other widgets as inputs. */
+  #sbwrap { flex: none; overflow: hidden; width: 0; }
+  .pgh { display: flex; align-items: center; gap: 16px; padding: 20px 32px 0; }
+  .pgh h1 { margin: 0; font-size: 20px; line-height: 28px; font-weight: 600; }
+  .pgh p { margin: 0; font-size: 14px; line-height: 20px; color: hsl(var(--muted-foreground)); }
+  .pgh .right { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+  .ibtn { width: 32px; height: 32px; border-radius: 8px; display: grid; place-items: center; color: hsl(var(--muted-foreground)); }
+  .ibtn.out { border: 1px solid hsl(var(--input)); background: hsl(var(--background)); color: hsl(var(--foreground)); }
+  .ibtn svg { width: 13px; height: 13px; }
+  .grid { padding: 24px 32px; display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .wcard { position: relative; background: hsl(var(--card)); border: 1px solid hsl(var(--border)); border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+  .wcard.full { grid-column: 1 / -1; }
+  .fc { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+  .fc b { display: block; font-size: 14px; line-height: 20px; font-weight: 600; }
+  .fc small, .src { display: block; font-size: 12px; line-height: 16px; color: hsl(var(--muted-foreground)); }
+  .fc .ibtn { width: 28px; height: 28px; margin: -4px -4px 0 0; }
+  table.lt { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .lt th { text-align: left; font-weight: 500; color: hsl(var(--muted-foreground)); font-size: 12px; padding: 6px 8px; border-bottom: 1px solid hsl(var(--border)); }
+  .lt td { padding: 8px 8px; border-bottom: 1px solid hsl(var(--border)); white-space: nowrap; }
+  .lt td.n, .lt th.n { text-align: right; font-variant-numeric: tabular-nums; }
+  .hb { display: flex; flex-direction: column; justify-content: space-around; flex: 1; padding: 4px 0; }
+  .hb .r { display: grid; grid-template-columns: 150px 1fr 24px; align-items: center; gap: 10px; font-size: 12px; }
+  .hb .r span:first-child { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .hb .bar { height: 24px; border-radius: 3px; background: hsl(200 35% 42%); }
+  .hb .r .v { text-align: right; font-variant-numeric: tabular-nums; color: hsl(var(--muted-foreground)); }
+  /* The HTML widget's own markup: a heat map on the kit's tokens (series1 cells, the highlight for one thing). */
+  .heat { display: grid; grid-template-columns: 190px repeat(5, 1fr); gap: 4px; font-size: 12px; line-height: 16px; position: relative; }
+  .heat .hd { text-align: center; color: hsl(var(--muted-foreground)); padding-bottom: 2px; }
+  .heat .hd.fri { color: hsl(var(--highlight)); font-weight: 600; }
+  .heat .nm { display: flex; align-items: center; white-space: nowrap; }
+  .heat .c { height: 40px; border-radius: 4px; position: relative; display: grid; place-items: center; font-variant-numeric: tabular-nums; }
+  .heat .c i { position: absolute; inset: 0; border-radius: 4px; background: hsl(200 35% 42%); }
+  .heat .c em { position: relative; font-style: normal; }
+  .heat .frame { position: absolute; border: 2px solid hsl(var(--highlight)); border-radius: 6px; pointer-events: none; opacity: 0; }
+  .lg { display: flex; align-items: center; gap: 6px; font-size: 12px; color: hsl(var(--muted-foreground)); }
+  .lg i { width: 14px; height: 10px; border-radius: 2px; background: hsl(200 35% 42%); }
+  .new { opacity: 0; }
+  .ring { position: absolute; inset: -5px; border-radius: 16px; pointer-events: none; opacity: 0; }
+  /* Agent sidebar (agent-sidebar.tsx); a user message's bubble is secondary in the side panel (LLE-17887). */
+  .asw { flex: none; overflow: hidden; width: 380px; }
+  .as { width: 380px; height: 100%; display: flex; flex-direction: column; padding: 8px 12px 12px; }
+  .as-head { display: flex; align-items: center; gap: 4px; height: 32px; font-size: 14px; font-weight: 500; padding: 0 6px; }
+  .as-head .ic2 { color: hsl(var(--muted-foreground)); display: grid; place-items: center; width: 24px; height: 24px; }
+  .as-head .ic2 svg { width: 12px; height: 12px; }
+  .as-head .r { margin-left: auto; display: flex; gap: 2px; }
+  .as .msgs { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; gap: 14px; padding: 8px 4px 12px; overflow: hidden; }
+  .as .msg { display: flex; gap: 8px; font-size: 13px; line-height: 19px; }
+  .as .msg.user { flex-direction: row-reverse; }
+  .as .av { width: 20px; height: 20px; border-radius: 999px; margin-top: 2px; flex: none; display: grid; place-items: center; font-size: 10px; font-weight: 600; color: #fff; background: hsl(280 30% 42%); }
+  .as .bubble { max-width: 80%; border-radius: 12px; background: hsl(var(--secondary)); padding: 6px 8px; }
+  .as .prose { flex: 1; min-width: 0; }
+  .as .cot { display: flex; align-items: center; gap: 6px; padding: 4px 0; font-size: 12px; line-height: 16px; color: hsl(var(--muted-foreground)); }
+  .as .crow { display: flex; gap: 8px; font-size: 12px; line-height: 16px; color: hsl(var(--muted-foreground)); padding-bottom: 8px; }
+  .as .crow .dot { width: 16px; height: 16px; border-radius: 999px; background: hsl(var(--border)); display: grid; place-items: center; flex: none; }
+  .as .crow .dot svg { width: 9px; height: 9px; }
+  .as .composer { border: 1px solid hsl(var(--border)); border-radius: 16px; background: hsl(var(--card)); }
+  .as .chips { display: flex; flex-wrap: wrap; gap: 6px; padding: 8px 8px 0; }
+  .as .cchip { display: inline-flex; align-items: center; gap: 6px; border: 1px solid hsl(var(--border)); border-radius: 6px; padding: 2px 8px; font-size: 12px; line-height: 16px; background: hsl(var(--background)); }
+  .as .cchip svg { width: 11px; height: 11px; color: hsl(var(--muted-foreground)); }
+  .as .ta { padding: 10px 14px 4px; min-height: 44px; font-size: 13px; }
+  .as .ta .ph2 { color: hsl(var(--muted-foreground)); }
+  .as .row { display: flex; align-items: center; justify-content: space-between; padding: 0 8px 8px; }
+  .as .row .l, .as .row .r { display: flex; align-items: center; gap: 4px; }
+  .as .model { font-size: 12px; color: hsl(var(--muted-foreground)); margin-right: 2px; }
+  .as .rb { width: 32px; height: 32px; border-radius: 999px; display: grid; place-items: center; color: hsl(var(--muted-foreground)); }
+  .as .rb svg { width: 14px; height: 14px; }
+  .as .rb.send { background: hsl(var(--primary)); color: hsl(var(--primary-foreground)); }
+</style></head>
+<body>
+<div class="frame">
+  <div class="stage">
+    <div class="app" id="app">
+      <div id="sbwrap"><div id="sb"></div></div>
+      <main class="panel both">
+        <div class="pgh">
+          <div><h1>Late orders</h1><p>Orders past their promised delivery date, from Exact Online.</p></div>
+          <div class="right"><span class="ibtn" data-fa="faArrowRotateRight"></span><span class="ibtn out" data-fa="faPen"></span></div>
+        </div>
+        <div class="grid" id="grid">
+          <div class="wcard" id="wt">
+            <div class="fc"><div><b>Late orders</b><small>Updated 2 minutes ago</small></div><span class="ibtn" data-fa="faArrowRotateRight"></span></div>
+            <table class="lt" id="tbl"></table>
+            <span class="src">Source: Exact Online</span>
+          </div>
+          <div class="wcard" id="wb">
+            <div class="fc"><div><b>Late orders by customer</b><small>Updated 2 minutes ago</small></div><span class="ibtn" data-fa="faArrowRotateRight"></span></div>
+            <div class="hb" id="hb"></div>
+            <span class="src">Source: Exact Online</span>
+          </div>
+          <div class="wcard full new" id="wh"><div class="ring" id="rh"></div>
+            <div class="fc"><div><b>Late orders by customer and weekday</b><small>Updated less than a minute ago</small></div><span class="ibtn" data-fa="faArrowRotateRight"></span></div>
+            <div class="heat" id="heat"><div class="frame" id="fri"></div></div>
+            <div class="lg">Fewer late orders <i style="opacity:.15"></i><i style="opacity:.45"></i><i style="opacity:.75"></i><i></i> More</div>
+            <span class="src">Source: Exact Online</span>
+          </div>
+        </div>
+      </main>
+      <div class="asw"><div class="as">
+        <div class="as-head"><span>Late orders heat map</span><span class="ic2" data-fa="faChevronDown"></span><span class="r"><span class="ic2" data-fa="faPlus"></span><span class="ic2" data-fa="faXmark"></span></span></div>
+        <div class="msgs">
+          <div class="msg user" id="um1" style="display:none"><span class="av">EV</span><div class="bubble" id="um1t"></div></div>
+          <div class="msg" id="am1" style="display:none"><span id="av1"></span><div class="prose">
+            <div class="cot" id="cot1">Working…</div>
+            <div class="crow" id="c11"><span class="dot" data-fa="faFileSpreadsheet"></span><span>Read Late orders</span></div>
+            <div class="crow" id="c12"><span class="dot" data-fa="faCheck"></span><span>Added Late orders by customer and weekday</span></div>
+            <div id="r1"></div>
+          </div></div>
+          <div class="msg user" id="um2" style="display:none"><span class="av">EV</span><div class="bubble" id="um2t"></div></div>
+          <div class="msg" id="am2" style="display:none"><span id="av2"></span><div class="prose">
+            <div class="cot" id="cot2">Working…</div>
+            <div class="crow" id="c21"><span class="dot" data-fa="faCheck"></span><span>Edited Late orders by customer and weekday</span></div>
+            <div id="r2"></div>
+          </div></div>
+        </div>
+        <div class="composer" id="composer">
+          <div class="chips"><span class="cchip"><span data-fa="faGrid2"></span>Late orders</span></div>
+          <div class="ta" id="ta"><span class="ph2">Ask Lleverage anything</span></div>
+          <div class="row"><div class="l"><span class="rb" data-fa="faPlus"></span><span class="rb" data-fa="faArrowPointer"></span></div>
+            <div class="r"><span class="model">Opus 5.5</span><span class="rb" data-fa="faMicrophone"></span><span class="rb send" id="sendb" data-fa="faArrowUp"></span></div></div>
+        </div>
+      </div></div>
+    </div>
+  </div>
+</div>
+<script src="fa-icons.js"></script>
+<script src="app.js"></script>
+<script src="clip.js"></script>
+<script src="chapter.js"></script>
+<script>
+  CHAPTER({ n: 2, total: 7, module: "Pages", footerLeft: "Feature Drop · Week 46",
+    title: "The Agent builds<br><em>custom widgets.</em>",
+    line: "Ask for a view the standard charts don't have, such as a heat map. The Agent writes the widget in the Lleverage look, reads the page's other widgets, and changes it with small edits." });
+  const D = 13.4;
+  window.HOLDS = [[6.9, 0.8], [12.5, 1.0]];
+  const { $, $$, p, out, type } = C;
+  $("#sb").outerHTML = APP.sidebar("Pages");
+  $$("[data-fa]").forEach((el) => (el.innerHTML = fa(el.dataset.fa)));
+  $("#av1").innerHTML = APP.loader(16); $("#av2").innerHTML = APP.loader(16);
+
+  const ROWS = [["Van Dijk Metaal", "SO-24806", "4 Nov", 6], ["Kuipers Hout", "SO-24811", "5 Nov", 5], ["Smit Elektro", "SO-24790", "6 Nov", 4],
+    ["Van Dijk Metaal", "SO-24818", "6 Nov", 4], ["Bakker Installatietechniek", "SO-24799", "7 Nov", 3], ["Brouwer Verpakking", "SO-24823", "7 Nov", 3], ["Kuipers Hout", "SO-24827", "8 Nov", 2]];
+  $("#tbl").innerHTML = `<tr><th>Customer</th><th>Order</th><th>Promised</th><th class="n">Days late</th></tr>` +
+    ROWS.map((r) => `<tr><td>${r[0]}</td><td class="mono" style="font-size:12px">${r[1]}</td><td>${r[2]}</td><td class="n">${r[3]}</td></tr>`).join("");
+  const HEAT = [["Van Dijk Metaal", [1, 0, 2, 3, 5]], ["Kuipers Hout", [0, 1, 1, 2, 3]], ["Smit Elektro", [1, 0, 0, 1, 2]],
+    ["Bakker Installatietechniek", [0, 1, 0, 0, 1]], ["Brouwer Verpakking", [0, 0, 1, 0, 1]]];
+  const tot = HEAT.map(([n, v]) => [n, v.reduce((a, b) => a + b, 0)]);
+  $("#hb").innerHTML = tot.map(([n, v]) => `<div class="r"><span>${n}</span><span><span class="bar" style="display:block;width:${(v / 11) * 100}%"></span></span><span class="v">${v}</span></div>`).join("");
+  const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri"];
+  $("#heat").insertAdjacentHTML("beforeend", `<span></span>` + DAYS.map((d) => `<span class="hd${d === "Fri" ? " friH" : ""}">${d}</span>`).join("") +
+    HEAT.map(([n, v]) => `<span class="nm">${n}</span>` + v.map((x, i) => `<span class="c" data-i="${i}"><i style="opacity:${x ? 0.12 + (x / 5) * 0.88 : 0.06}"></i><em style="color:${x >= 3 ? "#fff" : "hsl(var(--foreground))"}">${x}</em></span>`).join("")).join(""));
+
+  const app = $("#app");
+  const at = (el, fx = 0.5, fy = 0.5) => { const a = app.getBoundingClientRect(), r = el.getBoundingClientRect(), s = a.width / 1280;
+    return [(r.left - a.left + r.width * fx) / s, (r.top - a.top + r.height * fy) / s]; };
+  // The Friday frame: around the Fri header and its five cells.
+  const heatEl = $("#heat"), fc = $$('#heat .c[data-i="4"]'), fh = $("#heat .friH");
+  const hb = heatEl.getBoundingClientRect(), s0 = app.getBoundingClientRect().width / 1280;
+  const f0 = fh.getBoundingClientRect(), f1 = fc[fc.length - 1].getBoundingClientRect();
+  Object.assign($("#fri").style, { left: (f0.left - hb.left) / s0 - 4 + "px", top: (f0.top - hb.top) / s0 - 4 + "px",
+    width: (f0.width) / s0 + 8 + "px", height: (f1.bottom - f0.top) / s0 + 8 + "px" });
+  const P = { ta: at($("#ta"), 0.3), send: at($("#sendb")) };
+  const VW = C.STAGE_W, VH = C.STAGE_H, FIT = Math.min(VW / 1280, VH / C.APP_H) * 0.98;
+  const fit = (x0, y0, x1, y1) => { const s = Math.min(VW / (x1 - x0), VH / (y1 - y0)); return [(x0 + x1) / 2, (y0 + y1) / 2 + (VH / s - (y1 - y0)) / 2, s]; };
+  // The one zoom: the Agent sidebar while the request is typed, from the page's edge to the app's.
+  const pnl = at($(".panel"), 1, 0), cp1 = at($("#composer"), 1, 1);
+  const ASK = fit(pnl[0], cp1[1] + 12 - (1280 - pnl[0]) * VH / VW, 1280, cp1[1] + 12);
+  const FULL = [640, C.APP_H / 2, FIT];
+  const cam = C.camera(app, VW, VH, [[0, ...FULL], [1.9, ...FULL], [2.4, ...ASK], [4.4, ...ASK], [4.95, ...FULL], [D, ...FULL]]);
+  const F = (t, [x, y]) => { const m = cam(t).map(x, y); return [C.STAGE_X + m[0], C.STAGE_Y + m[1]]; };
+  const OFF = (fx) => [C.W * fx, C.H + 40];
+  const cur = C.cursor([[1.9, ...OFF(0.75)], [2.5, ...F(2.5, P.ta), true], [4.0, ...F(4.0, P.ta)], [4.3, ...F(4.3, P.send), true], [4.8, ...OFF(0.8)],
+    [9.6, ...OFF(0.8)], [10.1, ...F(10.1, P.ta), true], [10.9, ...F(10.9, P.ta)], [11.15, ...F(11.15, P.send), true], [11.7, ...OFF(0.85)]]);
+  const cap = C.captions([
+    [1.9, 6.6, "Ask for a heat map.<br><em>The Agent builds the widget.</em>"],
+    [6.9, 9.4, "It reads the page's widgets,<br><em>in the Lleverage look.</em>"],
+    [9.7, 99, "Ask for a change.<br><em>It edits just those lines.</em>"],
+  ]);
+  cam(0);
+  const Q1 = "Add a heat map of late orders per customer and weekday.";
+  const Q2 = "Make Friday stand out.";
+  const R1 = "Late orders by customer and weekday is on the page, read from the Late orders widget. Most fall on a Friday, mostly at Van Dijk Metaal.";
+  const R2 = "Friday is marked now.";
+  C.typing(2.6, 4.1); C.typing(10.2, 10.85);
+  const PH = '<span class="ph2">Reply to Lleverage…</span>';
+  C.run(D, (t) => {
+    cap(t); cam(t); cur(t);
+    // The composer: the first request, then the follow-up.
+    if (t >= 2.6 && t < 4.35) type($("#ta"), Q1, t, 2.6, 4.1);
+    else if (t >= 10.2 && t < 11.2) type($("#ta"), Q2, t, 10.2, 10.85);
+    else $("#ta").innerHTML = t < 4.35 ? '<span class="ph2">Ask Lleverage anything</span>' : PH;
+    if ($("#ta").textContent === "") $("#ta").innerHTML = t < 4.35 ? '<span class="ph2">Ask Lleverage anything</span>' : PH;
+    $("#um1").style.display = t >= 4.35 ? "" : "none"; $("#um1t").textContent = Q1;
+    $("#am1").style.display = t >= 4.5 ? "" : "none";
+    APP.drive($("#av1"), t >= 4.5 && t < 6.3 ? "working" : "static", t);
+    $("#cot1").textContent = t < 6.3 ? "Working…" : "Worked for 9s";
+    $("#c11").style.display = t >= 4.8 ? "" : "none"; $("#c12").style.display = t >= 6.0 ? "" : "none";
+    type($("#r1"), R1, t, 6.3, 6.85, null);
+    $("#um2").style.display = t >= 11.2 ? "" : "none"; $("#um2t").textContent = Q2;
+    $("#am2").style.display = t >= 11.35 ? "" : "none";
+    APP.drive($("#av2"), t >= 11.35 && t < 12.1 ? "working" : "static", t);
+    $("#cot2").textContent = t < 12.1 ? "Working…" : "Worked for 3s";
+    $("#c21").style.display = t >= 11.9 ? "" : "none";
+    type($("#r2"), R2, t, 12.1, 12.35, null);
+    // The widget lands with the agent-changed ring; its cells fill in row by row.
+    const q = out(p(t, 6.0, 6.45));
+    $("#wh").style.opacity = q; $("#wh").style.transform = `translateY(${(1 - q) * 12}px)`;
+    const ring = Math.max(Math.min(p(t, 6.0, 6.3), 1 - p(t, 8.2, 9.0)), Math.min(p(t, 11.9, 12.2), 1 - p(t, 13.6, 14.4)));
+    $("#rh").style.opacity = ring;
+    $("#rh").style.background = `linear-gradient(${(t * 90) % 360}deg, hsl(var(--highlight) / .55), hsl(var(--info) / .55) 43%, hsl(var(--highlight) / .35))`;
+    $("#rh").style.webkitMask = $("#rh").style.mask = "linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0)";
+    $("#rh").style.webkitMaskComposite = "xor"; $("#rh").style.maskComposite = "exclude"; $("#rh").style.padding = "2px";
+    $$("#heat .c").forEach((c, k) => { const r = Math.floor(k / 5), i = k % 5; c.style.opacity = out(p(t, 6.15 + r * 0.07 + i * 0.03, 6.5 + r * 0.07 + i * 0.03)); });
+    // The edit: Friday gets the highlight.
+    const fr = out(p(t, 11.95, 12.3));
+    $("#fri").style.opacity = fr; fh.classList.toggle("fri", fr > 0.5);
+  });
+</script>
+</body></html>

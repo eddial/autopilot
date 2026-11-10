@@ -1,0 +1,26 @@
+/* Agent sidebar: agent-sidebar, agent-chat, chat-composer-shell, agent-status-indicator */
+  .as { width: 400px; flex: none; display: flex; flex-direction: column; padding: 8px 12px 12px; }
+  .as-head { display: flex; align-items: center; gap: 4px; height: 32px; font-weight: 500; padding: 0 8px; }
+  .msgs { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; gap: 16px; padding: 8px 4px 12px; overflow: hidden; }
+  .msg { display: flex; gap: 8px; }
+  .msg.user { flex-direction: row-reverse; }
+  .av { width: 20px; height: 20px; border-radius: 999px; margin-top: 2px; flex: none; display: grid; place-items: center; font-size: 10px; font-weight: 600; color: #fff; background: hsl(280 30% 42%); }
+  .bubble { max-width: 80%; border-radius: 12px; background: hsl(var(--card)); padding: 6px 8px; }
+  .prose { flex: 1; min-width: 0; }
+  .cot-head { display: flex; align-items: center; gap: 6px; padding: 4px 0; font-size: 12px; line-height: 16px; color: hsl(var(--muted-foreground)); }
+  .step { display: flex; gap: 8px; font-size: 12px; line-height: 16px; color: hsl(var(--muted-foreground)); }
+  .step .dot { width: 16px; height: 16px; border-radius: 999px; background: hsl(var(--border)); display: grid; place-items: center; flex: none; }
+  .step .dot svg { width: 10px; height: 10px; }
+  .step .txt { padding-bottom: 10px; }
+  .status { display: flex; align-items: center; gap: 8px; padding: 0 8px 10px; color: hsl(var(--highlight)); }
+  .status .stop { font-size: 12px; color: hsl(var(--muted-foreground)); }
+  .status .stop u { text-underline-offset: 2px; }
+  .composer { border: 1px solid hsl(var(--border)); border-radius: 16px; background: hsl(var(--card)); }
+  .composer .ta { padding: 12px 8px 4px; }
+  .composer .ta div { padding: 6px; color: hsl(var(--muted-foreground)); }
+  .composer .row { display: flex; align-items: center; justify-content: space-between; padding: 0 8px 8px; }
+  .composer .r { display: flex; align-items: center; gap: 8px; }
+  .composer .model { font-size: 12px; color: hsl(var(--muted-foreground)); display: flex; align-items: center; gap: 4px; padding: 0 6px; }
+  .rb { width: 32px; height: 32px; border-radius: 999px; display: grid; place-items: center; color: hsl(var(--muted-foreground)); }
+  .rb svg { width: 14px; height: 14px; }
+  .rb.call-on { background: hsl(var(--destructive) / .1); color: hsl(var(--destructive)); }

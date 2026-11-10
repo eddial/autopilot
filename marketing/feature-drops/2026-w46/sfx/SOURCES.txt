@@ -1,0 +1,6 @@
+Interface sounds for soundtrack.py --sfx.
+- click-1 … click-6.wav: six isolated clicks from "Clicking on Laptop Trackpad" by justamudkip (freesound.org/s/854747), CC0.
+- type.wav: "Apple Mac Keyboad typing close up" by khenshom (freesound.org/s/563505), CC0. Trimmed to 14 s.
+- voice.wav: a voice on a call, made from a macOS system voice (Samantha, `say`) cut into reversed syllables and
+  band-passed like a phone line, so no words survive. Made for this toolkit; no outside source.
+Trimmed, faded and normalised; nothing else changed.

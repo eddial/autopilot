@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<title>Paste a screenshot into the chat</title>
+<link rel="stylesheet" href="clip.css">
+<link rel="stylesheet" href="app.css">
+<link rel="stylesheet" href="parts/agent-chat.css">
+<link rel="stylesheet" href="chapter.css">
+<style>
+  /* Paste an image (PR 9574, origin/main 3 Nov 2026): AgentChatInput hands a pasted image to the composer's file drop,
+     so it shows in the attachment section above the text (chat-composer-shell.tsx: px-4 pt-2) as a composer
+     attachment card (composer-attachment-cards.tsx → requests/attachment-cards.tsx: Card variant "file",
+     rounded-lg border bg-background, 128 x 128; the image object-cover; the type pill bottom-left, h-5 rounded-full
+     bg-primary px-2 text-[9px] uppercase). A screenshot is named pasted-image-<time>.png. Text typed with it stays in
+     the box. Sent, the same card sits above the user's bubble (message-parts.tsx, max-w-[260px]). */
+  .app { --ring: 60 7% 60%; }
+  .agentpage { position: absolute; inset: 0; display: flex; }
+  .chatcol { flex: 1; min-width: 0; display: flex; flex-direction: column; padding: 16px 0 20px; }
+  .chatcol > * { width: 680px; margin-left: auto; margin-right: auto; }
+  .chatcol .msgs { gap: 16px; }
+  .prose { font-size: 14px; line-height: 22px; }
+  .prose p { margin: 0 0 6px; }
+  .bubble { font-size: 14px; line-height: 22px; padding: 6px 8px; background: hsl(var(--muted)); }
+  .composer { border-radius: 12px; box-shadow: 0 1px 2px rgb(0 0 0 / .05); }
+  .composer .ta div { font-size: 14px; }
+  .composer .ta div.typed { color: hsl(var(--foreground)); }
+  .rb.send { background: hsl(var(--primary)); color: hsl(var(--primary-foreground)); }
+  .status { padding: 0 4px 8px; font-size: 13px; }
+  .att { padding: 8px 16px 0; overflow: hidden; }
+  .acard { position: relative; width: 128px; height: 128px; border: 1px solid hsl(var(--border)); border-radius: 12px; background: hsl(var(--background)); overflow: hidden; flex: none; }
+  .acard .pill { position: absolute; left: 12px; bottom: 12px; height: 20px; display: inline-flex; align-items: center; border-radius: 999px; background: hsl(var(--primary)); color: hsl(var(--primary-foreground)); padding: 0 8px; font-size: 9px; font-weight: 500; letter-spacing: .05em; text-transform: uppercase; z-index: 1; }
+  .acard .x { position: absolute; right: -6px; top: -6px; width: 22px; height: 22px; border-radius: 999px; border: 1px solid hsl(var(--border)); background: hsl(var(--background)); display: none; }
+  .msg.user .ucol { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; max-width: 80%; }
+  .msg.user .ucol .bubble { max-width: none; }
+  /* The screenshot: a supplier's order confirmation as a PDF viewer shows it, cropped to the order lines. */
+  .shot { position: absolute; inset: 0; background: #e9e8e4; }
+  .shot .pg { position: absolute; left: 9px; top: 7px; width: 148px; height: 158px; transform: scale(.74); transform-origin: 0 0; background: #fff; box-shadow: 0 1px 2px rgb(0 0 0 / .12); padding: 9px 10px; font-size: 5.6px; line-height: 7.5px; color: #2b2b2b; }
+  .shot .t { display: flex; justify-content: space-between; align-items: flex-start; }
+  .shot .lg { width: 30px; height: 8px; border-radius: 1px; background: #24527a; }
+  .shot h4 { margin: 0; font-size: 7px; line-height: 9px; letter-spacing: .04em; }
+  .shot .ln { height: 2.5px; background: #dcdcd7; border-radius: 1px; margin-top: 2.5px; }
+  .shot .tb { margin-top: 6px; border-top: 1px solid #ccc; }
+  .shot .tb div { display: flex; justify-content: space-between; border-bottom: 1px solid #eee; padding: 1.5px 0; }
+  .shot .tot { margin-top: 4px; display: flex; justify-content: flex-end; font-weight: 700; }
+  .spin { position: absolute; left: 14px; top: 14px; width: 20px; height: 20px; border-radius: 999px; border: 2px solid hsl(var(--border)); border-top-color: hsl(var(--foreground)); }
+</style></head>
+<body>
+<div class="frame">
+  <div class="stage">
+    <div class="app" id="app">
+      <div id="sb"></div>
+      <main class="panel both">
+        <div class="agentpage">
+          <div class="chatcol">
+            <div class="msgs" id="msgs">
+              <div class="msg user"><span class="av">EV</span><div class="bubble">Which supplier confirmations came in today?</div></div>
+              <div class="msg"><span class="avl"></span><div class="prose">Two: Van Dijk Metaal for PO 4500012345 and Smit Elektro for PO 4500012351. Smit Elektro's is booked. Van Dijk Metaal sent theirs as a picture in the supplier portal.</div></div>
+              <div class="msg user" id="u1"><span class="av">EV</span><div class="ucol"><div class="acard" id="sent"></div><div class="bubble" id="u1t"></div></div></div>
+              <div class="msg" id="a1"><span class="avl" id="av1"></span><div class="prose"><div id="t1"></div></div></div>
+            </div>
+            <div class="status" id="status"><span id="stl"></span><span id="stt"></span></div>
+            <div class="composer" id="composer">
+              <div class="att" id="att"><div class="acard" id="card"></div></div>
+              <div class="ta"><div id="ta">Reply to Lleverage…</div></div>
+              <div class="row"><span class="rb" id="plus"></span>
+                <div class="r"><span class="model">Opus 5.5 <span id="mchev"></span></span><span class="rb" id="mic"></span><span class="rb" id="sendb"></span></div></div>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+</div>
+<script src="fa-icons.js"></script>
+<script src="app.js"></script>
+<script src="clip.js"></script>
+<script src="chapter.js"></script>
+<script>
+  CHAPTER({ n: 5, total: 7, module: "Agent", footerLeft: "Feature Drop · Week 46",
+    title: "Paste a screenshot<br><em>into the chat.</em>",
+    line: "Paste an image into any agent message box and it attaches with a thumbnail, while your text stays in the box." });
+  const D = 11.6;
+  window.HOLDS = [[3.6, 0.7], [10.4, 1.4]];
+  const { $, $$, p, out, io } = C;
+  $("#sb").outerHTML = APP.sidebar("Supplier confirmations", "Order intake", { recents: ["Supplier confirmations", "Invoice 2026-0412", "Weekly order report"] });
+  $$(".avl").forEach((el, i) => (el.outerHTML = `<span${el.id ? ` id="${el.id}"` : ""} style="display:block;margin-top:2px;flex:none;color:hsl(var(--foreground))">${APP.loader(20)}</span>`));
+  $("#stl").innerHTML = APP.loader(20);
+  $("#mchev").innerHTML = fa("faChevronDown", "", "width:9px;height:9px");
+  $("#plus").innerHTML = lu("plus", "", "width:16px;height:16px"); $("#mic").innerHTML = fa("faMicrophone");
+  const SHOT = `<div class="shot"><div class="pg"><div class="t"><div><div class="lg"></div><div class="ln" style="width:44px"></div><div class="ln" style="width:34px"></div></div><h4>ORDER<br>CONFIRMATION</h4></div>
+    <div style="margin-top:6px"><b>Van Dijk Metaal B.V.</b><br>Confirmation 2026-1187 · PO 4500012345<br>Delivery 14-11-2026</div>
+    <div class="tb"><div><span>Steel bar 40 mm, 6 m</span><span>€2,160.00</span></div><div><span>Steel bar 25 mm, 6 m</span><span>€1,440.00</span></div><div><span>Flat bar 50 x 5</span><span>€1,920.00</span></div><div><span>Angle 40 x 40 x 4</span><span>€960.00</span></div></div>
+    <div class="tot">Total €6,480.00</div></div></div>`;
+  const CARD = (pill) => `${SHOT}<span class="pill">${pill}</span>`;
+  $("#card").innerHTML = `<span class="spin" id="spin"></span><div id="img">${CARD("PNG")}</div>`;
+  $("#sent").innerHTML = CARD("PNG");
+  const ASK = "Book this confirmation against PO 4500012345";
+  $("#u1t").textContent = ASK;
+  const T1 = "This is Van Dijk Metaal's confirmation 2026-1187. All 4 lines match PO 4500012345 at the agreed prices, €6,480.00 in total. Only the delivery date moved, from 12 to 14 November. Shall I book it with the new date?";
+
+  const app = $("#app");
+  const at = (el, fx = 0.5, fy = 0.5) => { const a = app.getBoundingClientRect(), r = el.getBoundingClientRect(), s = a.width / 1280;
+    return [(r.left - a.left + r.width * fx) / s, (r.top - a.top + r.height * fy) / s]; };
+  // Measure the send click in its layout: the screenshot attached, the text typed, nothing sent yet.
+  $("#u1").style.display = "none"; $("#a1").style.display = "none";
+  $("#ta").textContent = ASK; $("#sendb").className = "rb send"; $("#sendb").innerHTML = fa("faArrowUp");
+  const P = { send: at($("#sendb")) };
+  // The zoom in its final layout: the conversation from the earlier answer down to the composer, answer shown.
+  $("#att").style.display = "none"; $("#u1").style.display = ""; $("#a1").style.display = ""; $("#t1").textContent = T1;
+  const VW = C.STAGE_W, VH = C.STAGE_H, FIT = Math.min(VW / 1280, VH / C.APP_H) * 0.98;
+  const fit = (x0, y0, x1, y1) => { const s = Math.min(VW / (x1 - x0), VH / (y1 - y0)); return [(x0 + x1) / 2, (y0 + y1) / 2 + (VH / s - (y1 - y0)) / 2, s]; };
+  const k0 = at($("#u1"), 0, 0), cmp = at($("#composer"), 1, 1), c0 = at($("#composer"), 0, 0);
+  // The one zoom: the chat column, from the sent screenshot down to the composer.
+  const ZOOM = fit(c0[0] - 24, k0[1] - 12, cmp[0] + 24, cmp[1] + 16);
+  $("#t1").textContent = "";
+  const FULL = [640, C.APP_H / 2, FIT];
+  const cam = C.camera(app, VW, VH, [[0, ...FULL], [1.9, ...FULL], [2.5, ...ZOOM], [D, ...ZOOM]]);
+  const F = (t, [x, y]) => { const m = cam(t).map(x, y); return [C.STAGE_X + m[0], C.STAGE_Y + m[1]]; };
+  const OFF = (fx) => [C.W * fx, C.H + 40];
+  const cur = C.cursor([[6.0, ...OFF(0.7)], [6.45, ...F(6.45, P.send)], [6.7, ...F(6.7, P.send), true], [7.1, ...OFF(0.8)]]);
+  const cap = C.captions([
+    [1.9, 5.6, "Paste a screenshot.<br><em>It attaches with a thumbnail.</em>"],
+    [5.9, 99, "Send it with your question.<br><em>The Agent reads the picture.</em>"],
+  ]);
+  C.typing(4.0, 5.3);
+  cam(0);
+  C.run(D, (t) => {
+    cap(t); cam(t); cur(t);
+    const sent = t >= 6.75;
+    // The paste: the card opens in the attachment section, a moment of upload, then the picture.
+    const pasted = t >= 2.9 && !sent;
+    $("#att").style.display = pasted ? "" : "none";
+    const ao = out(p(t, 2.9, 3.2));
+    $("#card").style.opacity = ao; $("#card").style.transform = `scale(${0.92 + 0.08 * ao})`;
+    $("#spin").style.display = t < 3.3 ? "" : "none"; $("#spin").style.transform = `rotate(${t * 720}deg)`;
+    $("#img").style.opacity = out(p(t, 3.3, 3.5));
+    const k = !sent ? Math.round(ASK.length * p(t, 4.0, 5.3)) : 0;
+    $("#ta").textContent = k ? ASK.slice(0, k) : "Reply to Lleverage…"; $("#ta").className = k ? "typed" : "";
+    const ready = !sent && (k || pasted);
+    $("#sendb").className = "rb" + (ready ? " send" : ""); $("#sendb").innerHTML = ready ? fa("faArrowUp") : fa("s:faPhoneFlip");
+    $("#u1").style.display = sent ? "" : "none";
+    $("#a1").style.display = t >= 6.95 ? "" : "none";
+    C.type($("#t1"), T1, t, 7.9, 8.9, null);
+    const st = !sent ? null : t < 7.9 ? "Thinking" : t < 8.9 ? "Responding" : null;
+    $("#status").style.visibility = st ? "visible" : "hidden"; $("#stt").textContent = st || "";
+    APP.drive($("#stl"), st ? "working" : "static", t);
+    APP.drive($("#av1"), t >= 6.95 && t < 8.9 ? "working" : "static", t);
+  });
+</script>
+</body></html>

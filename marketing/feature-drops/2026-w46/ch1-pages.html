@@ -1,0 +1,274 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<title>Describe a page, the Agent builds it</title>
+<link rel="stylesheet" href="clip.css">
+<link rel="stylesheet" href="app.css">
+<link rel="stylesheet" href="parts/agent-chat.css">
+<link rel="stylesheet" href="chapter.css">
+<style>
+  /* Pages (production 301302d, PR 9685, 9990, 9989): pages/page.tsx, pages-list.tsx (CardList, New page),
+     page-details-dialog.tsx (NewPageDialog), custom-page-view.tsx, agent-presence-overlay.tsx (AgentBuildingSquare,
+     the "Building your page" badge), dashboard-grid widget shell (border bg-card rounded-lg p-5, title text-base
+     semibold), agent-changed-card ring. */
+  .app { --ring: 60 1% 39.2%; }
+  .view { position: absolute; inset: 0; display: flex; flex-direction: column; }
+  .ph h1 { display: flex; align-items: center; gap: 8px; }
+  .ph .pin { color: hsl(var(--muted-foreground)); display: grid; place-items: center; width: 24px; height: 24px; }
+  .ph .pin svg { width: 13px; height: 13px; }
+  .ib { width: 32px; height: 32px; border-radius: 6px; display: grid; place-items: center; border: 1px solid hsl(var(--input)); background: hsl(var(--background)); color: hsl(var(--foreground)); }
+  .ib svg { width: 14px; height: 14px; }
+  .ib.on { background: hsl(var(--muted)); }
+  /* CardList toolbar: search, sort, filter, view toggle, New page (Button primary = highlight). */
+  .tool { display: flex; align-items: center; gap: 8px; margin: 24px 32px 0; }
+  .tool .s { flex: 1; height: 32px; border: 1px solid hsl(var(--input)); border-radius: 6px; background: hsl(var(--background)); display: flex; align-items: center; gap: 8px; padding: 0 10px; color: hsl(var(--muted-foreground)); }
+  .tool svg { width: 13px; height: 13px; }
+  .tool .b { height: 32px; border-radius: 6px; display: inline-flex; align-items: center; gap: 6px; padding: 0 12px; font-size: 14px; font-weight: 500; border: 1px solid hsl(var(--input)); background: hsl(var(--background)); white-space: nowrap; }
+  .tool .b.hl { background: hsl(var(--highlight)); border-color: hsl(var(--highlight)); color: hsl(var(--highlight-foreground)); }
+  .tool .b.press { filter: brightness(.9); }
+  .tool .tg { display: flex; border: 1px solid hsl(var(--input)); border-radius: 6px; overflow: hidden; }
+  .tool .tg span { width: 34px; height: 30px; display: grid; place-items: center; color: hsl(var(--muted-foreground)); }
+  .tool .tg span.on { background: hsl(var(--muted)); color: hsl(var(--foreground)); }
+  /* Card (ui/card.tsx size sm): rounded-lg border bg-card p-4; CardIcon size-8 rounded-lg bg-muted. */
+  .cgrid { margin: 16px 32px 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .pc { border: 1px solid hsl(var(--border)); border-radius: 12px; background: hsl(var(--card)); padding: 16px; display: flex; flex-direction: column; min-height: 200px; }
+  .pc .ci { width: 32px; height: 32px; border-radius: 12px; background: hsl(var(--muted)); display: grid; place-items: center; }
+  .pc .ci svg { width: 14px; height: 14px; }
+  .pc b { display: block; padding-top: 12px; font-size: 14px; line-height: 20px; font-weight: 500; }
+  .pc p { margin: 4px 0 0; height: 56px; font-size: 12px; line-height: 16px; color: hsl(var(--muted-foreground)); }
+  .pc .dt { font-size: 12px; line-height: 16px; color: hsl(var(--muted-foreground)); }
+  .pc .bt { display: flex; gap: 8px; margin-top: 12px; }
+  .pc .bt span { height: 30px; display: inline-flex; align-items: center; padding: 0 12px; border-radius: 6px; border: 1px solid hsl(var(--input)); background: hsl(var(--background)); font-size: 14px; font-weight: 500; }
+  .pc .bt span.m { width: 32px; padding: 0; justify-content: center; color: hsl(var(--muted-foreground)); }
+  .pc .bt svg { width: 13px; height: 13px; }
+  /* NewPageDialog: DialogContent md (max-w-xl), backdrop bg-backdrop; title text-lg semibold, description sm muted;
+     Label "Describe the page"; Textarea rows 4; footer Cancel (outline) and Create page (primary). */
+  .backdrop { position: absolute; inset: 0; background: hsl(60 11.1% 98.2% / .8); display: none; z-index: 5; }
+  .dlg { position: absolute; left: 50%; top: 50%; width: 576px; transform: translate(-50%, -50%); background: hsl(var(--background)); border: 1px solid hsl(var(--border)); border-radius: 12px;
+    box-shadow: 0 10px 15px -3px rgb(0 0 0 / .1), 0 4px 6px -4px rgb(0 0 0 / .1); display: none; z-index: 6; }
+  .dlg .hd { padding: 24px 24px 0; }
+  .dlg h3 { margin: 0; font-size: 18px; line-height: 26px; font-weight: 600; }
+  .dlg .ds { margin-top: 4px; font-size: 14px; line-height: 20px; color: hsl(var(--muted-foreground)); }
+  .dlg .bd { padding: 16px 24px 0; }
+  .dlg label { display: block; font-size: 14px; line-height: 20px; font-weight: 500; margin-bottom: 8px; }
+  .dlg .tx { height: 98px; border: 1px solid hsl(var(--input)); border-radius: 6px; padding: 5px 12px; font-size: 14px; line-height: 22px; background: hsl(var(--background)); }
+  .dlg .tx .ph2 { color: hsl(var(--muted-foreground)); }
+  .dlg .tx.focus { border-color: hsl(var(--ring)); }
+  .dlg .ft { display: flex; justify-content: flex-end; gap: 8px; padding: 16px 24px 24px; }
+  .dlg .ft span { height: 30px; display: inline-flex; align-items: center; padding: 0 12px; border-radius: 6px; font-size: 14px; font-weight: 500; border: 1px solid hsl(var(--input)); background: hsl(var(--background)); }
+  .dlg .ft span.hl { background: hsl(var(--highlight)); border-color: hsl(var(--highlight)); color: hsl(var(--highlight-foreground)); }
+  .dlg .ft span.dis { opacity: .5; }
+  .dlg .ft span.press { filter: brightness(.9); }
+  /* The page being built. */
+  .pv .ph { padding-top: 16px; align-items: flex-start; }
+  .pv .ph .ttl { min-width: 0; }
+  .pv .ph .d { font-size: 14px; line-height: 20px; color: hsl(var(--muted-foreground)); margin-top: 2px; }
+  .wgrid { margin: 24px 32px 0; display: flex; flex-direction: column; gap: 20px; }
+  .slot { position: relative; }
+  .wc { position: relative; background: hsl(var(--card)); border: 1px solid hsl(var(--border)); border-radius: 12px; padding: 20px; }
+  .wc .wt { font-size: 16px; line-height: 24px; font-weight: 600; }
+  .wc .wi { font-size: 13px; line-height: 18px; color: hsl(var(--muted-foreground)); margin-top: 2px; }
+  .wc .big { margin-top: 14px; font-size: 30px; line-height: 36px; font-weight: 500; letter-spacing: -.02em; display: flex; align-items: baseline; gap: 6px; }
+  .wc .big small { font-size: 14px; font-weight: 400; color: hsl(var(--muted-foreground)); letter-spacing: 0; }
+  .bars { display: flex; align-items: flex-end; gap: 14px; height: 120px; margin-top: 20px; padding-bottom: 20px; position: relative; border-bottom: 1px solid hsl(var(--border)); }
+  .bar { flex: 1; position: relative; border-radius: 4px 4px 0 0; background: hsl(var(--chart-1, 200 35% 42%)); transform-origin: bottom; }
+  .bar span { position: absolute; bottom: -20px; left: 0; right: 0; text-align: center; font-size: 11px; color: hsl(var(--muted-foreground)); }
+  .bar i { position: absolute; top: -17px; left: 0; right: 0; text-align: center; font-size: 11px; font-style: normal; }
+  .hb { margin-top: 14px; display: flex; flex-direction: column; gap: 8px; }
+  .hb div { display: grid; grid-template-columns: 150px 1fr 52px; align-items: center; gap: 10px; font-size: 13px; }
+  .hb i { height: 14px; border-radius: 0 3px 3px 0; background: hsl(var(--chart-2, 170 35% 35%)); transform-origin: left; }
+  .hb em { font-style: normal; text-align: right; font-variant-numeric: tabular-nums; }
+  .ring { position: absolute; inset: -5px; border-radius: 16px; pointer-events: none; opacity: 0; padding: 2px;
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask-composite: exclude; }
+  /* AgentBuildingSquare: Panel pending (dashed highlight border, pulse), title body-strong muted, two Skeleton lines. */
+  .sq { position: absolute; inset: 0; border: 1px dashed hsl(var(--highlight)); border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 12px; background: hsl(var(--background)); }
+  .sq b { font-size: 14px; line-height: 20px; font-weight: 500; color: hsl(var(--muted-foreground)); }
+  .sq i { display: block; height: 8px; border-radius: 6px; background: hsl(var(--secondary)); }
+  .acur { position: absolute; left: 16px; top: 50%; display: flex; align-items: flex-start; gap: 4px; z-index: 3; }
+  .acur svg { width: 14px; height: 14px; color: hsl(var(--highlight)); fill: currentColor; }
+  .hbadge { display: inline-flex; align-items: center; margin-top: 16px; border: 1px solid hsl(var(--highlight) / .3); background: hsl(var(--highlight) / .1); color: hsl(var(--highlight)); border-radius: 4px; padding: 1px 8px; font-size: 12px; line-height: 16px; font-weight: 500; white-space: nowrap; }
+  .building { position: absolute; left: 50%; bottom: 64px; transform: translateX(-50%); display: flex; align-items: flex-start; gap: 4px; z-index: 4; }
+  .building svg { width: 14px; height: 14px; color: hsl(var(--highlight)); fill: currentColor; }
+  /* The agent sidebar (agent-sidebar.tsx: --agent-sidebar-width 400px, background muted). */
+  .asw { flex: none; width: 0; overflow: hidden; }
+  .as { height: 100%; background: hsl(var(--muted)); }
+  .as-head .ic2 { width: 24px; height: 24px; display: grid; place-items: center; color: hsl(var(--muted-foreground)); }
+  .as-head .ic2 svg { width: 12px; height: 12px; }
+  .as-head .r { margin-left: auto; display: flex; gap: 2px; }
+  .msg .bubble { font-size: 13px; line-height: 19px; }
+  .prose { font-size: 13px; line-height: 19px; }
+  .prose .step .dot svg { width: 9px; height: 9px; }
+  .rp { margin-top: 2px; }
+  .composer .ta div { font-size: 13px; }
+</style></head>
+<body>
+<div class="frame">
+  <div class="stage">
+    <div class="app" id="app">
+      <div id="sb"></div>
+      <main class="panel" id="main">
+        <div class="view" id="list">
+          <div class="ph"><h1>Pages <span class="pin" data-fa="faThumbtack"></span></h1><div class="right"><span class="ib" id="agb1"></span></div></div>
+          <div class="tool"><div class="s"><span data-fa="faMagnifyingGlass"></span>Search pages by title or description...</div>
+            <span class="b"><span data-fa="faSort"></span>Recently Edited</span><span class="b"><span data-fa="faBarsFilter"></span>Filter</span>
+            <span class="tg"><span class="on" data-fa="faTableCellsLarge"></span><span data-fa="faList"></span></span>
+            <span class="b hl" id="newp"><span data-fa="faPlus"></span>New page</span></div>
+          <div class="cgrid">
+            <div class="pc"><span class="ci" data-fa="faHouse"></span><b>Overview</b><p>Everyone in this project can see the Overview</p><div class="bt"><span>View</span><span class="m" data-fa="faEllipsis"></span></div></div>
+            <div class="pc"><span class="ci" data-fa="faGrid2"></span><b>Invoices to approve</b><p>Supplier invoices waiting for approval, by approver and how long they've waited.</p><div class="dt">Created 21 Oct 2026 · Updated 4 Nov 2026</div><div class="bt"><span>View</span><span class="m" data-fa="faEllipsis"></span></div></div>
+            <div class="pc"><span class="ci" data-fa="faGrid2"></span><b>Warehouse today</b><p>Deliveries due today and orders ready to pick, per location.</p><div class="dt">Created 27 Oct 2026 · Updated 3 Nov 2026</div><div class="bt"><span>View</span><span class="m" data-fa="faEllipsis"></span></div></div>
+            <div class="pc"><span class="ci" data-fa="faGrid2"></span><b>Credit notes</b><p>Credit notes booked in Exact Online this month, by reason and customer.</p><div class="dt">Created 14 Oct 2026 · Updated 30 Oct 2026</div><div class="bt"><span>View</span><span class="m" data-fa="faEllipsis"></span></div></div>
+            <div class="pc"><span class="ci" data-fa="faGrid2"></span><b>Supplier deliveries</b><p>Late and partial deliveries per supplier, against the promised date on the PO.</p><div class="dt">Created 9 Oct 2026 · Updated 29 Oct 2026</div><div class="bt"><span>View</span><span class="m" data-fa="faEllipsis"></span></div></div>
+            <div class="pc"><span class="ci" data-fa="faGrid2"></span><b>Month-end close</b><p>What's still open before the books close: unmatched invoices and accruals.</p><div class="dt">Created 2 Oct 2026 · Updated 28 Oct 2026</div><div class="bt"><span>View</span><span class="m" data-fa="faEllipsis"></span></div></div>
+          </div>
+        </div>
+        <div class="view pv" id="pv" style="display:none">
+          <div class="ph"><div class="ttl"><h1><span id="ptitle">New page</span> <span class="pin" data-fa="faThumbtack"></span></h1><div class="d" id="pdesc"></div></div>
+            <div class="right"><span class="ib" id="pen" data-fa="faPen"></span><span class="ib on" id="agb2"></span></div></div>
+          <div class="wgrid" id="wgrid">
+            <div class="slot" id="s1"><div class="wc" id="w1"><div class="ring"></div><div class="wt">Waiting on a PO</div><div class="wi">Open orders the Agent can't draft in Exact Online yet</div><div class="big tnum">14 <small>orders</small></div></div></div>
+            <div class="slot" id="s2"><div class="wc" id="w2"><div class="ring"></div><div class="wt">Handling time per day</div><div class="wi">Minutes from email to draft order, this week</div><div class="bars" id="bars"></div></div></div>
+            <div class="slot" id="s3"><div class="wc" id="w3"><div class="ring"></div><div class="wt">Orders per customer</div><div class="wi">This month</div><div class="hb" id="hb"></div></div></div>
+          </div>
+          <div class="building" id="bld"><span data-fa="s:faArrowPointer"></span><span class="hbadge">Building your page · usually a few minutes</span></div>
+        </div>
+      </main>
+      <div class="backdrop" id="bkd"></div>
+      <div class="dlg" id="dlg">
+        <div class="hd"><h3>New page</h3><div class="ds">Describe the page and the agent names it and builds it next to you.</div></div>
+        <div class="bd"><label>Describe the page</label><div class="tx" id="tx"><span class="ph2">Weekly sales by region, with anything overdue at the top</span></div></div>
+        <div class="ft"><span>Cancel</span><span class="hl dis" id="create">Create page</span></div>
+      </div>
+      <div class="asw" id="asw"><aside class="as" style="width:400px">
+        <div class="as-head"><span>New session</span><span class="ic2" data-fa="faChevronDown"></span><span class="r"><span class="ic2" data-fa="faPlus"></span><span class="ic2" data-fa="faXmark"></span></span></div>
+        <div class="msgs">
+          <div class="msg user"><span class="av">EV</span><div class="bubble" id="ubrief"></div></div>
+          <div class="msg" id="am"><span id="amav" style="display:block;margin-top:2px;flex:none"></span><div class="prose">
+            <div class="cot-head" id="cot">Working…</div>
+            <div class="step" id="st1"><span class="dot" data-fa="faFileSpreadsheet"></span><span class="txt">Read Orders</span></div>
+            <div class="step" id="st2"><span class="dot" data-fa="faPen"></span><span class="txt">Named the page Order desk</span></div>
+            <div class="step" id="st3"><span class="dot" data-fa="faGrid2"></span><span class="txt" id="st3t">Added 3 widgets</span></div>
+            <div class="step" id="st4"><span class="dot" data-fa="faCheck"></span><span class="txt">Checked every widget</span></div>
+            <div class="rp" id="rp"></div>
+          </div></div>
+        </div>
+        <div class="status" id="status"><span id="stl"></span><span id="stt">Using a tool</span></div>
+        <div class="composer"><div class="ta"><div>Reply to Lleverage…</div></div>
+          <div class="row"><span class="rb" id="plus"></span><div class="r"><span class="model">Opus 5.5 <span id="mchev"></span></span><span class="rb" id="mic"></span><span class="rb" id="sendb"></span></div></div></div>
+      </aside></div>
+    </div>
+  </div>
+</div>
+<script src="fa-icons.js"></script>
+<script src="app.js"></script>
+<script src="clip.js"></script>
+<script src="chapter.js"></script>
+<script>
+  CHAPTER({ n: 1, total: 7, module: "Pages", footerLeft: "Feature Drop · Week 46",
+    title: "Describe a page.<br><em>The Agent builds it.</em>",
+    line: "Pages has its own place in the navigation. New page asks what the page is for; the Agent names it, builds each widget in place and checks them all." });
+  const D = 12.2;
+  window.HOLDS = [[5.0, 0.3], [9.4, 0.5], [D - 0.3, 0.9]];
+  const { $, $$, p, out, io, type } = C;
+  $("#sb").outerHTML = APP.sidebar("Pages");
+  $$("[data-fa]").forEach((el) => (el.innerHTML = fa(el.dataset.fa)));
+  $("#agb1").innerHTML = APP.loader(20); $("#agb2").innerHTML = APP.loader(20);
+  $("#amav").innerHTML = APP.loader(16); $("#stl").innerHTML = APP.loader(18);
+  $("#mchev").innerHTML = fa("faChevronDown", "", "width:9px;height:9px");
+  $("#plus").innerHTML = lu("plus", "", "width:16px;height:16px"); $("#mic").innerHTML = fa("faMicrophone"); $("#sendb").innerHTML = fa("s:faPhoneFlip");
+  const DAYS = [["Mon", 3.1], ["Tue", 2.6], ["Wed", 2.4], ["Thu", 2.1], ["Fri", 1.8]];
+  $("#bars").innerHTML = DAYS.map(([d, v]) => `<div class="bar" style="height:${(v / 3.1) * 100}%"><i>${v} min</i><span>${d}</span></div>`).join("");
+  const CUST = [["Van Dijk Metaal", 38], ["Kuipers Hout", 31], ["Smit Elektro", 24], ["Bakker Installatietechniek", 17]];
+  $("#hb").innerHTML = CUST.map(([n, v]) => `<div><span>${n}</span><i style="width:${(v / 38) * 100}%"></i><em>${v}</em></div>`).join("");
+  // The square the Agent is building shows where each widget will sit, until it lands.
+  const SQ = [["#s1", "Waiting on a PO"], ["#s2", "Handling time per day"], ["#s3", "Orders per customer"]];
+  SQ.forEach(([s, t2], i) => $(s).insertAdjacentHTML("beforeend",
+    `<div class="sq" id="sq${i + 1}"><b>${t2}</b><i style="width:60%"></i><i style="width:40%"></i><div class="acur" id="ac${i + 1}">${fa("s:faArrowPointer")}<span class="hbadge">The platform agent is working here</span></div></div>`));
+  const BRIEF = "Orders waiting on a PO, handling time per day, and orders per customer this month.";
+  $("#ubrief").textContent = BRIEF;
+  const DESC = "What the order desk needs today: orders waiting on a PO, handling time and orders per customer.";
+  const REPLY = "Order desk is ready. 14 orders are waiting on a PO, and handling time is down to 1.8 minutes.";
+
+  const app = $("#app");
+  const at = (el, fx = 0.5, fy = 0.5) => { const a = app.getBoundingClientRect(), r = el.getBoundingClientRect(), s = a.width / 1280;
+    return [(r.left - a.left + r.width * fx) / s, (r.top - a.top + r.height * fy) / s]; };
+  // Measure each click in its layout: New page on the list; Create page in the open dialog.
+  const P = { newp: at($("#newp")) };
+  $("#bkd").style.display = "block"; $("#dlg").style.display = "block";
+  P.create = at($("#create")); P.tx = at($("#tx"), 0.3, 0.3);
+  const d0 = at($("#dlg"), 0, 0), d1 = at($("#dlg"), 1, 1);
+  $("#bkd").style.display = ""; $("#dlg").style.display = "";
+  const VW = C.STAGE_W, VH = C.STAGE_H, FIT = Math.min(VW / 1280, VH / C.APP_H) * 0.98;
+  const fit = (x0, y0, x1, y1) => { const s = Math.min(VW / (x1 - x0), VH / (y1 - y0)); return [(x0 + x1) / 2, (y0 + y1) / 2 + (VH / s - (y1 - y0)) / 2, s]; };
+  // The one zoom: the New page dialog while the page is described, framed on its edges.
+  const ZOOM = fit(d0[0] - 24, d0[1] - 24, d1[0] + 24, d1[1] + 24);
+  const FULL = [640, C.APP_H / 2, FIT];
+  const cam = C.camera(app, VW, VH, [[0, ...FULL], [2.75, ...FULL], [3.3, ...ZOOM], [5.45, ...ZOOM], [6.0, ...FULL], [D, ...FULL]]);
+  const F = (t, [x, y]) => { const m = cam(t).map(x, y); return [C.STAGE_X + m[0], C.STAGE_Y + m[1]]; };
+  const OFF = (fx) => [C.W * fx, C.H + 40];
+  const cur = C.cursor([[1.9, ...OFF(0.75)], [2.4, ...F(2.4, P.newp)], [2.6, ...F(2.6, P.newp), true], [3.0, ...OFF(0.7)],
+    [4.75, ...OFF(0.75)], [5.15, ...F(5.15, P.create)], [5.3, ...F(5.3, P.create), true], [5.75, ...OFF(0.6)]]);
+  const cap = C.captions([
+    [1.9, 5.4, "Click New page.<br><em>Say what it's for.</em>"],
+    [5.7, 8.9, "The Agent names the page<br><em>and builds it beside you.</em>"],
+    [9.2, 99, "It checks every widget.<br><em>Then the page is ready.</em>"],
+  ]);
+  C.typing(3.25, 4.9);
+  cam(0);
+  const LAND = [7.65, 8.15, 8.65];
+  C.run(D, (t) => {
+    cap(t); cam(t); cur(t);
+    // The list, New page, the dialog.
+    const page = t >= 5.4;
+    $("#list").style.display = page ? "none" : "flex";
+    $("#pv").style.display = page ? "flex" : "none";
+    $("#newp").classList.toggle("press", t >= 2.55 && t < 2.75);
+    const dq = out(p(t, 2.65, 2.95));
+    $("#bkd").style.display = $("#dlg").style.display = t >= 2.65 && !page ? "block" : "none";
+    $("#bkd").style.opacity = dq; $("#dlg").style.opacity = dq;
+    $("#dlg").style.transform = `translate(-50%, -50%) scale(${0.95 + 0.05 * dq})`;
+    $("#tx").classList.toggle("focus", t >= 2.95);
+    if (t >= 3.25) type($("#tx"), BRIEF, t, 3.25, 4.9); else $("#tx").innerHTML = '<span class="ph2">Weekly sales by region, with anything overdue at the top</span>';
+    $("#create").classList.toggle("dis", t < 3.3);
+    $("#create").classList.toggle("press", t >= 5.25 && t < 5.45);
+    // The page opens with the Agent beside it; the Agent names it, then builds each widget in its square.
+    $("#asw").style.width = 400 * io(p(t, 5.4, 5.8)) + "px";
+    const named = t >= 6.55;
+    $("#ptitle").textContent = named ? "Order desk" : "New page";
+    $("#pdesc").textContent = named ? DESC : BRIEF;
+    $("#pdesc").style.opacity = named ? out(p(t, 6.55, 6.9)) : 1;
+    const working = t < 9.9;
+    $("#cot").textContent = working ? "Working…" : "Worked for 3m 12s";
+    APP.drive($("#amav"), working ? "working" : "static", t); APP.drive($("#stl"), working ? "working" : "static", t);
+    $("#status").style.visibility = t >= 5.9 && t < 10.3 ? "visible" : "hidden";
+    $("#stt").textContent = t < 9.9 ? "Using a tool" : "Responding";
+    $("#am").style.display = t >= 5.9 ? "" : "none";
+    $("#st1").style.display = t >= 6.1 ? "" : "none";
+    $("#st2").style.display = t >= 6.55 ? "" : "none";
+    $("#st3").style.display = t >= 6.9 ? "" : "none";
+    $("#st3t").textContent = t >= 8.65 ? "Added 3 widgets" : "Adding widgets";
+    $("#st4").style.display = t >= 9.3 ? "" : "none";
+    type($("#rp"), REPLY, t, 9.95, 10.6, null);
+    const building = t >= 6.9 && t < 9.3;
+    $("#bld").style.display = building ? "flex" : "none";
+    SQ.forEach(([s], i) => {
+      const n = i + 1, show = 6.9 + i * 0.25, land = LAND[i];
+      const slot = $(s); slot.style.display = t >= show ? "" : "none";
+      const sq = $("#sq" + n), w = $("#w" + n);
+      const sqo = out(p(t, show, show + 0.3));
+      sq.style.display = t < land + 0.2 ? "flex" : "none";
+      sq.style.opacity = sqo * (1 - p(t, land, land + 0.2));
+      // pulse (motion-safe:animate-pulse)
+      sq.style.borderColor = `hsl(var(--highlight) / ${0.65 + 0.35 * Math.cos(t * 3)})`;
+      const curI = LAND.findIndex((l) => t < l);
+      $("#ac" + n).style.display = t >= show && i === curI ? "flex" : "none";
+      const q = out(p(t, land + 0.12, land + 0.5));
+      w.style.opacity = q;
+      const ring = Math.min(p(t, land, land + 0.3), 1 - p(t, land + 2.2, land + 3.0));
+      const r = $(".ring", w); r.style.opacity = ring;
+      r.style.background = `linear-gradient(${(t * 90) % 360}deg, hsl(var(--highlight) / .6), hsl(var(--info) / .6) 43%, hsl(var(--highlight) / .4))`;
+    });
+    $$(".bar").forEach((b, i) => (b.style.transform = `scaleY(${out(p(t, LAND[1] + 0.1 + i * 0.07, LAND[1] + 0.55 + i * 0.07))})`));
+    $$("#hb i").forEach((b, i) => (b.style.transform = `scaleX(${out(p(t, LAND[2] + 0.1 + i * 0.07, LAND[2] + 0.55 + i * 0.07))})`));
+  });
+</script>
+</body></html>
