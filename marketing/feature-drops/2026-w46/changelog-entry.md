@@ -24,6 +24,7 @@ This week is about the pages you run the work from. Describe a page and the Agen
 * **Clearer cards in the chat.** A workflow run comes back as one card with how it ended, its first outputs and **Open run**. A finished connection shows the account it connected. Approval cards lead with the question and fold the details under **Details**.
 * **A failed save says so.** When a workflow autosave fails, **Couldn't save. Retry** shows beside the workflow's status, and leaving or publishing waits for the save.
 * **A new look.** The light theme takes the brand's colours and rounded corners on every page, and the app follows your device's light or dark setting unless you choose one under **Theme**.
+* **A fresh session in Teams or Slack.** Send `new session` in your direct chat with the Agent (or `/new` in Teams) to start over. The old session keeps its history in the web app, and **Open previous session** takes you back to it. [The Agent in Microsoft Teams](https://docs.lleverage.ai/run-operations/agent/agent-in-microsoft-teams)
 * **Where you are, on every page.** A bar above every page shows the organisation and the project, and switches either.
 * **Warnings in the form builder.** A number field's settings have a **Warnings** section, for checks like "the total doesn't match the lines", with a tolerance and a severity.
 * **Boards set up by the Agent.** Ask the Agent for a board and it sets up a data table's Board view: the column to group by, card title, sort and lane order.
