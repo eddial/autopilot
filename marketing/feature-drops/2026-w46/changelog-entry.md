@@ -1,7 +1,7 @@
 {% update date="2026-11-10" tags="new-releases,improvements,fixes" %}
 ## Week 46: pages the Agent builds with you
 
-{% embed url="https://www.youtube.com/watch?v=<id>" %}
+{% embed url="https://www.youtube.com/watch?v=W83CK6uB2RM" %}
 
 This week is about the pages you run the work from. Describe a page and the Agent builds it, with widgets of its own design when a standard chart won't do, and you can change any page by hand. Working with the Agent gets more direct too: point at a row, paste a screenshot, and get drafts you can copy or send.
 
