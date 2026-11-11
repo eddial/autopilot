@@ -4,7 +4,7 @@ The more of your operations run on their own, the more you need to see what they
 
 That's what pages are for. Describe the page you want, say orders waiting on a PO and late deliveries per supplier, and the Agent builds it next to you, with data straight from your ERP or any other system you've connected. When no chart fits, it builds the widget itself. You can still move and resize everything by hand.
 
-We're not done cooking. Pages will soon get interactive widgets that run as apps. Slowly, Lleverage is turning into your AI operating system. More to come.
+We're not done cooking. Next up: widgets you don't just read, but work in. Slowly, Lleverage is turning into your AI operating system. More to come.
 
 Also new: point the Agent at a row on screen, paste screenshots into the chat, and get new requests in Teams. Full changelog in the comments.
 
