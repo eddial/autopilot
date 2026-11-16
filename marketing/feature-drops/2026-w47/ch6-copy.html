@@ -67,7 +67,7 @@
   .dlg .db { padding: 16px 24px 8px; display: flex; flex-direction: column; gap: 6px; font-size: 14px; line-height: 20px; }
   .dlg label { font-size: 14px; line-height: 14px; font-weight: 500; }
   .sel { position: relative; height: 32px; display: flex; align-items: center; padding: 0 12px; border: 1px solid hsl(var(--input)); border-radius: 10px; background: hsl(var(--background)); }
-  .sel .ph { color: hsl(var(--muted-foreground)); }
+  .sel .plh { color: hsl(var(--muted-foreground)); }
   .sel .cv { margin-left: auto; opacity: .5; } .sel .cv svg { width: 16px; height: 16px; }
   .opts { position: absolute; left: -1px; right: -1px; top: 36px; padding: 4px; background: hsl(var(--card)); border: 1px solid hsl(var(--border)); border-radius: 10px; box-shadow: 0 4px 6px -1px rgb(0 0 0 / .1); z-index: 2; }
   .opts div { padding: 6px 8px; border-radius: 8px; }
@@ -137,7 +137,7 @@
           <div id="s1">
             <div class="dh"><h2>Copy workflow to another project</h2><div class="dd">Read order emails will be added to the chosen project as an unpublished draft. This one stays as it is.</div></div>
             <div class="db"><label>Project</label>
-              <div class="sel" id="sel"><span id="selv" class="ph">Choose a project</span><span class="cv" data-lu="chevronDown"></span>
+              <div class="sel" id="sel"><span id="selv" class="plh">Choose a project</span><span class="cv" data-lu="chevronDown"></span>
                 <div class="opts" id="opts"><div>Invoices</div><div id="opt">Order intake Belgium</div><div>Purchasing</div></div></div></div>
             <div class="df"><span class="ob">Cancel</span><span class="pb off" id="go">Copy to project</span></div>
           </div>
@@ -159,7 +159,7 @@
 <script src="clip.js"></script>
 <script src="chapter.js"></script>
 <script>
-  CHAPTER({ n: 7, total: 7, module: "Workflows", footerLeft: "Feature Drop · Week 47",
+  CHAPTER({ n: 6, total: 6, module: "Workflows", footerLeft: "Feature Drop · Week 47",
     title: "Copy a workflow<br><em>to another project.</em>",
     line: "Copy to project puts a workflow in another project as an unpublished draft, and lists the tables, connections and variables it still points at." });
   const D = 14.8;
@@ -213,7 +213,7 @@
     $("#cpi").classList.toggle("hov", t >= 3.4);
     $("#opt").classList.toggle("hov", t >= 5.9);
     const picked = t >= 6.3;
-    $("#selv").textContent = picked ? "Order intake Belgium" : "Choose a project"; $("#selv").className = picked ? "" : "ph";
+    $("#selv").textContent = picked ? "Order intake Belgium" : "Choose a project"; $("#selv").className = picked ? "" : "plh";
     $("#go").classList.toggle("off", !picked);
     $("#go").textContent = t >= 7.3 && t < 8.0 ? "Copying…" : "Copy to project";
     $("#go").classList.toggle("press", t >= 7.2 && t < 7.4);

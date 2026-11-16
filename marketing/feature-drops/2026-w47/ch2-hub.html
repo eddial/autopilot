@@ -25,7 +25,7 @@
   .cfg .cintro { padding: 4px 32px 0; font-size: 14px; line-height: 20px; color: hsl(var(--muted-foreground)); }
   .cfg .big { margin: 16px 32px 0; max-width: 576px; height: 44px; border-radius: 12px; border: .5px solid hsl(var(--border)); outline: .5px solid hsl(var(--border)); outline-offset: -1px; background: hsl(var(--card)); display: flex; align-items: center; gap: 10px; padding: 0 14px; font-size: 15px; }
   .cfg .big svg { width: 15px; height: 15px; color: hsl(var(--muted-foreground)); }
-  .cfg .big .ph { color: hsl(var(--muted-foreground)); }
+  .cfg .big .plh { color: hsl(var(--muted-foreground)); }
   .cols { padding: 24px 32px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); column-gap: 24px; row-gap: 32px; align-items: start; }
   .cg h3 { margin: 0 0 8px; font-size: 16px; line-height: 24px; font-weight: 600; letter-spacing: -.01em; }
   .cg .cc { border-radius: 12px; border: .5px solid hsl(var(--border)); outline: .5px solid hsl(var(--border)); outline-offset: -1px; padding: 4px 6px; display: flex; flex-direction: column; }
@@ -63,7 +63,7 @@
         <div class="cfg" id="cfg">
           <div id="cfgh"></div>
           <div class="cintro">Only builders can see this. Find every part of this project, and pin any page to the navigation for the people who use it.</div>
-          <div class="big" id="big"><span data-fa="faMagnifyingGlass"></span><span id="q" class="ph">Search this project</span></div>
+          <div class="big" id="big"><span data-fa="faMagnifyingGlass"></span><span id="q" class="plh">Search this project</span></div>
           <div class="cols" id="cols"></div>
           <div class="res" id="res">
             <h4>Workflows</h4>
@@ -85,7 +85,7 @@
 <script src="clip.js"></script>
 <script src="chapter.js"></script>
 <script>
-  CHAPTER({ n: 2, total: 7, module: "Navigation", footerLeft: "Feature Drop · Week 47",
+  CHAPTER({ n: 2, total: 6, module: "Navigation", footerLeft: "Feature Drop · Week 47",
     title: "Every builder page<br><em>in one place.</em>",
     line: "Builders get Configure at the top of the navigation: every page of the project, grouped, with a search across the whole project." });
   const D = 15.2;
@@ -154,7 +154,7 @@
     $("#va").classList.toggle("hov", t >= 7.3);
     $("#cfg").style.display = cfg ? "block" : "none"; $("#cfg").style.opacity = out(p(t, 7.65, 7.9));
     const typed = t >= 11.0;
-    if (typed) { type($("#q"), QY, t, 11.0, 11.6, null); $("#q").className = ""; } else { $("#q").textContent = "Search this project"; $("#q").className = "ph"; }
+    if (typed) { type($("#q"), QY, t, 11.0, 11.6, null); $("#q").className = ""; } else { $("#q").textContent = "Search this project"; $("#q").className = "plh"; }
     const res = t >= 11.7;
     $("#cols").style.display = res ? "none" : ""; $("#res").style.display = res ? "block" : "none"; $("#res").style.opacity = out(p(t, 11.7, 11.95));
   });

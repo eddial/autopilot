@@ -39,7 +39,7 @@
             </div></div>
           </div>
           <div class="foot col">
-            <div class="cmp" id="cmp"><span class="cb32" data-lu="plus"></span><div class="tx" id="tx"><span class="ph">Reply to Lleverage…</span></div>
+            <div class="cmp" id="cmp"><span class="cb32" data-lu="plus"></span><div class="tx" id="tx"><span class="plh">Reply to Lleverage…</span></div>
               <span class="cb32 sec" id="stop"></span><span class="cb32 pri" id="queue" data-lu="listPlus"></span></div>
             <div class="under"><span class="l"><span data-fa="faFolder"></span>Order intake</span><span class="r"><b>Opus 5.5</b> Medium <span data-lu="chevronDown"></span></span></div>
           </div>
@@ -53,7 +53,7 @@
 <script src="clip.js"></script>
 <script src="chapter.js"></script>
 <script>
-  CHAPTER({ n: 5, total: 7, module: "Agent", footerLeft: "Feature Drop · Week 47",
+  CHAPTER({ n: 4, total: 6, module: "Agent", footerLeft: "Feature Drop · Week 47",
     title: "Steer the Agent<br><em>while it works.</em>",
     line: "A message typed while the Agent works waits its turn. Send now steers it into the work under way, and the Agent carries on with it." });
   const D = 14.0;
@@ -75,7 +75,7 @@
   const L = (k) => { $("#qm").style.display = k >= 1 ? "" : "none"; $("#am2").style.display = k >= 2 ? "" : "none"; $("#wa").style.display = k === 1 ? "" : "none"; $("#stl").style.display = k >= 2 ? "" : "none";
     $("#qb").classList.toggle("wait", k === 1); };
   L(0); $("#tx").textContent = Q; const P = { tx: at($("#tx"), 0.2), queue: at($("#queue")) };
-  L(1); $("#tx").innerHTML = '<span class="ph">Reply to Lleverage…</span>'; P.send = at($("#sendnow"), 0.4);
+  L(1); $("#tx").innerHTML = '<span class="plh">Reply to Lleverage…</span>'; P.send = at($("#sendnow"), 0.4);
   const c1 = at($("#cmp"), 1, 1), a0 = at($(".am"), 0, 0);
   L(0);
   const VW = C.STAGE_W, VH = C.STAGE_H, FIT = Math.min(VW / 1280, VH / C.APP_H) * 0.98;
@@ -114,7 +114,7 @@
     type($("#rep"), R, t, 11.1, 11.8, null);
     // The composer: typed text, then Stop beside Queue while there is text; empty again once queued.
     const k = t < 4.75 ? 0 : t < 8.5 ? 1 : 2; L(k);
-    if (t >= 2.65 && t < 4.75) { type($("#tx"), Q, t, 2.65, 4.25, null); } else $("#tx").innerHTML = '<span class="ph">Reply to Lleverage…</span>';
+    if (t >= 2.65 && t < 4.75) { type($("#tx"), Q, t, 2.65, 4.25, null); } else $("#tx").innerHTML = '<span class="plh">Reply to Lleverage…</span>';
     const hasText = t >= 2.7 && t < 4.75;
     $("#stop").innerHTML = working ? lu("loader2", "", `transform:rotate(${(t * 360) % 360}deg)`) : fa("faPhoneFlip");
     $("#stop").className = working ? "cb32 sec" : "cb32";

@@ -12,10 +12,9 @@ Theme: a new navigation, and a closer look at your data.
 | 1 | Navigation | Chats and requests / in one list | #9728, #10826 | none; every project moved to the new navigation |
 | 2 | Navigation | Every builder page / one click away (compass, Builder Hub) | #9728, #10816, #10819, #10824 | none; builders only, by role |
 | 3 | Pages | Click a number / to see its records | #10617 (#10376, #10380, #10385, #10387, #10389) | `live-widgets`, on for customers since 30 Oct |
-| 4 | Pages | See where a widget's / data comes from | #10623 | none for the line; live widgets need `live-widgets` |
-| 5 | Agent | Steer the Agent / while it works | #10651, #10446 | agent-service `AGENT_MID_RUN_STEERING_ENABLED=true` for all organisations in production |
-| 6 | Agent | Approve with / every detail in view | #10432 | none |
-| 7 | Workflows | Copy a workflow / to another project | #10261 | none; needs Edit on workflows in both projects |
+| 4 | Agent | Steer the Agent / while it works | #10651, #10446 | agent-service `AGENT_MID_RUN_STEERING_ENABLED=true` for all organisations in production |
+| 5 | Agent | Approve with / every detail in view | #10432 | none |
+| 6 | Workflows | Copy a workflow / to another project | #10261 | none; needs Edit on workflows in both projects |
 
 ## Also new (cover card 2, six rows)
 
@@ -28,6 +27,8 @@ Theme: a new navigation, and a closer look at your data.
 
 Everything else goes in the changelog only.
 
+Review 1 (16 Nov): chapter 4, where a widget's data comes from (#10623), taken out of the video and the post at Badr's request; it stays in the changelog as one line under Improvements.
+
 ## Placement (narrative.md)
 
 | # | Feature | For | Moves | Diff. | Example |
@@ -35,10 +36,9 @@ Everything else goes in the changelog only.
 | 1 | One list for chats and requests | operator | people asked only for what needs them | 2 | Quote & Sell: a request about a missing PO waiting in Needs me |
 | 2 | Builder Hub | builder | faster to implement | 1, 4 | Quote & Sell: the order intake workflows and tables |
 | 3 | Records behind a number | manager, operator | operation visible | 6 | Quote & Sell: orders waiting on a PO, per customer |
-| 4 | Where a widget's data comes from | manager | operation visible; trust | 5 | Quote & Sell: the order table filled by the order intake workflow |
-| 5 | Steer the Agent while it works | operator, builder | people steer the agents | 3 | Quote & Sell: correcting a delivery date mid-task |
-| 6 | Approval with every detail | operator | control and trust | 5, 6 | Quote & Sell: creating a sales order in Exact Online |
-| 7 | Copy a workflow to another project | builder | faster to implement | 7 | Moving the order intake workflow from a test project to production |
+| 4 | Steer the Agent while it works | operator, builder | people steer the agents | 3 | Quote & Sell: correcting a delivery date mid-task |
+| 5 | Approval with every detail | operator | control and trust | 5, 6 | Quote & Sell: creating a sales order in Exact Online |
+| 6 | Copy a workflow to another project | builder | faster to implement | 7 | Moving the order intake workflow from a test project to production |
 
 ## Docs pull requests (lleverage-ai/docs)
 

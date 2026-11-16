@@ -38,7 +38,7 @@
 .foot { padding-bottom: 8px; }
 .cmp { background: hsl(var(--card)); border: .5px solid hsl(var(--border)); outline: .5px solid hsl(var(--border)); outline-offset: -1px; border-radius: 12px; box-shadow: 0 1px 2px rgb(0 0 0 / .05); padding: 6px; display: flex; align-items: center; gap: 2px; }
 .cmp .tx { flex: 1; min-width: 0; padding: 4px 12px; font-size: 14px; line-height: 20px; min-height: 28px; display: flex; align-items: center; }
-.cmp .tx .ph { color: hsl(var(--muted-foreground)); }
+.cmp .tx .plh { color: hsl(var(--muted-foreground)); }
 .cb32 { width: 32px; height: 32px; border-radius: 10px; display: grid; place-items: center; color: hsl(var(--foreground)); flex: none; }
 .cb32 svg { width: 14px; height: 14px; }
 .cb32 svg.lu { width: 16px; height: 16px; }

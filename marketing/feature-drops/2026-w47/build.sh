@@ -18,10 +18,9 @@ PARTS="card-m1.mp4=feature-drop-cards.html?card=1
 fd1-list.mp4=ch1-list.html
 fd2-hub.mp4=ch2-hub.html
 fd3-records.mp4=ch3-records.html
-fd4-source.mp4=ch4-source.html
-fd5-steer.mp4=ch5-steer.html
-fd6-approve.mp4=ch6-approve.html
-fd7-copy.mp4=ch7-copy.html
+fd4-steer.mp4=ch4-steer.html
+fd5-approve.mp4=ch5-approve.html
+fd6-copy.mp4=ch6-copy.html
 card-m2.mp4=feature-drop-cards.html?card=2
 card-m3.mp4=feature-drop-cards.html?card=3"
 CLIP_QUERY="credit=$CREDIT" node cards.mjs feature-drop-cards.html card   # card-1.png: the cover, composed, is the thumbnail
