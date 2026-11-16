@@ -1,7 +1,7 @@
 {% update date="2026-11-16" tags="new-releases,improvements,fixes" %}
 ## Week 47: a new navigation, and a closer look at your data
 
-{% embed url="https://www.youtube.com/watch?v=<id>" %}
+{% embed url="https://www.youtube.com/watch?v=r5TlsVe8sIY" %}
 
 Every project now has one navigation: your pinned pages at the top, then one list of the chats and requests that need you. Builders reach every page of the project from one place. And the numbers on your pages open up: click one to see the records behind it.
 
