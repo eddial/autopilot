@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<title>Steer the Agent while it works</title>
+<link rel="stylesheet" href="clip.css">
+<link rel="stylesheet" href="app.css">
+<link rel="stylesheet" href="chapter.css">
+<link rel="stylesheet" href="parts/agent-page.css">
+<style>
+  /* #10651: while the Agent works, typing keeps Stop (secondary, a spinner) beside Queue (primary, list-plus). A queued
+     message waits under the conversation (waiting-messages.tsx): no fill, a 0.5px dashed border, muted text, with
+     Send now, Edit, Copy and Discard always shown. Send now steers it into the response under way: it turns solid
+     and gets the "Steer" label (corner-down-right + "Steer", 12 muted), and the Agent carries on with it. */
+</style></head>
+<body>
+<div class="frame">
+  <div class="stage">
+    <div class="app" id="app">
+      <div id="sb"></div>
+      <main class="panel">
+        <div class="ap">
+          <span class="ap-title">Today's order emails <span data-fa="faChevronDown"></span></span>
+          <div class="convo col" id="convo">
+            <div class="um"><span class="uav">EV</span><div class="uc"><div class="ub">Draft sales orders in Exact Online for this morning's order emails.</div></div></div>
+            <div class="am"><span class="aav" id="aav1"></span><div class="ac">
+              <div class="sth"><span class="mk" id="mk"></span><span class="lbl shim" id="lbl">Reading 6 order emails</span><span class="chev" data-lu="chevronRight"></span></div>
+              <div class="stp" id="s1"><span class="ok" data-fa="faCheck"></span>Matched 6 customers in Exact Online</div>
+              <div class="stp" id="s2"><span class="ok" data-fa="faCheck"></span>Drafted 3 of 6 sales orders</div>
+            </div></div>
+            <div class="um" id="qm"><span class="uav" style="visibility:hidden"></span><div class="uc">
+              <div class="steer" id="stl"><span data-lu="cornerDownRight"></span>Steer</div>
+              <div class="ub wait" id="qb"></div>
+              <div class="wacts" id="wa"><span class="qb" id="sendnow"><span data-lu="arrowUp"></span>Send now</span><span class="qi" data-lu="pencil"></span><span class="qi" data-lu="copy"></span><span class="qi" data-lu="x"></span></div>
+            </div></div>
+            <div class="am" id="am2"><span class="aav" id="aav2"></span><div class="ac">
+              <div class="sth"><span class="mk" id="mk2"></span><span class="lbl shim" id="lbl2">Updating Kuipers Hout's order</span><span class="chev" data-lu="chevronRight"></span></div>
+              <div class="stp" id="s3"><span class="ok" data-fa="faCheck"></span>Kuipers Hout: delivery date set to Fri 20 Nov</div>
+              <div class="stp" id="s4"><span class="ok" data-fa="faCheck"></span>Drafted 6 of 6 sales orders</div>
+              <p id="rep" style="margin-top:8px"></p>
+            </div></div>
+          </div>
+          <div class="foot col">
+            <div class="cmp" id="cmp"><span class="cb32" data-lu="plus"></span><div class="tx" id="tx"><span class="ph">Reply to Lleverage…</span></div>
+              <span class="cb32 sec" id="stop"></span><span class="cb32 pri" id="queue" data-lu="listPlus"></span></div>
+            <div class="under"><span class="l"><span data-fa="faFolder"></span>Order intake</span><span class="r"><b>Opus 5.5</b> Medium <span data-lu="chevronDown"></span></span></div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+</div>
+<script src="fa-icons.js"></script>
+<script src="app.js"></script>
+<script src="clip.js"></script>
+<script src="chapter.js"></script>
+<script>
+  CHAPTER({ n: 5, total: 7, module: "Agent", footerLeft: "Feature Drop · Week 47",
+    title: "Steer the Agent<br><em>while it works.</em>",
+    line: "A message typed while the Agent works waits its turn. Send now steers it into the work under way, and the Agent carries on with it." });
+  const D = 14.0;
+  window.HOLDS = [[6.4, 0.7], [13.8, 1.2]];
+  const { $, $$, p, out, type } = C;
+  $("#sb").outerHTML = APP.sidebar("Today's order emails", "Order intake", { rows: [["Today's order emails", {}], ["Kuipers Hout delivery date", { dot: "new" }],
+    ["Invoices waiting on a PO", { files: true }], ["Weekly order report", { clock: true }], ["Smit Elektro order", {}], ["Price check Van Dijk Metaal", { files: true }], ["Daily open orders", { clock: true }]] });
+  $$("[data-fa]").forEach((el) => (el.innerHTML = fa(el.dataset.fa)));
+  $$("[data-lu]").forEach((el) => (el.innerHTML = lu(el.dataset.lu)));
+  $("#aav1").innerHTML = APP.logo(); $("#aav2").innerHTML = APP.logo(); $("#mk").innerHTML = APP.loader(20); $("#mk2").innerHTML = APP.loader(20);
+  const Q = "Kuipers Hout moved their delivery to Friday 20 Nov. Use that date.";
+  const R = "Six sales orders are drafted in Exact Online. Kuipers Hout's order delivers on Friday 20 Nov, as you asked.";
+  $("#qb").textContent = Q;
+
+  const app = $("#app");
+  const at = (el, fx = 0.5, fy = 0.5) => { const a = app.getBoundingClientRect(), r = el.getBoundingClientRect(), s = a.width / 1280;
+    return [(r.left - a.left + r.width * fx) / s, (r.top - a.top + r.height * fy) / s]; };
+  // Layouts: typing (no queued message), queued (dashed, with its actions), steered (solid, labelled).
+  const L = (k) => { $("#qm").style.display = k >= 1 ? "" : "none"; $("#am2").style.display = k >= 2 ? "" : "none"; $("#wa").style.display = k === 1 ? "" : "none"; $("#stl").style.display = k >= 2 ? "" : "none";
+    $("#qb").classList.toggle("wait", k === 1); };
+  L(0); $("#tx").textContent = Q; const P = { tx: at($("#tx"), 0.2), queue: at($("#queue")) };
+  L(1); $("#tx").innerHTML = '<span class="ph">Reply to Lleverage…</span>'; P.send = at($("#sendnow"), 0.4);
+  const c1 = at($("#cmp"), 1, 1), a0 = at($(".am"), 0, 0);
+  L(0);
+  const VW = C.STAGE_W, VH = C.STAGE_H, FIT = Math.min(VW / 1280, VH / C.APP_H) * 0.98;
+  const fit = (x0, y0, x1, y1) => { const s = Math.min(VW / (x1 - x0), VH / (y1 - y0)); return [(x0 + x1) / 2, (y0 + y1) / 2 + (VH / s - (y1 - y0)) / 2, s]; };
+  // The one zoom: the conversation column from the Agent's steps down to the composer, while the message is typed,
+  // queued and steered.
+  const colL = at($("#cmp"), 0, 0)[0] - 40, colR = c1[0] + 40;
+  const ZOOM = fit(colL, a0[1] - 24, colR, c1[1] + 40);
+  const FULL = [640, C.APP_H / 2, FIT];
+  const cam = C.camera(app, VW, VH, [[0, ...FULL], [1.9, ...FULL], [2.45, ...ZOOM], [12.6, ...ZOOM], [13.15, ...FULL], [D, ...FULL]]);
+  const F = (t, [x, y]) => { const m = cam(t).map(x, y); return [C.STAGE_X + m[0], C.STAGE_Y + m[1]]; };
+  const OFF = (fx) => [C.W * fx, C.H + 40];
+  const cur = C.cursor([[2.0, ...OFF(0.6)], [2.55, ...F(2.55, P.tx), true], [4.35, ...F(4.35, P.tx)], [4.7, ...F(4.7, P.queue), true], [5.3, ...OFF(0.75)],
+    [7.6, ...OFF(0.7)], [8.2, ...F(8.2, P.send)], [8.45, ...F(8.45, P.send), true], [9.0, ...OFF(0.72)]]);
+  const cap = C.captions([
+    [1.9, 7.2, "Type while it works.<br><em>Your message waits its turn.</em>"],
+    [7.5, 99, "Send now steers it in.<br><em>The Agent carries on with it.</em>"],
+  ]);
+  C.typing(2.65, 4.25);
+  cam(0);
+  C.run(D, (t) => {
+    cap(t); cam(t); cur(t);
+    const steered = t >= 8.5, done = t >= 11.0, working = !done;
+    APP.drive($("#mk"), "working", t); APP.drive($("#mk2"), "working", t);
+    $("#mk").style.display = steered ? "none" : "";
+    $("#lbl").textContent = steered ? "Worked for 31s" : t < 3.5 ? "Reading 6 order emails" : "Drafting sales orders";
+    $("#lbl").classList.toggle("shim", !steered);
+    $("#lbl").style.backgroundPosition = $("#lbl2").style.backgroundPosition = `${200 - ((t / 2) % 1) * 200}% 0`;
+    $("#mk2").style.display = done ? "none" : "";
+    $("#lbl2").textContent = done ? "Worked for 17s" : "Updating Kuipers Hout's order";
+    $("#lbl2").classList.toggle("shim", !done);
+    $("#s1").style.display = t >= 3.5 ? "" : "none";
+    $("#s2").style.display = t >= 6.0 ? "" : "none";
+    $("#s3").style.display = t >= 9.6 ? "" : "none";
+    $("#s4").style.display = t >= 10.6 ? "" : "none";
+    type($("#rep"), R, t, 11.1, 11.8, null);
+    // The composer: typed text, then Stop beside Queue while there is text; empty again once queued.
+    const k = t < 4.75 ? 0 : t < 8.5 ? 1 : 2; L(k);
+    if (t >= 2.65 && t < 4.75) { type($("#tx"), Q, t, 2.65, 4.25, null); } else $("#tx").innerHTML = '<span class="ph">Reply to Lleverage…</span>';
+    const hasText = t >= 2.7 && t < 4.75;
+    $("#stop").innerHTML = working ? lu("loader2", "", `transform:rotate(${(t * 360) % 360}deg)`) : fa("faPhoneFlip");
+    $("#stop").className = working ? "cb32 sec" : "cb32";
+    $("#queue").style.display = hasText ? "" : "none";
+    $("#queue").classList.toggle("press", t >= 4.65 && t < 4.85);
+    const qo = out(p(t, 4.75, 5.0)); $("#qm").style.opacity = k >= 1 ? qo : 0;
+    $("#sendnow").classList.toggle("hov", t >= 8.15 && t < 8.5);
+    $("#qb").style.transition = "none";
+  });
+</script>
+</body></html>

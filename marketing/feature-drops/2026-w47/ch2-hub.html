@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<title>Every builder page in one place</title>
+<link rel="stylesheet" href="clip.css">
+<link rel="stylesheet" href="app.css">
+<link rel="stylesheet" href="chapter.css">
+<link rel="stylesheet" href="parts/page.css">
+<style>
+  /* LLE-17451 (#9728), #10816, #10819, #10824: builders get the compass (faGrip, "Configure") at the top right of the
+     navigation. Hovering it opens a 208px card to its right (areas-compass.tsx): "Search pages", then the pages in
+     groups (Automations, Context, Monitoring, Integrations, Settings), then "View all". View all opens the Configure
+     page (navigate-page.tsx): "Order intake › Configure", the intro, "Search this project", and the groups as lists in
+     three columns, each row a 32px icon square, the name and one line on what it is. */
+  .cmpop { position: absolute; width: 208px; border-radius: 12px; border: .5px solid hsl(var(--border)); outline: .5px solid hsl(var(--border)); outline-offset: -1px;
+    background: hsl(60 11.1% 98.2% / .92); backdrop-filter: blur(12px); box-shadow: 0 20px 25px -5px rgb(0 0 0 / .1), 0 8px 10px -6px rgb(0 0 0 / .1); z-index: 8; overflow: hidden; }
+  .cmpop .in { padding: 8px; display: flex; flex-direction: column; gap: 8px; height: 384px; overflow: hidden; -webkit-mask-image: linear-gradient(#000 calc(100% - 40px), transparent); }
+  .srch { height: 32px; border-radius: 10px; border: .5px solid hsl(var(--border)); outline: .5px solid hsl(var(--border)); outline-offset: -1px; background: hsl(var(--background)); display: flex; align-items: center; gap: 8px; padding: 0 12px; font-size: 14px; color: hsl(var(--muted-foreground)); flex: none; }
+  .srch svg { width: 14px; height: 14px; }
+  .grp h4 { margin: 0 0 2px; padding: 0 4px; font-size: 12px; line-height: 16px; font-weight: 400; color: hsl(var(--muted-foreground)); }
+  .grp .nav { color: hsl(var(--foreground)); }
+  .grp .nav.hov { background: hsl(var(--muted)); }
+  .cmpop .va { border-top: .5px solid hsl(var(--border)); padding: 4px 8px 8px; background: hsl(var(--card) / .6); }
+  .cmpop .va .nav { padding-left: 8px; }
+  .cfg { position: absolute; inset: 0; background: hsl(var(--card)); }
+  .cfg .cintro { padding: 4px 32px 0; font-size: 14px; line-height: 20px; color: hsl(var(--muted-foreground)); }
+  .cfg .big { margin: 16px 32px 0; max-width: 576px; height: 44px; border-radius: 12px; border: .5px solid hsl(var(--border)); outline: .5px solid hsl(var(--border)); outline-offset: -1px; background: hsl(var(--card)); display: flex; align-items: center; gap: 10px; padding: 0 14px; font-size: 15px; }
+  .cfg .big svg { width: 15px; height: 15px; color: hsl(var(--muted-foreground)); }
+  .cfg .big .ph { color: hsl(var(--muted-foreground)); }
+  .cols { padding: 24px 32px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); column-gap: 24px; row-gap: 32px; align-items: start; }
+  .cg h3 { margin: 0 0 8px; font-size: 16px; line-height: 24px; font-weight: 600; letter-spacing: -.01em; }
+  .cg .cc { border-radius: 12px; border: .5px solid hsl(var(--border)); outline: .5px solid hsl(var(--border)); outline-offset: -1px; padding: 4px 6px; display: flex; flex-direction: column; }
+  .crow { display: flex; align-items: center; gap: 12px; padding: 4px 4px; border-radius: 12px; height: 41px; }
+  .crow .sq { width: 32px; height: 32px; border-radius: 12px; background: hsl(var(--muted)); display: grid; place-items: center; flex: none; }
+  .crow .sq svg { width: 12px; height: 12px; }
+  .crow .tx { min-width: 0; }
+  .crow b { display: block; font-size: 14px; line-height: 20px; font-weight: 500; }
+  .crow small { display: block; font-size: 12px; line-height: 16px; color: hsl(var(--muted-foreground)); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .res { padding: 20px 32px; display: none; max-width: 640px; }
+  .res h4 { margin: 12px 0 4px; font-size: 12px; line-height: 16px; font-weight: 500; color: hsl(var(--muted-foreground)); }
+  .res .it { display: flex; align-items: center; gap: 10px; height: 36px; padding: 0 10px; border-radius: 10px; font-size: 14px; }
+  .res .it svg { width: 13px; height: 13px; color: hsl(var(--muted-foreground)); }
+  .res .it.on { background: hsl(var(--muted)); }
+  .res .it em { font-style: normal; font-weight: 600; }
+</style></head>
+<body>
+<div class="frame">
+  <div class="stage">
+    <div class="app" id="app">
+      <div id="sb"></div>
+      <main class="panel" id="page">
+        <div id="home">
+          <div class="pgh"><div><h1>Order desk</h1><p>Orders coming in from email and Exact Online, and what they're waiting on.</p></div></div>
+          <div class="grid g3">
+            <div class="wcard stat"><div class="sv">23</div><div class="sl">Orders waiting on a PO</div><div class="sc"><b class="dn">−4</b> vs previous period</div></div>
+            <div class="wcard stat"><div class="sv">6 min</div><div class="sl">Average handling time</div><div class="sc"><b class="dn">−2 min</b> vs previous period</div></div>
+            <div class="wcard stat"><div class="sv">148</div><div class="sl">Orders this week</div><div class="sc"><b class="up">+12%</b> vs previous period</div></div>
+          </div>
+          <div class="grid g2" style="padding-top:0">
+            <div class="wcard"><div class="fc"><div><b>Waiting on a PO, by customer</b><small>Data from today at 07:03</small></div></div><div class="hbars" id="hb"></div><span class="srcb">From Orders</span></div>
+            <div class="wcard"><div class="fc"><div><b>Oldest orders waiting</b><small>Data from today at 07:03</small></div></div><table class="lt" id="old"></table><span class="srcb">From Orders</span></div>
+          </div>
+        </div>
+        <div class="cfg" id="cfg">
+          <div id="cfgh"></div>
+          <div class="cintro">Only builders can see this. Find every part of this project, and pin any page to the navigation for the people who use it.</div>
+          <div class="big" id="big"><span data-fa="faMagnifyingGlass"></span><span id="q" class="ph">Search this project</span></div>
+          <div class="cols" id="cols"></div>
+          <div class="res" id="res">
+            <h4>Workflows</h4>
+            <div class="it on"><span data-fa="faDiagramProject"></span><span>Read <em>order</em> emails</span></div>
+            <div class="it"><span data-fa="faDiagramProject"></span><span>Sync <em>order</em>s from Exact Online</span></div>
+            <div class="it"><span data-fa="faDiagramProject"></span><span>Weekly <em>order</em> report</span></div>
+            <h4>Go to</h4>
+            <div class="it"><span data-fa="faFileSpreadsheet"></span><span><em>Order</em>s</span><span class="mf" style="margin-left:auto;font-size:12px">Table</span></div>
+            <div class="it"><span data-fa="faGrid2"></span><span><em>Order</em> desk</span><span class="mf" style="margin-left:auto;font-size:12px">Page</span></div>
+          </div>
+        </div>
+        <div class="cmpop" id="pop"><div class="in" id="popin"></div><div class="va"><div class="nav" id="va"><span class="t">View all</span></div></div></div>
+      </main>
+    </div>
+  </div>
+</div>
+<script src="fa-icons.js"></script>
+<script src="app.js"></script>
+<script src="clip.js"></script>
+<script src="chapter.js"></script>
+<script>
+  CHAPTER({ n: 2, total: 7, module: "Navigation", footerLeft: "Feature Drop · Week 47",
+    title: "Every builder page<br><em>in one place.</em>",
+    line: "Builders get Configure at the top of the navigation: every page of the project, grouped, with a search across the whole project." });
+  const D = 15.2;
+  window.HOLDS = [[5.0, 0.8], [9.0, 0.8], [15.0, 1.2]];
+  const { $, $$, p, out, type } = C;
+  $("#sb").outerHTML = APP.sidebar("Order desk");
+  $("#cfgh").outerHTML = APP.header(["Order intake", "Configure"]);
+  const G = [
+    ["Automations", [["Workflows", "faDiagramProject", "The automations that do the work, step by step."], ["Skills", "faPuzzlePiece", "What the agent knows how to do, and how it does it."],
+      ["Schedules", "faCalendar", "Work that runs by itself at set times."], ["Templates", "faSparkles", "Ready-made workflows to start from."]]],
+    ["Context", [["Pages", "faGrid2", "Your dashboards and pages, built for this project."], ["Tables", "faFileSpreadsheet", "The data your workflows read and write."],
+      ["Memory", "faBrain", "What the agent remembers about this project."], ["Files", "faFile", "Files people have added to this project."], ["Knowledge", "faFileLines", "The documents the agent draws on."]]],
+    ["Monitoring", [["Monitoring", "faChartLine", "Every run and session, and how each one went."], ["All sessions", "faInbox", "Every chat, request, task and app session, in one list."],
+      ["Programmes", "faDiagramProject", "Runs grouped by the programme they belong to."], ["Sessions", "faPlay", "Every session, and how each one went."], ["Metrics", "faGaugeHigh", "Numbers you track across runs."]]],
+    ["Integrations", [["Connections", "faPlug", "The systems you've connected."], ["Channels", "faComments", "Where people reach the agent, such as email or Slack."],
+      ["Databases", "faDatabase", "Databases your workflows can query."], ["API Tokens", "faKey", "Keys for reaching this project from other systems."]]],
+    ["Settings", [["Members", "faUserPlus", "Who's in this project, and what each person can do."], ["Agent settings", "faGear", "How the agent works in this project."],
+      ["Customise navigation", "faSidebar", "The pages pinned to the sidebar, and the help menu's link."], ["Variables", "faBracketsCurly", "Values your workflows share."], ["Secrets", "faUserSecret", "Passwords and keys kept out of sight."]]],
+  ];
+  $("#popin").innerHTML = `<div class="srch">${fa("faMagnifyingGlass")}Search pages</div>` + G.map(([g, items]) => `<div class="grp"><h4>${g}</h4>${items.map(([n, i]) => `<div class="nav"><span class="ib">${fa(i)}</span><span class="t">${n}</span></div>`).join("")}</div>`).join("");
+  // Three columns, filled in the order of the groups.
+  const COLS = [[G[0], G[3]], [G[1], G[4]], [G[2]]];
+  $("#cols").innerHTML = COLS.map((col) => `<div style="display:flex;flex-direction:column;gap:32px">${col.map(([g, items]) => `<div class="cg"><h3>${g}</h3><div class="cc">${items.map(([n, i, d]) => `<div class="crow"><span class="sq">${fa(i)}</span><span class="tx"><b>${n}</b><small>${d}</small></span></div>`).join("")}</div></div>`).join("")}</div>`).join("");
+  $$("[data-fa]").forEach((el) => (el.innerHTML = fa(el.dataset.fa)));
+  const BARS = [["Van Dijk Metaal", 8], ["Kuipers Hout", 6], ["Smit Elektro", 4], ["Bakker Installatietechniek", 3], ["Brouwer Verpakking", 2]];
+  $("#hb").innerHTML = BARS.map(([n, v]) => `<div class="r"><span class="nm">${n}</span><span class="tr"><span class="bar" style="width:${(v / 8) * 100}%"></span></span></div>`).join("");
+  const OLD = [["SO-24790", "Smit Elektro", "2 Nov"], ["SO-24799", "Bakker Installatietechniek", "3 Nov"], ["SO-24806", "Van Dijk Metaal", "4 Nov"], ["SO-24811", "Kuipers Hout", "5 Nov"]];
+  $("#old").innerHTML = `<tr><th>Order</th><th>Customer</th><th>Received</th></tr>` + OLD.map((r) => `<tr><td class="mono" style="font-size:12px">${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td></tr>`).join("");
+
+  const app = $("#app"), page = $("#page");
+  const at = (el, fx = 0.5, fy = 0.5) => { const a = app.getBoundingClientRect(), r = el.getBoundingClientRect(), s = a.width / 1280;
+    return [(r.left - a.left + r.width * fx) / s, (r.top - a.top + r.height * fy) / s]; };
+  // The popover opens to the right of the compass, top-aligned, 8px off. The page starts at x 252, so place it in app
+  // coordinates by moving it into the app.
+  app.appendChild($("#pop"));
+  const cp = at($("#sb-compass"), 1, 0); Object.assign($("#pop").style, { left: cp[0] + 8 + "px", top: cp[1] + "px" });
+  const P = { comp: at($("#sb-compass")), va: at($("#va"), 0.3) };
+  const p0 = at($("#pop"), 0, 0), p1 = at($("#pop"), 1, 1);
+  $("#cfg").style.display = "block"; P.big = at($("#big"), 0.3);
+  const VW = C.STAGE_W, VH = C.STAGE_H, FIT = Math.min(VW / 1280, VH / C.APP_H) * 0.98;
+  const fit = (x0, y0, x1, y1) => { const s = Math.min(VW / (x1 - x0), VH / (y1 - y0)); return [(x0 + x1) / 2, (y0 + y1) / 2 + (VH / s - (y1 - y0)) / 2, s]; };
+  // The one zoom: the top left of the app, wide enough for the compass card and the Configure page's first two
+  // columns and its search, held from the compass to the search.
+  const c2 = at($$(".cols > div")[1], 1, 0);
+  const ZOOM = fit(0, 0, c2[0] + 16, (c2[0] + 16) * VH / VW);
+  const FULL = [640, C.APP_H / 2, FIT];
+  const cam = C.camera(app, VW, VH, [[0, ...FULL], [2.6, ...FULL], [3.15, ...ZOOM], [13.6, ...ZOOM], [14.15, ...FULL], [D, ...FULL]]);
+  const F = (t, [x, y]) => { const m = cam(t).map(x, y); return [C.STAGE_X + m[0], C.STAGE_Y + m[1]]; };
+  const OFF = (fx) => [C.W * fx, C.H + 40];
+  const cur = C.cursor([[1.95, ...OFF(0.35)], [2.6, ...F(2.6, P.comp)], [3.2, ...F(3.2, P.comp)], [6.75, ...F(6.75, P.comp)], [7.35, ...F(7.35, P.va)], [7.6, ...F(7.6, P.va), true], [8.2, ...OFF(0.4)],
+    [10.3, ...OFF(0.45)], [10.9, ...F(10.9, P.big), true], [11.4, ...OFF(0.5)]]);
+  const cap = C.captions([
+    [1.9, 6.6, "Point at Configure.<br><em>Every page, grouped.</em>"],
+    [6.9, 10.2, "View all lists them<br><em>with what each one is for.</em>"],
+    [10.5, 99, "Search the whole project<br><em>from one box.</em>"],
+  ]);
+  const QY = "order";
+  C.typing(11.0, 11.6);
+  cam(0);
+  C.run(D, (t) => {
+    cap(t); cam(t); cur(t);
+    const cfg = t >= 7.65;
+    $("#sb-compass").classList.toggle("on", t >= 2.6);
+    const po = out(p(t, 2.9, 3.1));
+    $("#pop").style.display = t >= 2.9 && !cfg ? "block" : "none"; $("#pop").style.opacity = po;
+    $("#va").classList.toggle("hov", t >= 7.3);
+    $("#cfg").style.display = cfg ? "block" : "none"; $("#cfg").style.opacity = out(p(t, 7.65, 7.9));
+    const typed = t >= 11.0;
+    if (typed) { type($("#q"), QY, t, 11.0, 11.6, null); $("#q").className = ""; } else { $("#q").textContent = "Search this project"; $("#q").className = "ph"; }
+    const res = t >= 11.7;
+    $("#cols").style.display = res ? "none" : ""; $("#res").style.display = res ? "block" : "none"; $("#res").style.opacity = out(p(t, 11.7, 11.95));
+  });
+</script>
+</body></html>

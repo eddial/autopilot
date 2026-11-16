@@ -1,0 +1,7 @@
+check/
+w42/
+*.mp4
+*.wav
+!sfx/*.wav
+cues.json
+t0.txt

@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<title>Click a number to see its records</title>
+<link rel="stylesheet" href="clip.css">
+<link rel="stylesheet" href="app.css">
+<link rel="stylesheet" href="chapter.css">
+<link rel="stylesheet" href="parts/page.css">
+<style>
+  /* LLE-14950 (#10617): a live widget's bar, big number or row opens the records behind it in a side panel
+     (dashboard-grid/live/live-widget-records-panel.tsx in ui/side-panel.tsx, type over, size medium: 512px, 8px in
+     from the top, right and bottom, radius 12, 0.5px border, shadow-lg, no backdrop). Header min-h 48 py-2 pl-4 pr-2:
+     the clicked label 14/600 and the widget title 12 muted under it, then Choose columns and Close. Body p-4 gap-4:
+     "{n} records in {Table}" 14/500, the conditions (field 12/500, condition 12, tag 12 muted), the embedded table
+     (header 36px, 11px 600 uppercase muted; rows 44px), and the pager when over 50. */
+  .bigbtn { border-radius: 10px; margin: -5px -12px; padding: 5px 12px; }
+  .bigbtn.hov { background: hsl(var(--accent)); }
+  .hbars .r { cursor: default; }
+  .rp { position: absolute; top: 8px; right: 8px; bottom: 8px; width: 512px; background: hsl(var(--card)); border: .5px solid hsl(var(--border));
+    border-radius: 12px; box-shadow: 0 10px 15px -3px rgb(0 0 0 / .1), 0 4px 6px -4px rgb(0 0 0 / .1); display: flex; flex-direction: column; overflow: hidden; z-index: 5; }
+  .rp-h { min-height: 48px; display: flex; align-items: center; gap: 4px; padding: 8px 8px 8px 16px; border-bottom: 1px solid hsl(var(--border)); }
+  .rp-h .tt { flex: 1; min-width: 0; }
+  .rp-h b { display: block; font-size: 14px; line-height: 20px; font-weight: 600; }
+  .rp-h small { display: block; font-size: 12px; line-height: 16px; color: hsl(var(--muted-foreground)); }
+  .rp-h .q { width: 32px; height: 32px; border-radius: 10px; display: grid; place-items: center; color: hsl(var(--muted-foreground)); }
+  .rp-h .q svg { width: 14px; height: 14px; }
+  .rp-b { padding: 16px; display: flex; flex-direction: column; gap: 16px; }
+  .rp-cnt { font-size: 14px; line-height: 20px; font-weight: 500; }
+  .conds { display: flex; flex-direction: column; gap: 4px; margin-top: -8px; }
+  .cond { display: flex; align-items: baseline; gap: 8px; font-size: 12px; line-height: 16px; }
+  .cond b { font-weight: 500; }
+  .cond .tag { color: hsl(var(--muted-foreground)); }
+  table.rt { width: 100%; border-collapse: collapse; font-size: 14px; line-height: 20px; }
+  .rt th { height: 36px; text-align: left; padding: 0 12px; font-size: 11px; line-height: 16px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: hsl(var(--muted-foreground)); border-bottom: 1px solid hsl(var(--border)); }
+  .rt td { height: 44px; padding: 0 12px; border-bottom: 1px solid hsl(var(--border)); white-space: nowrap; }
+  .rt th:first-child, .rt td:first-child { padding-left: 4px; }
+  .rt .n { text-align: right; font-variant-numeric: tabular-nums; }
+  .rt tr.new td { background: hsl(var(--muted)); }
+</style></head>
+<body>
+<div class="frame">
+  <div class="stage">
+    <div class="app" id="app">
+      <div id="sb"></div>
+      <main class="panel" id="page">
+        <div id="hdr"></div>
+        <div class="pgh"><div><h1>Order desk</h1><p>Orders coming in from email and Exact Online, and what they're waiting on.</p></div></div>
+        <div class="grid g3">
+          <div class="wcard stat"><span class="ibtn rf" data-fa="faArrowRotateRight"></span>
+            <div class="bigbtn" id="big"><div class="sv">23</div><div class="sl">Orders waiting on a PO</div><div class="sc"><b class="dn">−4</b> vs previous period</div></div></div>
+          <div class="wcard stat"><span class="ibtn rf" data-fa="faArrowRotateRight"></span>
+            <div class="sv">6 min</div><div class="sl">Average handling time</div><div class="sc"><b class="dn">−2 min</b> vs previous period</div></div>
+          <div class="wcard stat"><span class="ibtn rf" data-fa="faArrowRotateRight"></span>
+            <div class="sv">148</div><div class="sl">Orders this week</div><div class="sc"><b class="up">+12%</b> vs previous period</div></div>
+        </div>
+        <div class="grid g2" style="padding-top:0">
+          <div class="wcard" id="wbar">
+            <div class="fc"><div><b>Waiting on a PO, by customer</b><small>Data from today at 07:03</small></div><span class="ibtn" data-fa="faArrowRotateRight"></span></div>
+            <div class="hbars" id="hb"></div>
+            <div class="tip" id="tip"><b>Kuipers Hout</b><div class="tr"><i></i><span>Orders</span><em>6</em></div></div>
+            <span class="srcb">From Orders <span data-fa="faChevronDown"></span></span>
+          </div>
+          <div class="wcard">
+            <div class="fc"><div><b>Oldest orders waiting</b><small>Data from today at 07:03</small></div><span class="ibtn" data-fa="faArrowRotateRight"></span></div>
+            <table class="lt" id="old"></table>
+            <span class="srcb">From Orders <span data-fa="faChevronDown"></span></span>
+          </div>
+        </div>
+        <div class="rp" id="rp">
+          <div class="rp-h"><div class="tt"><b id="rpt">Orders waiting on a PO</b><small id="rps"></small></div><span class="q" data-fa="faTableColumns"></span><span class="q" data-fa="faXmark"></span></div>
+          <div class="rp-b">
+            <div class="rp-cnt" id="cnt">23 records in Orders</div>
+            <div class="conds" id="conds"></div>
+            <table class="rt" id="rt"></table>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+</div>
+<script src="fa-icons.js"></script>
+<script src="app.js"></script>
+<script src="clip.js"></script>
+<script src="chapter.js"></script>
+<script>
+  CHAPTER({ n: 3, total: 7, module: "Pages", footerLeft: "Feature Drop · Week 47",
+    title: "Click a number<br><em>to see its records.</em>",
+    line: "A big number, a bar or a row on a live widget opens the records behind it in a side panel, with the filters that made the number." });
+  const D = 13.2;
+  window.HOLDS = [[4.6, 0.6], [9.2, 0.9], [13.0, 1.0]];
+  const { $, $$, p, out } = C;
+  $("#sb").outerHTML = APP.sidebar("Order desk");
+  $$("[data-fa]").forEach((el) => (el.innerHTML = fa(el.dataset.fa)));
+
+  const BARS = [["Van Dijk Metaal", 8], ["Kuipers Hout", 6], ["Smit Elektro", 4], ["Bakker Installatietechniek", 3], ["Brouwer Verpakking", 2]];
+  $("#hb").innerHTML = BARS.map(([n, v], i) => `<div class="r" data-i="${i}"><span class="nm">${n}</span><span class="tr"><span class="bar" style="width:${(v / 8) * 100}%"></span></span></div>`).join("")
+    + `<div class="ax"><span></span><span class="tk"><i>0</i><i>2</i><i>4</i><i>6</i><i>8</i></span></div>`;
+  const OLD = [["SO-24790", "Smit Elektro", "2 Nov"], ["SO-24799", "Bakker Installatietechniek", "3 Nov"], ["SO-24806", "Van Dijk Metaal", "4 Nov"], ["SO-24811", "Kuipers Hout", "5 Nov"], ["SO-24818", "Van Dijk Metaal", "6 Nov"]];
+  $("#old").innerHTML = `<tr><th>Order</th><th>Customer</th><th>Received</th></tr>` + OLD.map((r) => `<tr><td class="mono" style="font-size:12px">${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td></tr>`).join("");
+
+  // The records: all 23 waiting on a PO first, then the six of Kuipers Hout after the bar is clicked.
+  const ALL = [["SO-24790", "Smit Elektro", "€ 4.180,00", "2 Nov"], ["SO-24799", "Bakker Installatietechniek", "€ 12.640,50", "3 Nov"], ["SO-24806", "Van Dijk Metaal", "€ 8.915,00", "4 Nov"],
+    ["SO-24811", "Kuipers Hout", "€ 3.270,00", "5 Nov"], ["SO-24818", "Van Dijk Metaal", "€ 21.400,00", "6 Nov"], ["SO-24823", "Brouwer Verpakking", "€ 1.960,25", "7 Nov"],
+    ["SO-24827", "Kuipers Hout", "€ 5.480,00", "8 Nov"], ["SO-24834", "Van Dijk Metaal", "€ 7.025,00", "9 Nov"], ["SO-24840", "Smit Elektro", "€ 2.315,75", "10 Nov"],
+    ["SO-24846", "Kuipers Hout", "€ 9.150,00", "11 Nov"], ["SO-24851", "Van Dijk Metaal", "€ 3.880,00", "12 Nov"], ["SO-24857", "Kuipers Hout", "€ 6.740,00", "12 Nov"],
+    ["SO-24862", "Smit Elektro", "€ 1.245,00", "13 Nov"], ["SO-24868", "Kuipers Hout", "€ 4.095,50", "13 Nov"], ["SO-24873", "Van Dijk Metaal", "€ 15.600,00", "14 Nov"],
+    ["SO-24879", "Kuipers Hout", "€ 2.870,00", "14 Nov"]];
+  const KH = ALL.filter((r) => r[1] === "Kuipers Hout");
+  const rows = (list, mark) => `<tr><th>Order</th><th>Customer</th><th class="n">Amount</th><th>Received</th></tr>` +
+    list.map((r) => `<tr${mark ? ' class="new"' : ""}><td class="mono" style="font-size:12px">${r[0]}</td><td>${r[1]}</td><td class="n">${r[2]}</td><td>${r[3]}</td></tr>`).join("");
+  const C1 = [["Status", "is Waiting on PO", "Widget filter"], ["Received", "from 1 Nov 2026 to 16 Nov 2026", "Page"]];
+  const C2 = [...C1, ["Customer", "is Kuipers Hout", "Clicked"]];
+  const conds = (list) => list.map(([f, c, g]) => `<div class="cond"><span><b>${f}</b> ${c}</span><span class="tag">${g}</span></div>`).join("");
+  const S1 = () => { $("#rpt").textContent = "Orders waiting on a PO"; $("#rps").style.display = "none"; $("#cnt").textContent = "23 records in Orders"; $("#conds").innerHTML = conds(C1); $("#rt").innerHTML = rows(ALL); };
+  const S2 = (k) => { $("#rpt").textContent = "Kuipers Hout"; $("#rps").style.display = ""; $("#rps").textContent = "Waiting on a PO, by customer";
+    $("#cnt").textContent = "6 records in Orders"; $("#conds").innerHTML = conds(C2); $("#rt").innerHTML = rows(KH);
+    $$(".cond")[2].style.opacity = k; };
+  S1();
+
+  const app = $("#app");
+  const at = (el, fx = 0.5, fy = 0.5) => { const a = app.getBoundingClientRect(), r = el.getBoundingClientRect(), s = a.width / 1280;
+    return [(r.left - a.left + r.width * fx) / s, (r.top - a.top + r.height * fy) / s]; };
+  // Measure in the final layout: the panel shown for the bar click, hidden for the number click.
+  $("#rp").style.display = "none";
+  const P = { big: at($(".bigbtn .sv"), 0.4), bar: at($$('#hb .r[data-i="1"] .bar')[0], 0.6) };
+  $("#rp").style.display = "flex"; S2(1);
+  const r0 = at($("#rp"), 0, 0), r1 = at($("#rt"), 1, 1);
+  P.bar2 = at($$('#hb .r[data-i="1"] .bar')[0], 0.6);
+  S1();
+  const VW = C.STAGE_W, VH = C.STAGE_H, FIT = Math.min(VW / 1280, VH / C.APP_H) * 0.98;
+  const fit = (x0, y0, x1, y1) => { const s = Math.min(VW / (x1 - x0), VH / (y1 - y0)); return [(x0 + x1) / 2, (y0 + y1) / 2 + (VH / s - (y1 - y0)) / 2, s]; };
+  // The one zoom: the panel with its count and conditions, after the bar is clicked.
+  const ZOOM = fit(r0[0], r0[1] - 8, 1280, r0[1] - 8 + (1280 - r0[0]) * VH / VW);
+  const FULL = [640, C.APP_H / 2, FIT];
+  const cam = C.camera(app, VW, VH, [[0, ...FULL], [9.3, ...FULL], [9.85, ...ZOOM], [12.0, ...ZOOM], [12.55, ...FULL], [D, ...FULL]]);
+  const F = (t, [x, y]) => { const m = cam(t).map(x, y); return [C.STAGE_X + m[0], C.STAGE_Y + m[1]]; };
+  const OFF = (fx) => [C.W * fx, C.H + 40];
+  const cur = C.cursor([[1.95, ...OFF(0.3)], [2.6, ...F(2.6, P.big)], [2.95, ...F(2.95, P.big), true], [3.5, ...OFF(0.25)],
+    [6.9, ...OFF(0.35)], [7.6, ...F(7.6, P.bar)], [8.1, ...F(8.1, P.bar), true], [8.7, ...OFF(0.3)]]);
+  const cap = C.captions([
+    [1.9, 6.4, "Click a number on a page.<br><em>Its records open beside it.</em>"],
+    [6.7, 9.6, "Click a bar.<br><em>The list narrows to it.</em>"],
+    [9.9, 99, "Every filter is listed,<br><em>so the count adds up.</em>"],
+  ]);
+  cam(0);
+  C.run(D, (t) => {
+    cap(t); cam(t); cur(t);
+    $("#big").classList.toggle("hov", t >= 2.55 && t < 3.3);
+    // The panel slides in from the right after the number click; the bar click swaps its content.
+    const o = out(p(t, 3.05, 3.45));
+    $("#rp").style.display = t >= 3.05 ? "flex" : "none";
+    $("#rp").style.transform = `translateX(${(1 - o) * 40}px)`; $("#rp").style.opacity = o;
+    if (t < 8.2) S1(); else S2(out(p(t, 8.25, 8.6)));
+    $("#rt").style.opacity = t >= 8.2 ? 0.4 + 0.6 * out(p(t, 8.2, 8.5)) : 1;
+    // Hover on the bar: the others fade to half, the tooltip shows.
+    const hov = t >= 7.55 && t < 8.75;
+    $$("#hb .r").forEach((r, i) => (r.style.opacity = hov && i !== 1 ? 0.5 : 1));
+    $("#tip").style.display = hov ? "block" : "none";
+  });
+</script>
+</body></html>

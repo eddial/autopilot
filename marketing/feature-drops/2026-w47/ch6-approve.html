@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<title>Approve with every detail in view</title>
+<link rel="stylesheet" href="clip.css">
+<link rel="stylesheet" href="app.css">
+<link rel="stylesheet" href="chapter.css">
+<link rel="stylesheet" href="parts/agent-page.css">
+<style>
+  /* LLE-17358 (#10432): an integration action's approval (workflow-app/elements/approval.tsx in element-card.tsx,
+     shown above the composer): rounded-lg, 0.5px border, shadow-sm, p-4. Title section-title 16/600 "Allow a change in
+     Exact Online?", a 0.5px rule (my-3), the sentence "The agent wants to use your Exact Online connection to create
+     sales order." and, new, one bullet per input with a bold label (approval-input-details.ts: form order, form labels,
+     dates readable, Yes/No). Approve is the success button, Deny outline. After answering: "Response submitted". */
+  .apc { position: relative; border: .5px solid hsl(var(--border)); outline: .5px solid hsl(var(--border)); outline-offset: -1px; border-radius: 12px; box-shadow: 0 1px 2px rgb(0 0 0 / .05); background: hsl(var(--card)); padding: 16px; margin-bottom: 8px; }
+  .apc .x { position: absolute; right: 4px; top: 4px; width: 32px; height: 32px; display: grid; place-items: center; color: hsl(var(--muted-foreground)); }
+  .apc .x svg { width: 16px; height: 16px; }
+  .apc h3 { margin: 0; font-size: 16px; line-height: 24px; font-weight: 600; letter-spacing: -.01em; }
+  .apc hr { border: 0; height: .5px; background: hsl(var(--border)); margin: 12px 0; }
+  .apc .md { font-size: 15px; line-height: 25px; }
+  .apc .md p { margin: 0 0 8px; }
+  .apc ul { margin: 0; padding-left: 22px; }
+  .apc li b { font-weight: 600; }
+  .apc .bt { margin-top: 12px; display: flex; gap: 8px; }
+  .bb { height: 32px; display: inline-flex; align-items: center; padding: 0 12px; border-radius: 10px; font-size: 14px; font-weight: 500; border: .5px solid hsl(var(--border)); background: hsl(var(--card)); }
+  .bb.ok { background: hsl(var(--success)); border-color: hsl(var(--success)); color: #fff; }
+  .bb.press { filter: brightness(.88); }
+  .rs { border: .5px solid hsl(var(--border)); border-radius: 10px; padding: 8px 12px; font-size: 14px; font-style: italic; color: hsl(var(--muted-foreground)); margin-bottom: 8px; }
+</style></head>
+<body>
+<div class="frame">
+  <div class="stage">
+    <div class="app" id="app">
+      <div id="sb"></div>
+      <main class="panel">
+        <div class="ap">
+          <span class="ap-title">Kuipers Hout order <span data-fa="faChevronDown"></span></span>
+          <div class="convo col" id="convo">
+            <div class="um"><span class="uav">EV</span><div class="uc"><div class="ub">Put the Kuipers Hout order from this morning's email into Exact Online.</div></div></div>
+            <div class="am"><span class="aav" id="aav1"></span><div class="ac">
+              <div class="sth"><span class="lbl">Worked for 22s</span><span class="chev" data-lu="chevronRight"></span></div>
+              <p>The order matches Kuipers Hout's price agreement on both lines. I'll create it in Exact Online once you approve.</p>
+            </div></div>
+            <div class="am" id="am2"><span class="aav" id="aav2"></span><div class="ac">
+              <div class="sth"><span class="lbl">Exact Online: Create Sales Order</span><span class="chev" data-lu="chevronRight"></span></div>
+              <p id="rep"></p>
+            </div></div>
+          </div>
+          <div class="foot col">
+            <div class="apc" id="apc"><span class="x" data-lu="x"></span>
+              <h3>Allow a change in Exact Online?</h3><hr>
+              <div class="md"><p>The agent wants to use your Exact Online connection to create sales order.</p>
+                <ul><li><b>Customer:</b> Kuipers Hout B.V.</li><li><b>Your reference:</b> PO 4500012877</li><li><b>Order date:</b> Mon 16 Nov 2026</li>
+                  <li><b>Delivery date:</b> Fri 20 Nov 2026</li><li><b>Lines:</b> Item: EIK-2000 · Quantity: 40 · Unit price: 18.50, Item: MPX-18 · Quantity: 12 · Unit price: 42.00</li>
+                  <li><b>Warehouse:</b> Zwolle</li></ul></div>
+              <div class="bt"><span class="bb ok" id="ok">Approve</span><span class="bb">Deny</span></div>
+            </div>
+            <div class="rs" id="rs">Response submitted</div>
+            <div class="cmp"><span class="cb32" data-lu="plus"></span><div class="tx"><span class="ph" id="ph">Reply, or approve above…</span></div><span class="cb32" data-fa="faPhoneFlip"></span></div>
+            <div class="under"><span class="l"><span data-fa="faFolder"></span>Order intake</span><span class="r"><b>Opus 5.5</b> Medium <span data-lu="chevronDown"></span></span></div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+</div>
+<script src="fa-icons.js"></script>
+<script src="app.js"></script>
+<script src="clip.js"></script>
+<script src="chapter.js"></script>
+<script>
+  CHAPTER({ n: 6, total: 7, module: "Agent", footerLeft: "Feature Drop · Week 47",
+    title: "Approve with<br><em>every detail in view.</em>",
+    line: "When the Agent asks to change something in a connected system, the approval lists every value it will send, with readable labels and dates." });
+  const D = 12.2;
+  window.HOLDS = [[5.6, 1.4], [12.0, 1.2]];
+  const { $, $$, p, out, type } = C;
+  $("#sb").outerHTML = APP.sidebar("Kuipers Hout order", "Order intake", { rows: [["Kuipers Hout order", {}], ["Today's order emails", {}],
+    ["Invoices waiting on a PO", { files: true }], ["Weekly order report", { clock: true }], ["Smit Elektro order", {}], ["Price check Van Dijk Metaal", { files: true }], ["Daily open orders", { clock: true }]] });
+  $$("[data-fa]").forEach((el) => (el.innerHTML = fa(el.dataset.fa)));
+  $$("[data-lu]").forEach((el) => (el.innerHTML = lu(el.dataset.lu)));
+  $("#aav1").innerHTML = APP.logo(); $("#aav2").innerHTML = APP.logo();
+  const R = "Sales order 24911 is in Exact Online for Kuipers Hout, delivering on Friday 20 Nov.";
+
+  const app = $("#app");
+  const at = (el, fx = 0.5, fy = 0.5) => { const a = app.getBoundingClientRect(), r = el.getBoundingClientRect(), s = a.width / 1280;
+    return [(r.left - a.left + r.width * fx) / s, (r.top - a.top + r.height * fy) / s]; };
+  const L = (k) => { $("#apc").style.display = k === 0 ? "" : "none"; $("#rs").style.display = k === 1 ? "" : "none"; $("#am2").style.display = k >= 1 ? "" : "none"; };
+  L(0); const P = { ok: at($("#ok")) }; const k0 = at($("#apc"), 0, 0), k1 = at($("#apc"), 1, 1);
+  const VW = C.STAGE_W, VH = C.STAGE_H, FIT = Math.min(VW / 1280, VH / C.APP_H) * 0.98;
+  const fit = (x0, y0, x1, y1) => { const s = Math.min(VW / (x1 - x0), VH / (y1 - y0)); return [(x0 + x1) / 2, (y0 + y1) / 2 + (VH / s - (y1 - y0)) / 2, s]; };
+  // The one zoom: the approval card, framed on its edges.
+  const ZOOM = fit(k0[0] - 24, k0[1] - 24, k1[0] + 24, k1[1] + 24);
+  const FULL = [640, C.APP_H / 2, FIT];
+  const cam = C.camera(app, VW, VH, [[0, ...FULL], [1.9, ...FULL], [2.45, ...ZOOM], [8.2, ...ZOOM], [8.75, ...FULL], [D, ...FULL]]);
+  const F = (t, [x, y]) => { const m = cam(t).map(x, y); return [C.STAGE_X + m[0], C.STAGE_Y + m[1]]; };
+  const OFF = (fx) => [C.W * fx, C.H + 40];
+  const cur = C.cursor([[6.9, ...OFF(0.4)], [7.55, ...F(7.55, P.ok)], [7.8, ...F(7.8, P.ok), true], [8.4, ...OFF(0.45)]]);
+  const cap = C.captions([
+    [1.9, 6.4, "An approval lists<br><em>every value the Agent sends.</em>"],
+    [6.7, 99, "Approve,<br><em>and the order is in.</em>"],
+  ]);
+  cam(0);
+  C.run(D, (t) => {
+    cap(t); cam(t); cur(t);
+    const k = t < 8.0 ? 0 : 1; L(k);
+    $("#ok").classList.toggle("press", t >= 7.75 && t < 8.0);
+    $("#rs").style.display = t >= 8.0 && t < 9.4 ? "" : "none";
+    $("#am2").style.display = t >= 8.2 ? "" : "none";
+    type($("#rep"), R, t, 9.2, 9.8, null);
+    $("#ph").textContent = k === 0 ? "Reply, or approve above…" : "Reply to Lleverage…";
+  });
+</script>
+</body></html>

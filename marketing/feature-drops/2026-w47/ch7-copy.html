@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<title>Copy a workflow to another project</title>
+<link rel="stylesheet" href="clip.css">
+<link rel="stylesheet" href="app.css">
+<link rel="stylesheet" href="chapter.css">
+<style>
+  /* LLE-9444 (#10261). The Workflows page under the Builder Hub (workflows-view.tsx, grid/index.tsx, ui/card-list.tsx):
+     "{Project} › Configure › Workflows" 18/28 600 with a muted trail; the toolbar; sections (Recent, Scheduled, …) with
+     cards: white, 1px border, radius 12, p-4, min-h 200; node icons and status badge on top, title 14/500,
+     description 12 muted (3 lines), usage 11 muted, then Edit and the 32px "…" button. The "…" menu (w-48 = 192px):
+     … Duplicate, Copy to project…, Deactivate, Delete. The dialog (copy-workflow-to-project-dialog.tsx, size md:
+     576px, p-6, title 18 600, description 14 muted; Project select h-8; Cancel and the orange Copy to project), then
+     "Workflow copied" with what the copy still points at. */
+  .wp { padding: 16px 32px 0; }
+  .trail { display: flex; align-items: center; gap: 8px; font-size: 18px; line-height: 28px; font-weight: 600; }
+  .trail .s { color: hsl(var(--muted-foreground)); }
+  .trail svg { width: 12px; height: 12px; color: hsl(var(--muted-foreground)); }
+  .tools { display: flex; align-items: center; gap: 8px; padding: 24px 32px 0; }
+  .tools .search { flex: 1; }
+  .tools .input svg { width: 13px; height: 13px; }
+  .tools .btn.pri { background: hsl(var(--highlight)); color: #fff; }
+  .seg { display: flex; border: 1px solid hsl(var(--input)); border-radius: 10px; overflow: hidden; }
+  .seg span { width: 32px; height: 30px; display: grid; place-items: center; color: hsl(var(--muted-foreground)); }
+  .seg span.on { background: hsl(var(--accent)); color: hsl(var(--foreground)); }
+  .seg svg { width: 13px; height: 13px; }
+  .sec { padding: 24px 32px 0; }
+  .sec h3 { margin: 0 0 12px; display: flex; align-items: center; gap: 8px; font-size: 14px; line-height: 20px; font-weight: 500; }
+  .sec h3 .gi { width: 16px; height: 16px; display: grid; place-items: center; color: hsl(var(--muted-foreground)); }
+  .sec h3 .gi svg { width: 14px; height: 14px; }
+  .sec h3 .cb { font-size: 12px; line-height: 16px; font-weight: 500; padding: 1px 8px; border-radius: 8px; background: hsl(var(--muted)); color: hsl(var(--muted-foreground)); }
+  .cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+  .wc { background: hsl(var(--card)); border: 1px solid hsl(var(--border)); border-radius: 12px; padding: 16px; min-height: 200px; display: flex; flex-direction: column; }
+  .wc .top { display: flex; justify-content: space-between; align-items: flex-start; }
+  .nodes { display: flex; }
+  .nodes span { width: 24px; height: 24px; border-radius: 999px; background: hsl(var(--card)); border: 1px solid hsl(var(--border)); display: grid; place-items: center; margin-right: -6px; color: hsl(var(--foreground)); }
+  .nodes span svg { width: 11px; height: 11px; }
+  .nodes img { width: 14px; height: 14px; }
+  .bd { font-size: 12px; line-height: 16px; font-weight: 500; padding: 1px 8px; border-radius: 8px; border: 1px solid transparent; }
+  .bd.act { background: hsl(var(--success) / .1); border-color: hsl(var(--success) / .3); color: hsl(var(--success)); }
+  .bd.dr { border-color: hsl(var(--border)); }
+  .wc b { display: block; padding-top: 12px; font-size: 14px; line-height: 20px; font-weight: 500; }
+  .wc .ds { font-size: 12px; line-height: 16px; color: hsl(var(--muted-foreground)); height: 56px; margin-top: 2px; overflow: hidden; }
+  .wc .ft { font-size: 11px; line-height: 16px; color: hsl(var(--muted-foreground)); display: flex; flex-direction: column; gap: 2px; }
+  .wc .ft span { display: flex; align-items: center; gap: 4px; }
+  .wc .ft svg { width: 11px; height: 11px; }
+  .wc .ac { margin-top: auto; padding-top: 12px; display: flex; gap: 8px; }
+  .ob { height: 32px; display: inline-flex; align-items: center; padding: 0 12px; border-radius: 10px; border: 1px solid hsl(var(--border)); background: hsl(var(--card)); font-size: 14px; font-weight: 500; }
+  .ob.ico { width: 32px; padding: 0; justify-content: center; }
+  .ob.ico svg { width: 13px; height: 13px; }
+  .ob.dark { background: hsl(var(--foreground)); color: hsl(var(--background)); border-color: hsl(var(--foreground)); }
+  .menu { position: absolute; width: 192px; padding: 4px; background: hsl(var(--card)); border: 1px solid hsl(var(--border)); border-radius: 10px;
+    box-shadow: 0 4px 6px -1px rgb(0 0 0 / .1), 0 2px 4px -2px rgb(0 0 0 / .1); z-index: 8; }
+  .mi { display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-radius: 8px; font-size: 14px; line-height: 20px; }
+  .mi .mic { width: 14px; height: 14px; margin-right: 2px; display: grid; place-items: center; color: hsl(var(--muted-foreground)); }
+  .mi .mic svg { width: 14px; height: 14px; }
+  .mi .ch { margin-left: auto; width: 10px; color: hsl(var(--muted-foreground)); } .mi .ch svg { width: 10px; height: 10px; }
+  .mi.hov { background: hsl(var(--accent)); }
+  .mi.del { color: hsl(var(--destructive)); } .mi.del .mic { color: hsl(var(--destructive)); }
+  .msep { height: .5px; background: hsl(var(--border)); margin: 4px -4px; }
+  .ovl { position: absolute; inset: 0; background: hsl(60 11.1% 98.2% / .8); z-index: 9; }
+  .dlg { position: absolute; left: 50%; top: 50%; width: 576px; transform: translate(-50%, -50%); background: hsl(var(--card)); border: 1px solid hsl(var(--border));
+    border-radius: 12px; box-shadow: 0 10px 15px -3px rgb(0 0 0 / .1), 0 4px 6px -4px rgb(0 0 0 / .1); z-index: 10; }
+  .dlg .dh { padding: 24px 24px 0; }
+  .dlg h2 { margin: 0; font-size: 18px; line-height: 25px; font-weight: 600; }
+  .dlg .dd { margin-top: 4px; font-size: 14px; line-height: 20px; color: hsl(var(--muted-foreground)); }
+  .dlg .db { padding: 16px 24px 8px; display: flex; flex-direction: column; gap: 6px; font-size: 14px; line-height: 20px; }
+  .dlg label { font-size: 14px; line-height: 14px; font-weight: 500; }
+  .sel { position: relative; height: 32px; display: flex; align-items: center; padding: 0 12px; border: 1px solid hsl(var(--input)); border-radius: 10px; background: hsl(var(--background)); }
+  .sel .ph { color: hsl(var(--muted-foreground)); }
+  .sel .cv { margin-left: auto; opacity: .5; } .sel .cv svg { width: 16px; height: 16px; }
+  .opts { position: absolute; left: -1px; right: -1px; top: 36px; padding: 4px; background: hsl(var(--card)); border: 1px solid hsl(var(--border)); border-radius: 10px; box-shadow: 0 4px 6px -1px rgb(0 0 0 / .1); z-index: 2; }
+  .opts div { padding: 6px 8px; border-radius: 8px; }
+  .opts div.hov { background: hsl(var(--accent)); }
+  .dlg .df { padding: 16px 24px 24px; display: flex; justify-content: flex-end; gap: 8px; }
+  .pb { height: 32px; display: inline-flex; align-items: center; padding: 0 12px; border-radius: 10px; background: hsl(var(--highlight)); border: 1px solid hsl(var(--highlight)); color: #fff; font-size: 14px; font-weight: 500; }
+  .pb.off { opacity: .5; }
+  .pb.press { filter: brightness(.9); }
+  .miss { display: flex; flex-direction: column; gap: 4px; margin-top: 10px; }
+  .miss b { font-weight: 500; }
+  .miss ul { margin: 0; padding: 0 0 0 4px; list-style: disc inside; color: hsl(var(--muted-foreground)); }
+  .miss ul small { font-size: 12px; }
+  .miss .fn { font-size: 12px; line-height: 16px; color: hsl(var(--muted-foreground)); }
+</style></head>
+<body>
+<div class="frame">
+  <div class="stage">
+    <div class="app" id="app">
+      <div id="sb"></div>
+      <main class="panel" id="page">
+        <div class="wp"><div class="trail"><span class="s">Order intake</span><span data-fa="faChevronRight"></span><span class="s">Configure</span><span data-fa="faChevronRight"></span><span>Workflows</span></div></div>
+        <div class="tools"><div class="input search"><span data-fa="faMagnifyingGlass"></span>Search workflows by name, ID, or description...</div>
+          <span class="ob"><span data-fa="faFilter" style="width:13px;margin-right:6px"></span>Filter</span><span class="ob">Last updated</span>
+          <span class="seg"><span class="on" data-fa="faTableCellsLarge"></span><span data-fa="faList"></span></span>
+          <span class="btn pri"><span data-fa="faPlus"></span>New Workflow</span></div>
+        <div class="sec"><h3><span class="gi" data-fa="faPlug"></span>Integrations<span class="cb">3</span></h3>
+          <div class="cards">
+            <div class="wc" id="w1"><div class="top"><div class="nodes"><span><img src="" class="gm"></span><span data-fa="faSparkles"></span><span><img class="ex"></span></div><span class="bd act">Active</span></div>
+              <b>Read order emails</b><div class="ds">Reads each order email and its PDF, matches the customer and items, and drafts the sales order in Exact Online.</div>
+              <div class="ft"><span><i data-fa="faSignalStream"></i>412 runs · 7d · last run 4 minutes ago</span><span>Created 2 Oct 2026 · Updated 12 Nov 2026</span></div>
+              <div class="ac"><span class="ob">Edit</span><span class="ob ico" id="more" data-fa="faEllipsis"></span></div></div>
+            <div class="wc"><div class="top"><div class="nodes"><span><img class="ex"></span><span data-fa="faTable"></span></div><span class="bd act">Active</span></div>
+              <b>Sync orders from Exact Online</b><div class="ds">Every hour, brings new and changed sales orders from Exact Online into the Orders table.</div>
+              <div class="ft"><span><i data-fa="faSignalStream"></i>168 runs · 7d · last run 12 minutes ago</span><span>Created 2 Oct 2026 · Updated 9 Nov 2026</span></div>
+              <div class="ac"><span class="ob">Edit</span><span class="ob ico" data-fa="faEllipsis"></span></div></div>
+            <div class="wc"><div class="top"><div class="nodes"><span><img class="ex"></span><span data-fa="faSparkles"></span><span data-fa="faUser"></span></div><span class="bd dr">Draft</span></div>
+              <b>Check prices against agreements</b><div class="ds">Compares each order line with the customer's price agreement and asks the order desk about any difference.</div>
+              <div class="ft"><span><i data-fa="faSignalStream"></i>No runs in 7d</span><span>Created 13 Nov 2026 · Updated 14 Nov 2026</span></div>
+              <div class="ac"><span class="ob">Edit</span><span class="ob ico" data-fa="faEllipsis"></span></div></div>
+          </div></div>
+        <div class="sec"><h3><span class="gi" data-fa="faClock"></span>Scheduled<span class="cb">2</span></h3>
+          <div class="cards">
+            <div class="wc"><div class="top"><div class="nodes"><span data-fa="faClock"></span><span data-fa="faTable"></span><span data-fa="faEnvelope"></span></div><span class="bd act">Active</span></div>
+              <b>Weekly order report</b><div class="ds">Every Monday at 08:00, sends the order desk a summary of last week's orders and what is still open.</div>
+              <div class="ft"><span><i data-fa="faSignalStream"></i>1 run · 7d · last run 1 hour ago</span><span>Created 6 Oct 2026 · Updated 6 Oct 2026</span></div>
+              <div class="ac"><span class="ob">Edit</span><span class="ob ico" data-fa="faEllipsis"></span></div></div>
+            <div class="wc"><div class="top"><div class="nodes"><span data-fa="faClock"></span><span><img class="ex"></span></div><span class="bd act">Active</span></div>
+              <b>Chase missing PO numbers</b><div class="ds">Each morning, emails customers whose orders have waited more than two days for a PO number.</div>
+              <div class="ft"><span><i data-fa="faSignalStream"></i>5 runs · 7d · last run 4 hours ago</span><span>Created 20 Oct 2026 · Updated 3 Nov 2026</span></div>
+              <div class="ac"><span class="ob">Edit</span><span class="ob ico" data-fa="faEllipsis"></span></div></div>
+          </div></div>
+        <div class="menu" id="menu">
+          <div class="mi"><span class="mic" data-fa="faTag"></span>Labels<span class="ch" data-fa="faChevronRight"></span></div>
+          <div class="msep"></div>
+          <div class="mi"><span class="mic" data-fa="faStar"></span>Add to Favourites</div>
+          <div class="mi"><span class="mic" data-fa="faShareNodes"></span>Share</div>
+          <div class="mi"><span class="mic" data-fa="faThumbtack"></span>Pin to sidebar</div>
+          <div class="mi"><span class="mic" data-fa="faSignalStream"></span>Monitor</div>
+          <div class="mi"><span class="mic" data-fa="faPen"></span>Edit Details</div>
+          <div class="mi"><span class="mic" data-fa="faCopy"></span>Duplicate</div>
+          <div class="mi" id="cpi"><span class="mic" data-fa="faCopy"></span>Copy to project…</div>
+          <div class="mi"><span class="mic" data-fa="faToggleOff"></span>Deactivate</div>
+          <div class="mi del"><span class="mic" data-fa="faTrash"></span>Delete</div>
+        </div>
+        <div class="ovl" id="ovl"></div>
+        <div class="dlg" id="dlg">
+          <div id="s1">
+            <div class="dh"><h2>Copy workflow to another project</h2><div class="dd">Read order emails will be added to the chosen project as an unpublished draft. This one stays as it is.</div></div>
+            <div class="db"><label>Project</label>
+              <div class="sel" id="sel"><span id="selv" class="ph">Choose a project</span><span class="cv" data-lu="chevronDown"></span>
+                <div class="opts" id="opts"><div>Invoices</div><div id="opt">Order intake Belgium</div><div>Purchasing</div></div></div></div>
+            <div class="df"><span class="ob">Cancel</span><span class="pb off" id="go">Copy to project</span></div>
+          </div>
+          <div id="s2">
+            <div class="dh"><h2>Workflow copied</h2></div>
+            <div class="db">Read order emails is now in Order intake Belgium as an unpublished draft. Publish it there before it runs, and give anything that calls it through the API a token from Order intake Belgium.
+              <div class="miss"><b>Still points at things Order intake Belgium doesn't have</b>
+                <ul><li>Orders <small>(Data table)</small></li><li>Exact Online <small>(Connection)</small></li></ul>
+                <span class="fn">Point these steps at Order intake Belgium's own before publishing.</span></div></div>
+            <div class="df"><span class="ob">Close</span><span class="pb">Open copy</span></div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+</div>
+<script src="fa-icons.js"></script>
+<script src="app.js"></script>
+<script src="clip.js"></script>
+<script src="chapter.js"></script>
+<script>
+  CHAPTER({ n: 7, total: 7, module: "Workflows", footerLeft: "Feature Drop · Week 47",
+    title: "Copy a workflow<br><em>to another project.</em>",
+    line: "Copy to project puts a workflow in another project as an unpublished draft, and lists the tables, connections and variables it still points at." });
+  const D = 14.8;
+  window.HOLDS = [[3.4, 0.4], [10.3, 0.6], [14.6, 1.2]];
+  const { $, $$, p, out } = C;
+  $("#sb").outerHTML = APP.sidebar(null);
+  $$("[data-fa]").forEach((el) => (el.innerHTML = fa(el.dataset.fa)));
+  $$("[data-lu]").forEach((el) => (el.innerHTML = lu(el.dataset.lu)));
+  $$("img.ex").forEach((el) => (el.src = APP.EXACT));
+  $$("img.gm").forEach((el) => (el.outerHTML = fa("faEnvelope", "", "width:11px;height:11px")));
+
+  const app = $("#app");
+  const at = (el, fx = 0.5, fy = 0.5) => { const a = app.getBoundingClientRect(), r = el.getBoundingClientRect(), s = a.width / 1280;
+    return [(r.left - a.left + r.width * fx) / s, (r.top - a.top + r.height * fy) / s]; };
+  const page = $("#page");
+  const inPage = (el, fx, fy) => { const a = page.getBoundingClientRect(), r = el.getBoundingClientRect(), s = app.getBoundingClientRect().width / 1280;
+    return [(r.left - a.left + r.width * fx) / s, (r.top - a.top + r.height * fy) / s]; };
+  // The menu opens under "…", aligned to its end.
+  const mp = inPage($("#more"), 1, 1); Object.assign($("#menu").style, { left: Math.max(8, mp[0] - 192) + "px", top: mp[1] + 4 + "px" });
+  // Measure each click target in the layout it has at the click.
+  const L = (menu, dlg, s2, opts) => { $("#menu").style.display = menu ? "block" : "none"; $("#ovl").style.display = $("#dlg").style.display = dlg ? "block" : "none";
+    $("#s1").style.display = s2 ? "none" : "block"; $("#s2").style.display = s2 ? "block" : "none"; $("#opts").style.display = opts ? "block" : "none"; };
+  L(false, false, false, false); const P = { more: at($("#more")) };
+  L(true, false, false, false); P.cp = at($("#cpi"), 0.4);
+  L(false, true, false, false); P.sel = at($("#sel"), 0.3); const d0 = at($("#dlg"), 0, 0), d1 = at($("#dlg"), 1, 1); P.go = at($("#go"));
+  L(false, true, false, true); P.opt = at($("#opt"), 0.3); const o1 = at($("#opts"), 1, 1);
+  L(false, true, true, false); const e1 = at($("#dlg"), 1, 1);
+  L(false, false, false, false);
+  const VW = C.STAGE_W, VH = C.STAGE_H, FIT = Math.min(VW / 1280, VH / C.APP_H) * 0.98;
+  const fit = (x0, y0, x1, y1) => { const s = Math.min(VW / (x1 - x0), VH / (y1 - y0)); return [(x0 + x1) / 2, (y0 + y1) / 2 + (VH / s - (y1 - y0)) / 2, s]; };
+  // The one zoom: the dialog, framed on its edges and tall enough for the open project list and the result.
+  const yb = Math.max(o1[1], e1[1], d1[1]);
+  const ZOOM = fit(d0[0] - 24, Math.min(d0[1], e1[1] - (yb - d0[1])) - 24, d1[0] + 24, yb + 24);
+  const FULL = [640, C.APP_H / 2, FIT];
+  const cam = C.camera(app, VW, VH, [[0, ...FULL], [4.3, ...FULL], [4.85, ...ZOOM], [13.4, ...ZOOM], [13.95, ...FULL], [D, ...FULL]]);
+  const F = (t, [x, y]) => { const m = cam(t).map(x, y); return [C.STAGE_X + m[0], C.STAGE_Y + m[1]]; };
+  const OFF = (fx) => [C.W * fx, C.H + 40];
+  const cur = C.cursor([[1.95, ...OFF(0.55)], [2.6, ...F(2.6, P.more)], [2.85, ...F(2.85, P.more), true], [3.5, ...F(3.5, P.cp)], [3.75, ...F(3.75, P.cp), true],
+    [5.2, ...F(5.2, P.sel)], [5.45, ...F(5.45, P.sel), true], [6.0, ...F(6.0, P.opt)], [6.25, ...F(6.25, P.opt), true],
+    [7.0, ...F(7.0, P.go)], [7.25, ...F(7.25, P.go), true], [7.9, ...OFF(0.7)]]);
+  const cap = C.captions([
+    [1.9, 7.6, "Pick Copy to project.<br><em>Choose where it goes.</em>"],
+    [7.9, 99, "It lands there as a draft,<br><em>with what to point it at.</em>"],
+  ]);
+  cam(0);
+  C.run(D, (t) => {
+    cap(t); cam(t); cur(t);
+    $("#more").classList.toggle("dark", t >= 2.55 && t < 3.8);
+    const menu = t >= 2.9 && t < 3.8, dlg = t >= 3.8, s2 = t >= 8.0, opts = t >= 5.5 && t < 6.3;
+    L(menu, dlg, s2, opts);
+    $("#cpi").classList.toggle("hov", t >= 3.4);
+    $("#opt").classList.toggle("hov", t >= 5.9);
+    const picked = t >= 6.3;
+    $("#selv").textContent = picked ? "Order intake Belgium" : "Choose a project"; $("#selv").className = picked ? "" : "ph";
+    $("#go").classList.toggle("off", !picked);
+    $("#go").textContent = t >= 7.3 && t < 8.0 ? "Copying…" : "Copy to project";
+    $("#go").classList.toggle("press", t >= 7.2 && t < 7.4);
+    const d = out(p(t, 3.8, 4.0));
+    $("#dlg").style.opacity = d; $("#ovl").style.opacity = d;
+    $("#dlg").style.transform = `translate(-50%, -50%) scale(${0.95 + 0.05 * d})`;
+    const r = out(p(t, 8.0, 8.25)); $("#s2").style.opacity = r;
+  });
+</script>
+</body></html>
