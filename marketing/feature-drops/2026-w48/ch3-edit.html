@@ -103,8 +103,9 @@
     else { ub.classList.remove("ed"); ub.textContent = k === 2 ? M0 + ADD : M0; }
     $("#br").style.display = k === 2 ? "" : "none"; $("#macts").style.display = k === 1 ? "none" : "";
   };
-  L(0); $("#macts").style.opacity = 1; const P = { msg: at($("#ub"), 0.55, 0.5), edit: at($("#edit")) };
-  L(1); $("#eta").textContent = M0; P.end = at($("#eta"), 0.93, 0.62); P.save = at($("#save"));
+  // Measure with the steps shown at each click: one step at the Edit click, two at Save.
+  $("#s2").style.display = "none"; L(0); $("#macts").style.opacity = 1; const P = { msg: at($("#ub"), 0.55, 0.5), edit: at($("#edit")) };
+  L(1); $("#eta").textContent = M0; P.end = at($("#eta"), 0.93, 0.62); $("#s2").style.display = ""; P.save = at($("#save"));
   const c1 = at($("#cmp"), 1, 1), u0 = at($("#um"), 0, 0), colL = at($("#cmp"), 0, 0)[0] - 40;
   L(0); $("#macts").style.opacity = 0;
   const VW = C.STAGE_W, VH = C.STAGE_H, FIT = Math.min(VW / 1280, VH / C.APP_H) * 0.98;

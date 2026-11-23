@@ -94,10 +94,10 @@
   const app = $("#app");
   const at = (el, fx = 0.5, fy = 0.5) => { const a = app.getBoundingClientRect(), r = el.getBoundingClientRect(), s = a.width / 1280;
     return [(r.left - a.left + r.width * fx) / s, (r.top - a.top + r.height * fy) / s]; };
-  // The page is scrolled so the watch section, Recent runs and the buttons are in view.
-
-  $("#runs").innerHTML = runs([["Skipped", "just now · Nothing new since 23/11/2026, 09:00:00"], ["Succeeded", "1 hour ago"]]);
+  // Measure the clicks with Recent runs as it is at the clicks (four runs); frame the zoom on the longest list.
+  $("#runs").innerHTML = runs();
   const P = { c1: at($("#c1")), c2: at($("#c2")), upd: at($("#upd")) };
+  $("#runs").innerHTML = runs([["Skipped", "just now · Nothing new since 23/11/2026, 09:00:00"], ["Succeeded", "1 hour ago"]]);
   const w0 = at($("#watch"), 0, 0), f1 = at($("#form"), 1, 1), fl = at($("#form"), 0, 0);
   $("#runs").innerHTML = runs();
   const VW = C.STAGE_W, VH = C.STAGE_H, FIT = Math.min(VW / 1280, VH / C.APP_H) * 0.98;
