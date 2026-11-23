@@ -1,0 +1,53 @@
+/* The Agent page under the new navigation (#9728): a white reading surface beside the nav. The session title sits
+   top left as a title button; the conversation is a 768px column with 32px gutters (agent-chat.tsx), 64px above the
+   first message. A sent message (ui/chat-message.tsx) is highlight/10 (#FEF0E8), radius 12, 12x8, 15/24; the agent's
+   text is .markdown 15/25 with a 20px round avatar on bg-muted. The composer (chat-composer-shell.tsx): white, 0.5px
+   border, radius 12, shadow-sm, padding 6px; under it the project (faFolder, 12 muted) and the model picker. The work
+   indicator (#10548): the 20px orange mark in front of the steps header, whose label shimmers. */
+.ap { position: absolute; inset: 0; display: flex; flex-direction: column; background: hsl(var(--card)); }
+.ap-title { position: absolute; left: 12px; top: 10px; display: flex; align-items: center; gap: 6px; padding: 6px 10px; border-radius: 10px; font-size: 14px; line-height: 20px; font-weight: 500; z-index: 2; }
+.ap-title svg { width: 10px; height: 10px; color: hsl(var(--muted-foreground)); }
+.col { width: 768px; margin: 0 auto; padding: 0 32px; }
+.convo { flex: 1; min-height: 0; display: flex; flex-direction: column; justify-content: flex-end; gap: 24px; padding-top: 64px; padding-bottom: 16px; overflow: hidden; }
+.um { display: flex; flex-direction: row-reverse; gap: 8px; }
+.um .uav { width: 20px; height: 20px; margin-top: 2px; border-radius: 999px; background: hsl(280 30% 42%); color: #fff; font-size: 9px; font-weight: 600; display: grid; place-items: center; flex: none; }
+.um .uc { max-width: 80%; display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+.ub { border-radius: 12px; padding: 8px 12px; font-size: 15px; line-height: 24px; background: hsl(23 89.4% 52% / .1); white-space: pre-wrap; }
+.ub.wait { background: transparent; border: .5px dashed hsl(var(--border)); outline: .5px dashed hsl(var(--border)); outline-offset: -1px; color: hsl(var(--muted-foreground)); }
+.steer { display: flex; align-items: center; gap: 4px; font-size: 12px; line-height: 16px; color: hsl(var(--muted-foreground)); }
+.steer svg { width: 14px; height: 14px; }
+.wacts { display: flex; align-items: center; gap: 4px; }
+.qb { height: 32px; display: inline-flex; align-items: center; gap: 6px; padding: 0 13px; border-radius: 10px; font-size: 14px; font-weight: 500; color: hsl(var(--muted-foreground)); }
+.qb svg { width: 14px; height: 14px; }
+.qb.hov { background: hsl(var(--accent)); color: hsl(var(--foreground)); }
+.qi { width: 24px; height: 24px; border-radius: 10px; display: grid; place-items: center; color: hsl(var(--muted-foreground)); }
+.qi svg { width: 12px; height: 12px; }
+.am { display: flex; gap: 8px; }
+.am .aav { width: 20px; height: 20px; margin-top: 2px; border-radius: 999px; background: hsl(var(--muted)); display: grid; place-items: center; flex: none; }
+.am .aav svg { width: 12px; height: 12px; fill: hsl(var(--foreground)); }
+.am .ac { flex: 1; min-width: 0; padding-right: 56px; font-size: 15px; line-height: 25px; }
+.am .ac p { margin: 0 0 8px; }
+.sth { display: flex; align-items: center; gap: 6px; padding: 4px 0; font-size: 14px; line-height: 20px; color: hsl(var(--muted-foreground)); }
+.sth .mk { width: 20px; height: 20px; color: hsl(var(--highlight)); margin-right: 2px; }
+.sth .mk svg { width: 20px; height: 20px; }
+.sth .chev svg { width: 12px; height: 12px; }
+.sth .lbl.shim { background: linear-gradient(90deg, #656563 0%, #91918D 50%, #656563 100%); background-size: 200% 100%; -webkit-background-clip: text; background-clip: text; color: transparent; }
+.stp { display: flex; align-items: center; gap: 8px; padding: 3px 0 3px 2px; font-size: 13px; line-height: 20px; color: hsl(var(--muted-foreground)); }
+.stp .ok { width: 16px; height: 16px; display: grid; place-items: center; }
+.stp .ok svg { width: 11px; height: 11px; }
+.foot { padding-bottom: 8px; }
+.cmp { background: hsl(var(--card)); border: .5px solid hsl(var(--border)); outline: .5px solid hsl(var(--border)); outline-offset: -1px; border-radius: 12px; box-shadow: 0 1px 2px rgb(0 0 0 / .05); padding: 6px; display: flex; align-items: center; gap: 2px; }
+.cmp .tx { flex: 1; min-width: 0; padding: 4px 12px; font-size: 14px; line-height: 20px; min-height: 28px; display: flex; align-items: center; }
+.cmp .tx .plh { color: hsl(var(--muted-foreground)); }
+.cb32 { width: 32px; height: 32px; border-radius: 10px; display: grid; place-items: center; color: hsl(var(--foreground)); flex: none; }
+.cb32 svg { width: 14px; height: 14px; }
+.cb32 svg.lu { width: 16px; height: 16px; }
+.cb32.sec { background: hsl(var(--secondary)); color: hsl(var(--muted-foreground)); }
+.cb32.pri { background: hsl(var(--highlight)); color: #fff; }
+.cb32.press { filter: brightness(.9); }
+.under { display: flex; justify-content: space-between; align-items: center; padding-top: 6px; font-size: 12px; line-height: 16px; color: hsl(var(--muted-foreground)); }
+.under .l, .under .r { display: flex; align-items: center; gap: 6px; }
+.under svg { width: 11px; height: 11px; }
+.under .r b { font-weight: 500; }
+.stopped { display: flex; align-items: center; gap: 12px; margin: 8px 0; font-size: 12px; line-height: 16px; color: hsl(var(--muted-foreground)); }
+.stopped::before, .stopped::after { content: ""; flex: 1; height: .5px; background: hsl(var(--border)); }

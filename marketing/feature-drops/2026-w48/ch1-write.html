@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<title>Write a page like a document</title>
+<link rel="stylesheet" href="clip.css">
+<link rel="stylesheet" href="app.css">
+<link rel="stylesheet" href="chapter.css">
+<link rel="stylesheet" href="parts/page.css">
+<link rel="stylesheet" href="parts/doc-page.css">
+<style>
+  .pbar { opacity: 0; } /* #10928: the bar fades until pointed at */
+  .wcard.stat .sv { font-size: 30px; }
+  .ghost { position: absolute; opacity: .8; pointer-events: none; z-index: 7; box-shadow: 0 10px 15px -3px rgb(0 0 0 / .1); }
+</style></head>
+<body>
+<div class="frame">
+  <div class="stage">
+    <div class="app" id="app">
+      <div id="sb"></div>
+      <main class="panel">
+        <div id="pb"></div>
+        <div class="dp"><div class="dcol" id="dcol">
+          <h1 class="dtitle">Order desk</h1>
+          <div class="dl" id="l1">Orders come in by email and land in Exact Online as drafts. This page is where the order desk starts the day.</div>
+          <div class="dl" id="l2"></div>
+          <div class="dl" id="l3"><span class="ph">Press / to insert widgets</span></div>
+          <div class="callout" id="co"><span data-fa="faCircleInfo"></span><span id="cot"></span></div>
+          <div class="brow" id="r1"><div class="blk" id="b1"><div class="gut"><span data-fa="faPlus"></span><span data-fa="faGripDotsVertical"></span></div>
+            <div class="wcard stat"><span class="ibtn rf" data-fa="faArrowRotateRight"></span><div class="sv">23</div><div class="sl">Orders waiting on a PO</div><div class="sc"><b class="dn">−4</b> vs previous period</div></div></div></div>
+          <div class="brow" id="r2"><div class="blk" id="b2"><div class="gut" id="g2"><span data-fa="faPlus"></span><span id="h2" data-fa="faGripDotsVertical"></span></div>
+            <div class="wcard stat"><span class="ibtn rf" data-fa="faArrowRotateRight"></span><div class="sv">6 min</div><div class="sl">Average handling time</div><div class="sc"><b class="dn">−2 min</b> vs previous period</div></div></div></div>
+          <div class="dropv" id="drop"></div>
+          <div class="dmenu" id="menu"></div>
+        </div></div>
+      </main>
+    </div>
+  </div>
+</div>
+<script src="fa-icons.js"></script>
+<script src="app.js"></script>
+<script src="clip.js"></script>
+<script src="chapter.js"></script>
+<script>
+  CHAPTER({ n: 1, total: 6, module: "Pages", footerLeft: "Feature Drop · Week 48",
+    title: "Write a page<br><em>like a document.</em>",
+    line: "Pages and the Overview edit in place: type on any line, add blocks from the / menu, and drag a block beside another." });
+  const D = 15.2;
+  window.HOLDS = [[9.2, 0.6], [15.0, 1.0]];
+  const { $, $$, p, out, io, type } = C;
+  $("#sb").outerHTML = APP.sidebar("Order desk", "Order intake");
+  $("#pb").outerHTML = APP.pagebar("Order desk");
+  // The / menu from a line (DG/document-catalogue.ts): text styles are left out, Process needs the processes flag.
+  const IT = (ic, l, ai) => `<div class="it" data-it="${l}">${fa(ic)}<span>${l}${ai ? ' <span class="ai">· Built with AI</span>' : ""}</span></div>`;
+  const FULLM = `<div class="gh">Text</div>${IT("faCircleInfo", "Callout")}${IT("faSquareCaretRight", "Toggle")}${IT("faMinus", "Divider")}<div class="sep"></div>`
+    + `<div class="gh">Navigation</div>${IT("faFileLines", "Page")}${IT("faBarsStaggered", "Table of contents")}<div class="sep"></div>`
+    + `<div class="gh">Files and data</div>${IT("faFile", "File")}${IT("faTable", "Table")}<div class="sep"></div>`
+    + `<div class="gh">Agent</div>${IT("faSparkles", "AI Composer")}<div class="sep"></div>`
+    + `<div class="gh">Dashboarding</div>${IT("faHashtag", "Preset")}${IT("faChartBar", "Bar chart", 1)}`;
+  const CALM = `<div class="gh">Text</div>${IT("faCircleInfo", "Callout")}<div class="sep"></div><div class="it">${"<span>Close menu</span>"}<span class="esc">esc</span></div>`;
+  $$("[data-fa]").forEach((el) => (el.innerHTML = fa(el.dataset.fa)));
+  const L2 = "Check held orders before 10:00, and call the customer when a PO number is missing.";
+  const NOTE = "Orders over €10,000 need Tom de Groot's approval before they go to Exact Online.";
+
+  const app = $("#app"), dcol = $("#dcol");
+  const at = (el, fx = 0.5, fy = 0.5) => { const a = app.getBoundingClientRect(), r = el.getBoundingClientRect(), s = a.width / 1280;
+    return [(r.left - a.left + r.width * fx) / s, (r.top - a.top + r.height * fy) / s]; };
+  const sc = () => app.getBoundingClientRect().width / 1280;
+  const inCol = (el, fx = 0, fy = 0) => { const c = dcol.getBoundingClientRect(), r = el.getBoundingClientRect(); return [(r.left - c.left + r.width * fx) / sc(), (r.top - c.top + r.height * fy) / sc()]; };
+  // Layout k: 0 before the typed line, 1 the typed line, 2 the / line with its menu, 3 the callout, 4 the row of two.
+  const L = (k) => {
+    $("#l2").style.display = k >= 1 ? "" : "none";
+    $("#l3").style.display = k === 2 ? "" : "none";
+    $("#co").style.display = k >= 3 ? "" : "none";
+    if (k >= 4) { if ($("#b2").parentNode !== $("#r1")) $("#r1").appendChild($("#b2")); $("#r2").style.display = "none"; }
+    else { if ($("#b2").parentNode !== $("#r2")) $("#r2").appendChild($("#b2")); $("#r2").style.display = ""; }
+  };
+  const menuAt = () => { const [x, y] = inCol($("#l3"), 0, 1); $("#menu").style.left = x + "px"; $("#menu").style.top = y + 4 + "px"; };
+  // Measure every target in the layout it has at its click.
+  L(0); const P = { l1: at($("#l1"), 0.985, 0.78) };
+  L(2); $("#l3").innerHTML = '<span class="slash">/cal</span>'; menuAt(); $("#menu").innerHTML = CALM; $("#menu").style.display = "block";
+  P.cal = at($$("#menu .it")[0], 0.3, 0.5); const m1 = at($("#menu"), 1, 1), t0 = at($("#l1"), 0, 0);
+  $("#menu").style.display = "none";
+  L(3); $$(".gut").forEach((g) => (g.style.opacity = 0)); P.h2 = at($("#h2")); const b1r = at($("#b1"), 1, 0.5), b1t = inCol($("#b1"), 1, 0), b1b = inCol($("#b1"), 1, 1);
+  P.drop = [b1r[0] - 60, b1r[1]];
+  L(4); P.after = at($("#b2"), 0.5, 0.5); L(0);
+  const VW = C.STAGE_W, VH = C.STAGE_H, FIT = Math.min(VW / 1280, VH / C.APP_H) * 0.98;
+  const fit = (x0, y0, x1, y1) => { const s = Math.min(VW / (x1 - x0), VH / (y1 - y0)); return [(x0 + x1) / 2, (y0 + y1) / 2 + (VH / s - (y1 - y0)) / 2, s]; };
+  // The one zoom: the document column from the first line down to the foot of the / menu, while text is typed and
+  // the callout is added. The drag is in the full view.
+  const colL = at(dcol, 0, 0)[0] + 24, colR = at(dcol, 1, 0)[0] - 24;
+  const ZOOM = fit(colL, at($(".dtitle"), 0, 0)[1] - 16, colR, Math.max(m1[1], t0[1] + 220) + 24);
+  const FULL = [640, C.APP_H / 2, FIT];
+  const cam = C.camera(app, VW, VH, [[0, ...FULL], [1.9, ...FULL], [2.45, ...ZOOM], [9.3, ...ZOOM], [9.85, ...FULL], [D, ...FULL]]);
+  const F = (t, [x, y]) => { const m = cam(t).map(x, y); return [C.STAGE_X + m[0], C.STAGE_Y + m[1]]; };
+  const OFF = (fx) => [C.W * fx, C.H + 40];
+  const DRAG = [11.0, 12.1];
+  const cur = C.cursor([[2.2, ...OFF(0.6)], [2.8, ...F(2.8, P.l1)], [3.0, ...F(3.0, P.l1), true], [3.4, ...OFF(0.72)],
+    [6.5, ...OFF(0.7)], [7.05, ...F(7.05, P.cal)], [7.25, ...F(7.25, P.cal), true], [7.7, ...OFF(0.76)],
+    [10.0, ...OFF(0.4)], [10.75, ...F(10.75, P.h2)], [DRAG[0], ...F(DRAG[0], P.h2), true], [DRAG[1], ...F(DRAG[1], P.drop)], [DRAG[1] + 0.25, ...F(DRAG[1] + 0.25, P.drop), true], [13.0, ...OFF(0.5)]]);
+  const cap = C.captions([
+    [1.9, 5.0, "Type straight onto the page.<br><em>Every line is a block.</em>"],
+    [5.3, 9.6, "Press / for a block.<br><em>Here, a callout.</em>"],
+    [9.9, 99, "Drag a block beside another.<br><em>They share the row.</em>"],
+  ]);
+  C.typing(3.2, 4.8); C.typing(5.7, 6.4); C.typing(7.5, 9.0);
+  cam(0);
+  C.run(D, (t) => {
+    cap(t); cam(t); cur(t);
+    const k = t < 3.15 ? 0 : t < 5.4 ? 1 : t < 7.3 ? 2 : t < DRAG[1] + 0.3 ? 3 : 4; L(k);
+    const blink = Math.floor(t * 2.2) % 2 === 0;
+    // The typed line.
+    if (k === 1) { const s = L2.slice(0, Math.round(L2.length * p(t, 3.2, 4.8))); $("#l2").innerHTML = s + (t > 4.8 ? "" : '<span class="caret"></span>'); }
+    else if (k >= 2) $("#l2").textContent = L2;
+    // The / line and its menu.
+    if (k === 2) {
+      const q = t < 5.7 ? "" : t < 6.4 ? "/cal".slice(0, 1 + Math.round(3 * p(t, 5.85, 6.4))) : "/cal";
+      $("#l3").innerHTML = t < 5.7 ? '<span class="ph">Press / to insert widgets</span>' : `<span class="slash">${q}${q === "/" ? ' <span class="ts">Type to search</span>' : ""}</span>${blink ? '<span class="caret"></span>' : ""}`;
+      menuAt(); const filtered = t >= 6.4;
+      const want = filtered ? CALM : FULLM; if ($("#menu").dataset.v !== String(filtered)) { $("#menu").innerHTML = want; $("#menu").dataset.v = String(filtered); }
+      $("#menu").style.display = t >= 5.75 ? "block" : "none"; $("#menu").style.opacity = out(p(t, 5.75, 5.9));
+      const first = $$("#menu .it")[0]; if (first) first.classList.add("sel");
+    } else $("#menu").style.display = "none";
+    // The callout: its note typed in.
+    if (k >= 3) { const s = NOTE.slice(0, Math.round(NOTE.length * p(t, 7.5, 9.0))); $("#cot").innerHTML = s ? s + (t < 9.0 && blink ? '<span class="caret"></span>' : "") : '<span class="ph">Write a note</span>'; }
+    // The drag: the handle shows on hover, the block stays at 30%, a copy follows the pointer, a vertical line marks
+    // where it lands, beside the first block.
+    const hov2 = t >= 10.6 && t < DRAG[1] + 0.3;
+    $("#g2").style.opacity = hov2 && t < DRAG[0] + 0.1 ? 1 : 0;
+    $("#h2").classList.toggle("hov", t >= 10.75 && t < DRAG[0] + 0.1);
+    const dragging = t >= DRAG[0] && t < DRAG[1] + 0.3;
+    $("#b2").style.opacity = dragging ? 0.3 : 1;
+    let g = $("#ghost");
+    if (dragging) {
+      if (!g) { g = $("#b2").cloneNode(true); g.id = "ghost"; g.classList.add("ghost"); g.querySelector(".gut").remove(); dcol.appendChild(g); g.style.width = $("#b2").getBoundingClientRect().width / sc() + "px"; }
+      // The copy keeps the handle under the pointer.
+      const o = at(dcol, 0, 0), hb = at($("#h2")), bb = at($("#b2"), 0, 0), f = io(p(t, DRAG[0], DRAG[1]));
+      const px = P.h2[0] + f * (P.drop[0] - P.h2[0]), py = P.h2[1] + f * (P.drop[1] - P.h2[1]);
+      g.style.left = px - (hb[0] - bb[0]) - o[0] + "px"; g.style.top = py - (hb[1] - bb[1]) - o[1] + "px";
+    } else if (g) g.remove();
+    const near = t >= DRAG[1] - 0.35 && t < DRAG[1] + 0.3;
+    $("#drop").style.display = near ? "block" : "none";
+    if (near) { $("#drop").style.left = b1t[0] + 12 + "px"; $("#drop").style.top = b1t[1] + 4 + "px"; $("#drop").style.height = b1b[1] - b1t[1] - 8 + "px"; }
+    $("#b2").style.transform = k === 4 ? `scale(${0.985 + 0.015 * out(p(t, DRAG[1] + 0.3, DRAG[1] + 0.6))})` : "";
+  });
+</script>
+</body></html>

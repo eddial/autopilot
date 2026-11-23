@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<title>Ask the Agent for a new page</title>
+<link rel="stylesheet" href="clip.css">
+<link rel="stylesheet" href="app.css">
+<link rel="stylesheet" href="chapter.css">
+<link rel="stylesheet" href="parts/agent-page.css">
+<link rel="stylesheet" href="parts/page.css">
+<link rel="stylesheet" href="parts/doc-page.css">
+<style>
+  /* #10889: the Agent's Create Page tool makes a page in Pages (title, description, a starting layout) and builds on
+     it; #10913 lets it write text on the page; #10914 makes its links to pages open the page. Tool steps with no own
+     label read as the title-cased tool name plus the title, with the lucide wrench (agent/parts/tool-meta.ts):
+     "Lleverage Create Page: <title>", "Lleverage Update Page Layout". Links in a reply: text-primary, underlined. */
+  .split { position: absolute; inset: 0; display: flex; }
+  .split .ap { position: relative; flex: 1; min-width: 0; }
+  .split .col { width: 100%; max-width: 768px; padding: 0 28px; }
+  .stp .wr { width: 16px; height: 16px; display: grid; place-items: center; color: hsl(var(--muted-foreground)); }
+  .stp .wr svg { width: 12px; height: 12px; }
+  .am .ac a { color: hsl(var(--primary)); text-decoration: underline; text-underline-offset: 2px; }
+  .am .ac a.hov { text-decoration-thickness: 2px; }
+  /* In-app links open in the same tab (ai-elements/message-link.tsx): the page replaces the chat. */
+  .pp { position: absolute; inset: 0; background: hsl(var(--card)); display: none; flex-direction: column; z-index: 3; }
+  .pp .pbar { opacity: 0; }
+  .pp .brow .wcard { height: 100%; }
+  .cmp .tx { white-space: normal; }
+</style></head>
+<body>
+<div class="frame">
+  <div class="stage">
+    <div class="app" id="app">
+      <div id="sb"></div>
+      <main class="panel">
+        <div class="split">
+          <div class="ap">
+            <span class="ap-title" id="ttl">New chat <span data-fa="faChevronDown"></span></span>
+            <div class="convo col" id="convo">
+              <div class="um" id="um"><span class="uav">EV</span><div class="uc"><div class="ub" id="ub"></div></div></div>
+              <div class="am" id="am"><span class="aav" id="aav"></span><div class="ac">
+                <div class="sth"><span class="mk" id="mk"></span><span class="lbl shim" id="lbl">Working</span><span class="chev" data-lu="chevronRight"></span></div>
+                <div class="stp" id="s1"><span class="wr" data-lu="wrench"></span>Lleverage Create Page: Orders waiting on a PO</div>
+                <div class="stp" id="s2"><span class="wr" data-lu="wrench"></span>Lleverage Update Page Layout</div>
+                <p id="rep" style="margin-top:8px"></p>
+              </div></div>
+            </div>
+            <div class="foot col">
+              <div class="cmp" id="cmp"><span class="cb32" data-lu="plus"></span><div class="tx" id="tx"></div><span class="cb32" id="cb"></span></div>
+              <div class="under"><span class="l"><span data-fa="faFolder"></span>Order intake</span><span class="r"><b>Sonnet 5.5</b> Medium <span data-lu="chevronDown"></span></span></div>
+            </div>
+          </div>
+        </div>
+        <div class="pp" id="pp">
+          <div id="pb"></div>
+          <div class="dp"><div class="dcol">
+            <h1 class="dtitle">Orders waiting on a PO</h1>
+            <div class="dl" style="margin-bottom:12px">Orders we can't book in Exact Online until the customer sends a PO number. Call the customer for anything older than two days.</div>
+            <div class="brow"><div class="blk" style="flex:0 0 260px"><div class="wcard stat"><div class="sv">23</div><div class="sl">Orders waiting on a PO</div><div class="sc"><b class="dn">−4</b> vs previous period</div></div></div>
+              <div class="blk"><div class="wcard"><div class="fc"><div><b>Waiting on a PO, by customer</b><small>Data from today at 09:14</small></div></div><div class="hbars" id="hb"></div></div></div></div>
+          </div></div>
+        </div>
+      </main>
+    </div>
+  </div>
+</div>
+<script src="fa-icons.js"></script>
+<script src="app.js"></script>
+<script src="clip.js"></script>
+<script src="chapter.js"></script>
+<script>
+  CHAPTER({ n: 2, total: 6, module: "Pages", footerLeft: "Feature Drop · Week 48",
+    title: "Ask the Agent<br><em>for a new page.</em>",
+    line: "Ask the Agent for a dashboard and it creates a page in Pages and builds on it, text included. Its link in the chat opens the page." });
+  const D = 14.2;
+  window.HOLDS = [[8.0, 0.6], [14.0, 1.2]];
+  const { $, $$, p, out, io, type } = C;
+  $("#sb").outerHTML = APP.sidebar("New chat", "Order intake", { rows: [["New chat", {}], ["Weekly order report", {}], ["This morning's order emails", {}], ["Kuipers Hout delivery date", { dot: "new" }],
+    ["Invoices waiting on a PO", { files: true }], ["Daily open orders", { clock: true }]] });
+  $$("[data-fa]").forEach((el) => (el.innerHTML = fa(el.dataset.fa)));
+  $$("[data-lu]").forEach((el) => (el.innerHTML = lu(el.dataset.lu)));
+  $("#pb").outerHTML = APP.pagebar("Orders waiting on a PO"); $("#aav").innerHTML = APP.logo(); $("#mk").innerHTML = APP.loader(20);
+  const BARS = [["Kuipers Hout", 6], ["Van Dijk Metaal", 5], ["Smit Elektro", 4], ["Brouwer Verpakking", 4], ["Bakker Installatietechniek", 2], ["De Vries Bouw", 2]];
+  $("#hb").innerHTML = BARS.map(([n, v]) => `<div class="r"><span class="nm">${n}</span><span class="tr"><span class="bar" style="width:${(v / 7) * 100}%"></span></span></div>`).join("")
+    + `<div class="ax"><span></span><span class="tk"><span>0</span><span>2</span><span>4</span><span>6</span></span></div>`;
+  const Q = "Make a page for the order desk: orders waiting on a PO, per customer, and a line on what to do.";
+  const R1 = "I made a page in Pages: ", LINK = "Orders waiting on a PO", R2 = ". It has the count, a chart per customer and a note for the order desk.";
+
+  const app = $("#app");
+  const at = (el, fx = 0.5, fy = 0.5) => { const a = app.getBoundingClientRect(), r = el.getBoundingClientRect(), s = a.width / 1280;
+    return [(r.left - a.left + r.width * fx) / s, (r.top - a.top + r.height * fy) / s]; };
+  const setRep = (n) => { const all = R1 + LINK + R2, s = all.slice(0, n);
+    $("#rep").innerHTML = s.length <= R1.length ? s : R1 + `<a id="lnk">${s.slice(R1.length, R1.length + LINK.length)}</a>` + s.slice(R1.length + LINK.length); };
+  // Layouts. 0: typing in an empty chat. 1: sent, the Agent working. 2: the page open beside the chat.
+  const L = (k) => {
+    $("#um").style.display = $("#am").style.display = k >= 1 ? "" : "none";
+    $("#pp").style.display = k === 2 ? "flex" : "none";
+  };
+  L(0); $("#tx").textContent = Q; const P = { tx: at($("#tx"), 0.15) }; const c0 = at($("#cmp"), 0, 0), c1 = at($("#cmp"), 1, 1);
+  $("#tx").textContent = ""; $("#cb").innerHTML = lu("arrowUp"); $("#cb").className = "cb32 pri"; P.send = at($("#cb"));
+  L(1); $("#ub").textContent = Q; setRep(999); P.link = at($("#lnk"), 0.5, 0.55);
+  L(0);
+  const VW = C.STAGE_W, VH = C.STAGE_H, FIT = Math.min(VW / 1280, VH / C.APP_H) * 0.98;
+  const fit = (x0, y0, x1, y1) => { const s = Math.min(VW / (x1 - x0), VH / (y1 - y0)); return [(x0 + x1) / 2, (y0 + y1) / 2 + (VH / s - (y1 - y0)) / 2, s]; };
+  // The one zoom: the chat column, from the reply's place down to the composer, while the request is typed and the
+  // Agent works. Back to the full view before the page opens.
+  const ZOOM = fit(c0[0] - 40, c1[1] - 400, c1[0] + 40, c1[1] + 30);
+  const FULL = [640, C.APP_H / 2, FIT];
+  const cam = C.camera(app, VW, VH, [[0, ...FULL], [1.9, ...FULL], [2.45, ...ZOOM], [8.2, ...ZOOM], [8.75, ...FULL], [D, ...FULL]]);
+  const F = (t, [x, y]) => { const m = cam(t).map(x, y); return [C.STAGE_X + m[0], C.STAGE_Y + m[1]]; };
+  const OFF = (fx) => [C.W * fx, C.H + 40];
+  const cur = C.cursor([[2.2, ...OFF(0.5)], [2.7, ...F(2.7, P.tx)], [2.9, ...F(2.9, P.tx), true], [3.3, ...OFF(0.62)], [4.4, ...OFF(0.66)], [4.95, ...F(4.95, P.send)], [5.15, ...F(5.15, P.send), true], [5.6, ...OFF(0.7)],
+    [9.1, ...OFF(0.42)], [9.65, ...F(9.65, P.link)], [9.85, ...F(9.85, P.link), true], [10.3, ...OFF(0.45)]]);
+  const cap = C.captions([
+    [1.9, 8.5, "Ask for a page.<br><em>The Agent makes it in Pages.</em>"],
+    [8.8, 99, "Open it from its link.<br><em>The page is ready to use.</em>"],
+  ]);
+  C.typing(3.05, 4.75);
+  cam(0);
+  C.run(D, (t) => {
+    cap(t); cam(t); cur(t);
+    const k = t < 5.2 ? 0 : t < 9.9 ? 1 : 2; L(k);
+    document.querySelectorAll('[data-row="New chat"]').forEach((r) => r.classList.toggle("on", k < 2));
+    // The composer: typed, then sent.
+    if (k === 0) { if (t < 3.05) $("#tx").innerHTML = '<span class="plh">Ask Lleverage anything…</span>'; else type($("#tx"), Q, t, 3.05, 4.75, null); }
+    else $("#tx").innerHTML = '<span class="plh">Reply to Lleverage…</span>';
+    const hasText = k === 0 && t >= 3.1, working = k >= 1 && t < 7.9;
+    $("#cb").innerHTML = hasText ? lu("arrowUp") : working ? lu("loader2", "", `transform:rotate(${(t * 360) % 360}deg)`) : fa("faPhoneFlip");
+    $("#cb").className = hasText ? "cb32 pri" + (t >= 5.1 && t < 5.25 ? " press" : "") : working ? "cb32 sec" : "cb32";
+    $("#ub").textContent = Q; $("#um").style.opacity = out(p(t, 5.2, 5.4));
+    // The Agent: creates the page, writes on it, answers with its link.
+    APP.drive($("#mk"), "working", t);
+    const done = t >= 7.4;
+    $("#mk").style.display = done ? "none" : "";
+    $("#lbl").textContent = done ? "Worked for 34s" : t < 6.0 ? "Reading the Orders table" : "Building the page";
+    $("#lbl").classList.toggle("shim", !done);
+    $("#lbl").style.backgroundPosition = `${200 - ((t / 2) % 1) * 200}% 0`;
+    $("#s1").style.display = t >= 6.0 ? "" : "none";
+    $("#s2").style.display = t >= 6.9 ? "" : "none";
+    setRep(Math.round((R1 + LINK + R2).length * p(t, 7.5, 8.15)));
+    const l = $("#lnk"); if (l) l.classList.toggle("hov", t >= 9.6 && t < 9.95);
+    // The page opens in place of the chat.
+    $("#pp").style.opacity = out(p(t, 9.9, 10.25));
+  });
+</script>
+</body></html>

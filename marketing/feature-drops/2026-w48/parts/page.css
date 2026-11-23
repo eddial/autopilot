@@ -1,0 +1,46 @@
+/* A project page with widgets (pages/components/custom-page-view.tsx, dashboard-grid/dashboard-grid-layout.tsx).
+   Cells: bg-card rounded-lg border p-5 (stat cards p-4), gap 20px. ChartFrame (charts/chart-frame.tsx): title 14/500,
+   the line under it 12 muted ("Data from today at 07:03"), a quiet 32px refresh button. StatCard after #10627: the
+   number 30/36 500, the title under it 14/500, the change line 12 muted. The source line (shared/widget-source.tsx,
+   #10623): "From {table}" 12/500 muted with a chevron, a quiet button flush with the card edge. Horizontal bars
+   (charts/horizontal-bar-plot.tsx): names right-aligned in a column up to 35%, chart-1 bars, rounded 2px at the end. */
+.pgh { display: flex; align-items: center; gap: 16px; padding: 20px 32px 0; }
+.pgh h1 { margin: 0; font-size: 20px; line-height: 28px; font-weight: 600; letter-spacing: -.01em; }
+.pgh p { margin: 2px 0 0; font-size: 14px; line-height: 20px; color: hsl(var(--muted-foreground)); }
+.pgh .right { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+.ibtn { width: 32px; height: 32px; border-radius: 10px; display: grid; place-items: center; color: hsl(var(--muted-foreground)); flex: none; }
+.ibtn svg { width: 14px; height: 14px; }
+.grid { padding: 24px 32px; display: grid; gap: 20px; }
+.grid.g2 { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+.grid.g3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.wcard { position: relative; background: hsl(var(--card)); border: 1px solid hsl(var(--border)); border-radius: 12px; padding: 20px; display: flex; flex-direction: column; gap: 12px; }
+.wcard.stat { padding: 16px; gap: 4px; }
+.wcard.stat .rf { position: absolute; top: 8px; right: 8px; }
+.sv { font-size: 30px; line-height: 36px; font-weight: 500; letter-spacing: -.025em; font-variant-numeric: tabular-nums; }
+.sl { font-size: 14px; line-height: 20px; font-weight: 500; }
+.sc { font-size: 12px; line-height: 16px; color: hsl(var(--muted-foreground)); margin-top: 2px; }
+.sc b { font-weight: 500; }
+.sc b.up, .sc b.dn { color: hsl(var(--success)); }
+.fc { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.fc b { display: block; font-size: 14px; line-height: 20px; font-weight: 500; }
+.fc small { display: block; font-size: 12px; line-height: 16px; color: hsl(var(--muted-foreground)); }
+.fc .ibtn { margin: -6px -6px 0 0; }
+.srcb { align-self: flex-start; display: inline-flex; align-items: center; gap: 6px; margin-left: -10px; padding: 3px 10px; border-radius: 10px; font-size: 12px; line-height: 16px; font-weight: 500; color: hsl(var(--muted-foreground)); }
+.srcb svg { width: 10px; height: 10px; }
+.srcb.on { background: hsl(var(--accent)); color: hsl(var(--foreground)); }
+.hbars { display: flex; flex-direction: column; gap: 8px; padding: 4px 0; position: relative; }
+.hbars .r { display: grid; grid-template-columns: 35% 1fr; align-items: center; gap: 8px; font-size: 12px; line-height: 16px; }
+.hbars .nm { text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: hsl(var(--muted-foreground)); }
+.hbars .tr { position: relative; height: 28px; border-left: 1px solid hsl(var(--border)); display: flex; align-items: center; }
+.hbars .bar { display: block; height: 22px; border-radius: 0 2px 2px 0; background: hsl(200 35% 42%); }
+.hbars .ax { display: grid; grid-template-columns: 35% 1fr; gap: 8px; font-size: 12px; color: hsl(var(--muted-foreground)); }
+.hbars .tk { display: flex; justify-content: space-between; font-variant-numeric: tabular-nums; }
+.tip { display: none; position: absolute; left: 52%; top: 132px; min-width: 128px; padding: 8px 10px; border-radius: 10px; border: 1px solid hsl(var(--border)); background: hsl(var(--card)); font-size: 12px; line-height: 16px; box-shadow: 0 1px 2px rgb(0 0 0 / .05); z-index: 3; }
+.tip b { font-weight: 500; display: block; margin-bottom: 4px; }
+.tip .tr { display: flex; align-items: center; gap: 6px; color: hsl(var(--muted-foreground)); }
+.tip .tr i { width: 10px; height: 4px; border-radius: 2px; background: hsl(200 35% 42%); }
+.tip .tr em { margin-left: auto; font-style: normal; font-weight: 500; color: hsl(var(--foreground)); }
+table.lt { width: 100%; border-collapse: collapse; font-size: 14px; line-height: 20px; }
+.lt th { height: 36px; text-align: left; font-size: 11px; line-height: 16px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: hsl(var(--muted-foreground)); padding: 0 8px; border-bottom: 1px solid hsl(var(--border)); }
+.lt td { height: 40px; padding: 0 8px; border-bottom: 1px solid hsl(var(--border)); white-space: nowrap; }
+.lt tr:last-child td { border-bottom: 0; }

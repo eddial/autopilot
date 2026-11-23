@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<title>Edit your message while the Agent works</title>
+<link rel="stylesheet" href="clip.css">
+<link rel="stylesheet" href="app.css">
+<link rel="stylesheet" href="chapter.css">
+<link rel="stylesheet" href="parts/agent-page.css">
+<style>
+  /* #11164: Edit stays enabled on a sent message while its run streams (agent-chat.tsx:9131 editableDuringRun). The
+     actions row under a user message fades in on hover (opacity 0 -> 1, 150ms, gap 4px): the time (12 muted, 28px line),
+     then quiet icon-sm buttons, 24x24, 12px FA icons, radius 6, hover #EDEDE5: Edit (faPen), Retry (faArrowsRotate),
+     Copy (faCopy). The inline editor sits in the same orange bubble (2104-2149): min-width 260, gap 8; a textarea of 3
+     rows (min-h 72, 1px border, white, radius 6, 12x4 padding, 14px), then Cancel (ghost) and Save (secondary #EDEDE5),
+     30px tall, 14/500, right-aligned. A changed Save stops the run like Stop and sends the edit as a new branch; the
+     branch navigator then reads 2/2 (faChevronLeft · 2/2 · faChevronRight, 12px). */
+  .um .uc { max-width: 80%; }
+  .macts { display: flex; align-items: center; gap: 4px; height: 28px; opacity: 0; }
+  .macts .ts { font-size: 12px; line-height: 28px; color: hsl(var(--muted-foreground)); margin-right: 2px; }
+  .macts .ib24 { width: 24px; height: 24px; border-radius: 6px; display: grid; place-items: center; color: hsl(var(--muted-foreground)); }
+  .macts .ib24 svg { width: 12px; height: 12px; }
+  .macts .ib24.hov { background: #EDEDE5; color: hsl(var(--foreground)); }
+  .macts .br { display: flex; align-items: center; gap: 2px; font-size: 12px; color: hsl(var(--muted-foreground)); font-variant-numeric: tabular-nums; }
+  .macts .br svg { width: 10px; height: 10px; }
+  .ub.ed { min-width: 520px; display: flex; flex-direction: column; gap: 8px; padding: 8px; }
+  .eta { min-height: 72px; border: 1px solid hsl(var(--border)); background: #fff; border-radius: 6px; padding: 4px 12px; font-size: 14px; line-height: 22px; white-space: pre-wrap; }
+  .eta .caret { display: inline-block; width: 1.5px; height: 17px; background: hsl(var(--foreground)); vertical-align: -3px; margin-left: 1px; }
+  .ebtns { display: flex; justify-content: flex-end; gap: 4px; }
+  .ebtn { height: 30px; display: inline-flex; align-items: center; padding: 0 12px; border-radius: 6px; font-size: 14px; font-weight: 500; }
+  .ebtn.sec { background: #EDEDE5; border: 1px solid #EDEDE5; }
+  .ebtn.press { filter: brightness(.92); }
+</style></head>
+<body>
+<div class="frame">
+  <div class="stage">
+    <div class="app" id="app">
+      <div id="sb"></div>
+      <main class="panel">
+        <div class="ap">
+          <span class="ap-title">This morning's order emails <span data-fa="faChevronDown"></span></span>
+          <div class="convo col" id="convo">
+            <div class="um"><span class="uav">EV</span><div class="uc"><div class="ub">Which order emails came in this morning?</div></div></div>
+            <div class="am"><span class="aav" id="aav0"></span><div class="ac">
+              <div class="sth"><span class="lbl">Worked for 9s</span><span class="chev" data-lu="chevronRight"></span></div>
+              <p>Six order emails came in since 07:00, from Van Dijk Metaal, Kuipers Hout, Smit Elektro, Bakker Installatietechniek, Brouwer Verpakking and De Vries Bouw. All six customers are in Exact Online.</p>
+            </div></div>
+            <div class="um" id="um"><span class="uav">EV</span><div class="uc">
+              <div class="ub" id="ub"></div>
+              <div class="macts" id="macts"><span class="br" id="br"><span data-fa="faChevronLeft"></span>2/2<span data-fa="faChevronRight"></span></span><span class="ts">09:12</span>
+                <span class="ib24" id="edit" data-fa="faPen"></span><span class="ib24" data-fa="faArrowsRotate"></span><span class="ib24" data-fa="faCopy"></span></div>
+            </div></div>
+            <div class="am" id="am1"><span class="aav" id="aav1"></span><div class="ac">
+              <div class="sth"><span class="mk" id="mk"></span><span class="lbl shim" id="lbl">Reading 6 order emails</span><span class="chev" data-lu="chevronRight"></span></div>
+              <div class="stp" id="s1"><span class="ok" data-fa="faCheck"></span>Matched 6 customers in Exact Online</div>
+              <div class="stp" id="s2"><span class="ok" data-fa="faCheck"></span>Drafted 2 of 6 sales orders</div>
+            </div></div>
+            <div class="am" id="am2"><span class="aav" id="aav2"></span><div class="ac">
+              <div class="sth"><span class="mk" id="mk2"></span><span class="lbl shim" id="lbl2">Reading 6 order emails</span><span class="chev" data-lu="chevronRight"></span></div>
+              <div class="stp" id="t1"><span class="ok" data-fa="faCheck"></span>Matched 6 customers in Exact Online</div>
+              <div class="stp" id="t2"><span class="ok" data-fa="faCheck"></span>Left out Smit Elektro's order: on hold</div>
+              <div class="stp" id="t3"><span class="ok" data-fa="faCheck"></span>Drafted 5 of 5 sales orders</div>
+              <p id="rep" style="margin-top:8px"></p>
+            </div></div>
+          </div>
+          <div class="foot col">
+            <div class="cmp" id="cmp"><span class="cb32" data-lu="plus"></span><div class="tx"><span class="plh">Reply to Lleverage…</span></div>
+              <span class="cb32 sec" id="stop"></span></div>
+            <div class="under"><span class="l"><span data-fa="faFolder"></span>Order intake</span><span class="r"><b>Sonnet 5.5</b> Medium <span data-lu="chevronDown"></span></span></div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+</div>
+<script src="fa-icons.js"></script>
+<script src="app.js"></script>
+<script src="clip.js"></script>
+<script src="chapter.js"></script>
+<script>
+  CHAPTER({ n: 3, total: 6, module: "Agent", footerLeft: "Feature Drop · Week 48",
+    title: "Edit your message<br><em>while the Agent works.</em>",
+    line: "Edit stays on a message while the Agent works on it. Saving a change stops the run and sends the new words." });
+  const D = 13.6;
+  window.HOLDS = [[11.2, 1.0], [13.5, 0.8]];
+  const { $, $$, p, out, type } = C;
+  $("#sb").outerHTML = APP.sidebar("This morning's order emails", "Order intake", { rows: [["This morning's order emails", {}], ["Kuipers Hout delivery date", { dot: "new" }],
+    ["Invoices waiting on a PO", { files: true }], ["Weekly order report", { clock: true }], ["Price check Van Dijk Metaal", { files: true }], ["Daily open orders", { clock: true }]] });
+  $$("[data-fa]").forEach((el) => (el.innerHTML = fa(el.dataset.fa)));
+  $$("[data-lu]").forEach((el) => (el.innerHTML = lu(el.dataset.lu)));
+  $("#aav0").innerHTML = APP.logo(); $("#aav1").innerHTML = APP.logo(); $("#aav2").innerHTML = APP.logo(); $("#mk").innerHTML = APP.loader(20); $("#mk2").innerHTML = APP.loader(20);
+  const M0 = "Draft sales orders in Exact Online for this morning's order emails.";
+  const ADD = " Leave out Smit Elektro, their account is on hold.";
+  const R = "Five sales orders are drafted in Exact Online. I left out Smit Elektro's order, as you asked.";
+  const EDIT = () => `<div class="eta" id="eta"></div><div class="ebtns"><span class="ebtn">Cancel</span><span class="ebtn sec" id="save">Save</span></div>`;
+
+  const app = $("#app");
+  const at = (el, fx = 0.5, fy = 0.5) => { const a = app.getBoundingClientRect(), r = el.getBoundingClientRect(), s = a.width / 1280;
+    return [(r.left - a.left + r.width * fx) / s, (r.top - a.top + r.height * fy) / s]; };
+  // Layouts. 0: sent, run working, actions hidden. 1: editor open. 2: the edited branch, a new run.
+  const L = (k) => {
+    $("#am1").style.display = k < 2 ? "" : "none"; $("#am2").style.display = k === 2 ? "" : "none";
+    const ub = $("#ub");
+    if (k === 1) { if (!ub.classList.contains("ed")) { ub.classList.add("ed"); ub.innerHTML = EDIT(); } }
+    else { ub.classList.remove("ed"); ub.textContent = k === 2 ? M0 + ADD : M0; }
+    $("#br").style.display = k === 2 ? "" : "none"; $("#macts").style.display = k === 1 ? "none" : "";
+  };
+  L(0); $("#macts").style.opacity = 1; const P = { msg: at($("#ub"), 0.55, 0.5), edit: at($("#edit")) };
+  L(1); $("#eta").textContent = M0; P.end = at($("#eta"), 0.93, 0.62); P.save = at($("#save"));
+  const c1 = at($("#cmp"), 1, 1), u0 = at($("#um"), 0, 0), colL = at($("#cmp"), 0, 0)[0] - 40;
+  L(0); $("#macts").style.opacity = 0;
+  const VW = C.STAGE_W, VH = C.STAGE_H, FIT = Math.min(VW / 1280, VH / C.APP_H) * 0.98;
+  const fit = (x0, y0, x1, y1) => { const s = Math.min(VW / (x1 - x0), VH / (y1 - y0)); return [(x0 + x1) / 2, (y0 + y1) / 2 + (VH / s - (y1 - y0)) / 2, s]; };
+  // The one zoom: the conversation column, from the message down to the composer, while it is edited and resent.
+  const ZOOM = fit(colL, Math.min(u0[1] - 120, c1[1] - 470), c1[0] + 40, c1[1] + 30);
+  const FULL = [640, C.APP_H / 2, FIT];
+  const cam = C.camera(app, VW, VH, [[0, ...FULL], [1.9, ...FULL], [2.45, ...ZOOM], [11.4, ...ZOOM], [11.95, ...FULL], [D, ...FULL]]);
+  const F = (t, [x, y]) => { const m = cam(t).map(x, y); return [C.STAGE_X + m[0], C.STAGE_Y + m[1]]; };
+  const OFF = (fx) => [C.W * fx, C.H + 40];
+  const cur = C.cursor([[2.2, ...OFF(0.62)], [2.85, ...F(2.85, P.msg)], [3.2, ...F(3.2, P.edit)], [3.45, ...F(3.45, P.edit), true],
+    [3.9, ...F(3.9, P.end), true], [4.4, ...OFF(0.8)], [5.5, ...OFF(0.78)], [6.15, ...F(6.15, P.save)], [6.4, ...F(6.4, P.save), true], [7.0, ...OFF(0.74)]]);
+  const cap = C.captions([
+    [1.9, 6.4, "Change your mind mid-run?<br><em>Edit is there while it works.</em>"],
+    [6.7, 99, "Save the change.<br><em>The Agent starts again with it.</em>"],
+  ]);
+  C.typing(4.05, 5.6);
+  cam(0);
+  C.run(D, (t) => {
+    cap(t); cam(t); cur(t);
+    const k = t < 3.5 ? 0 : t < 6.45 ? 1 : 2; L(k);
+    // The actions row: shown while the pointer is on the message, and again once the edit has gone.
+    $("#macts").style.opacity = k === 0 ? out(p(t, 2.75, 2.9)) : k === 2 ? (t >= 6.5 && t < 7.2 ? 1 - p(t, 6.9, 7.1) : 0) : 0;
+    $("#edit").classList.toggle("hov", t >= 3.15 && t < 3.5);
+    if (k === 1) {
+      const typed = ADD.slice(0, Math.round(ADD.length * p(t, 4.05, 5.6)));
+      $("#eta").innerHTML = (M0 + typed).replace(/&/g, "&amp;").replace(/</g, "&lt;") + (t >= 3.9 && Math.floor(t * 2.2) % 2 === 0 ? '<span class="caret"></span>' : "");
+      $("#save").classList.toggle("press", t >= 6.35 && t < 6.5);
+    }
+    // First run: working until the edit stops it.
+    APP.drive($("#mk"), "working", t); APP.drive($("#mk2"), "working", t);
+    $("#lbl").textContent = t < 3.0 ? "Reading 6 order emails" : "Drafting sales orders";
+    $("#s1").style.display = t >= 2.6 ? "" : "none";
+    $("#s2").style.display = t >= 5.2 ? "" : "none";
+    // The new run, from the edited message.
+    const done = t >= 10.2;
+    $("#mk2").style.display = done ? "none" : "";
+    $("#lbl2").textContent = done ? "Worked for 22s" : t < 7.9 ? "Reading 6 order emails" : "Drafting sales orders";
+    $("#lbl2").classList.toggle("shim", !done);
+    $("#lbl").style.backgroundPosition = $("#lbl2").style.backgroundPosition = `${200 - ((t / 2) % 1) * 200}% 0`;
+    $("#t1").style.display = t >= 7.8 ? "" : "none";
+    $("#t2").style.display = t >= 8.8 ? "" : "none";
+    $("#t3").style.display = t >= 9.8 ? "" : "none";
+    type($("#rep"), R, t, 10.3, 10.95, null);
+    $("#am2").style.opacity = k === 2 ? out(p(t, 6.5, 6.8)) : 0;
+    $("#stop").innerHTML = !done ? lu("loader2", "", `transform:rotate(${(t * 360) % 360}deg)`) : fa("faPhoneFlip");
+    $("#stop").className = !done ? "cb32 sec" : "cb32";
+  });
+</script>
+</body></html>

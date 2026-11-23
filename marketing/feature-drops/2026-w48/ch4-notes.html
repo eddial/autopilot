@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<title>Point at a spot and tell the Agent</title>
+<link rel="stylesheet" href="clip.css">
+<link rel="stylesheet" href="app.css">
+<link rel="stylesheet" href="chapter.css">
+<link rel="stylesheet" href="parts/agent-page.css">
+<style>
+  /* #11004: notes on the Agent's HTML and PDF files. On the agent page the chat and the file panel sit side by side
+     (file panel opens at 50%, 1px left border, #FAFAF9). Panel header (artefact-panel.tsx:46-106): 50px, 1px bottom
+     border, 16px sides; the file name 14/500; ghost 32px buttons with 14px lucide icons, gap 2: Notes
+     (message-square-plus, tooltip "Leave notes for the agent"; on = 1px orange border + highlight/10), Download, Save to
+     Data Table (table-2), Save to Workspace Files (save), then Close (x) on the far right. Note mode shows only a
+     crosshair. The pin: a 24px circle with the initials, 10px/500 white, centred on the click. The note box
+     (artefact-notes.tsx:264-329): a popover 8px below the click, 288px, p-12, 1px border, radius 6, shadow-md, gap 8;
+     the quote in a muted card (6x4, 12px muted); a 3-row textarea "What should the agent change here?"; Cancel (ghost)
+     and "Send to agent" (primary orange), small (22px, 12/500). Sent, the note is a user message led by a chip
+     (pill, 10x2, 12px, highlight/15) "<file>: <quote>". The pin clears once the Agent has replied. */
+  .split { position: absolute; inset: 0; display: flex; }
+  .split .ap { position: relative; flex: 1; min-width: 0; }
+  .split .col { width: 100%; padding: 0 28px; }
+  .fp { width: 50%; flex: none; border-left: 1px solid hsl(var(--border)); background: #FAFAF9; display: flex; flex-direction: column; position: relative; }
+  .fp-h { height: 50px; flex: none; display: flex; align-items: center; gap: 2px; padding: 0 12px 0 16px; border-bottom: 1px solid hsl(var(--border)); }
+  .fp-h .nm { font-size: 14px; line-height: 20px; font-weight: 500; margin-right: auto; }
+  .gh { width: 32px; height: 32px; border-radius: 10px; display: grid; place-items: center; color: hsl(var(--foreground)); border: 1px solid transparent; }
+  .gh svg.lu { width: 14px; height: 14px; }
+  .gh.sel { border-color: hsl(var(--highlight)); background: hsl(23 89.4% 52% / .1); }
+  .gh.hov { background: hsl(var(--accent)); }
+  .doc { flex: 1; min-height: 0; overflow: hidden; padding: 20px; position: relative; }
+  .rep { background: #fff; border: 1px solid hsl(var(--border)); border-radius: 8px; padding: 26px 28px; font-family: "Public Sans", sans-serif; color: #1d2733; }
+  .rep .ey { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: #8a8a84; font-weight: 600; }
+  .rep h2 { margin: 6px 0 4px; font-size: 22px; line-height: 28px; font-weight: 600; }
+  .rep .sub { font-size: 13px; color: #6b6b66; }
+  .kp { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 18px 0 20px; }
+  .kp div { border: 1px solid #e6e6e1; border-radius: 6px; padding: 10px 12px; }
+  .kp b { display: block; font-size: 20px; line-height: 26px; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .kp small { font-size: 11px; color: #6b6b66; }
+  .rep h3 { margin: 0 0 8px; font-size: 14px; font-weight: 600; }
+  .rep table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+  .rep th { text-align: left; font-weight: 600; color: #6b6b66; font-size: 11px; padding: 7px 6px; border-bottom: 1px solid #e6e6e1; }
+  .rep td { padding: 7px 6px; border-bottom: 1px solid #efefea; font-variant-numeric: tabular-nums; }
+  .rep .n { text-align: right; }
+  .rep td.chg { background: hsl(23 89.4% 52% / .08); }
+  .pinn { position: absolute; width: 24px; height: 24px; border-radius: 999px; background: hsl(280 30% 42%); color: #fff; font-size: 10px; font-weight: 500; display: grid; place-items: center; transform: translate(-50%, -50%); box-shadow: 0 0 0 2px #fff; z-index: 3; }
+  .nb { position: absolute; width: 288px; padding: 12px; background: #fff; border: 1px solid hsl(var(--border)); border-radius: 6px; box-shadow: 0 4px 6px -1px rgb(0 0 0 / .1), 0 2px 4px -2px rgb(0 0 0 / .1); display: flex; flex-direction: column; gap: 8px; z-index: 4; }
+  .nb .qt { background: hsl(var(--muted)); border-radius: 6px; padding: 4px 6px; font-size: 12px; line-height: 16px; color: hsl(var(--muted-foreground)); }
+  .nb .ta { min-height: 64px; border: 1px solid hsl(var(--border)); border-radius: 6px; padding: 6px 10px; font-size: 14px; line-height: 20px; }
+  .nb .ta .plh { color: hsl(var(--muted-foreground)); }
+  .nb .bt { display: flex; justify-content: flex-end; gap: 8px; }
+  .sbt { height: 22px; display: inline-flex; align-items: center; padding: 0 10px; border-radius: 6px; font-size: 12px; font-weight: 500; }
+  .sbt.pri { background: hsl(var(--highlight)); border: 1px solid hsl(var(--highlight)); color: #fff; }
+  .sbt.pri.off { opacity: .5; }
+  .sbt.press { filter: brightness(.9); }
+  .chip { display: inline-block; max-width: 100%; padding: 2px 10px; border-radius: 999px; background: hsl(23 89.4% 52% / .15); font-size: 12px; line-height: 18px; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .ub.nt { display: flex; flex-direction: column; align-items: flex-start; }
+</style></head>
+<body>
+<div class="frame">
+  <div class="stage">
+    <div class="app" id="app">
+      <div id="sb"></div>
+      <main class="panel">
+        <div class="split">
+          <div class="ap">
+            <span class="ap-title">Weekly order report <span data-fa="faChevronDown"></span></span>
+            <div class="convo col" id="convo">
+              <div class="um"><span class="uav">EV</span><div class="uc"><div class="ub">Make me last week's order report: orders, handling time and what's on hold, per customer.</div></div></div>
+              <div class="am"><span class="aav" id="aav0"></span><div class="ac">
+                <div class="sth"><span class="lbl">Worked for 41s</span><span class="chev" data-lu="chevronRight"></span></div>
+                <p>Here's the report for week 47: 148 orders from 6 customers, 4 still on hold. It's open beside the chat.</p>
+              </div></div>
+              <div class="um" id="um2"><span class="uav">EV</span><div class="uc"><div class="ub nt"><span class="chip">Weekly order report.html: Avg. handling</span><span>Show handling time in minutes, not hours.</span></div></div></div>
+              <div class="am" id="am2"><span class="aav" id="aav2"></span><div class="ac">
+                <div class="sth"><span class="mk" id="mk2"></span><span class="lbl shim" id="lbl2">Updating the report</span><span class="chev" data-lu="chevronRight"></span></div>
+                <p id="rep2" style="margin-top:6px"></p>
+              </div></div>
+            </div>
+            <div class="foot col">
+              <div class="cmp"><span class="cb32" data-lu="plus"></span><div class="tx"><span class="plh">Reply to Lleverage…</span></div><span class="cb32" id="cb" data-fa="faPhoneFlip"></span></div>
+              <div class="under"><span class="l"><span data-fa="faFolder"></span>Order intake</span><span class="r"><b>Sonnet 5.5</b> Medium <span data-lu="chevronDown"></span></span></div>
+            </div>
+          </div>
+          <div class="fp" id="fp">
+            <div class="fp-h"><span class="nm">Weekly order report.html</span>
+              <span class="gh" id="notes" data-lu="messageSquarePlus"></span><span class="gh" data-lu="download"></span><span class="gh" data-lu="table2"></span><span class="gh" data-lu="save"></span><span class="gh" style="margin-left:8px" data-lu="x"></span></div>
+            <div class="doc" id="doc">
+              <div class="rep" id="rep">
+                <div class="ey">Order intake · Week 47</div>
+                <h2>Weekly order report</h2>
+                <div class="sub">Mon 16 – Sun 22 Nov 2026, from Exact Online</div>
+                <div class="kp"><div><b>148</b><small>Orders</small></div><div><b id="kavg">0.4 h</b><small>Avg. handling</small></div><div><b>4</b><small>On hold</small></div></div>
+                <h3>Orders by customer</h3>
+                <table><thead><tr><th>Customer</th><th class="n">Orders</th><th class="n" id="thh">Avg. handling</th><th class="n">On hold</th></tr></thead><tbody id="tb"></tbody></table>
+              </div>
+              <span class="pinn" id="pin">EV</span>
+              <div class="nb" id="nb"><div class="qt">Avg. handling</div><div class="ta" id="ta"><span class="plh">What should the agent change here?</span></div>
+                <div class="bt"><span class="sbt">Cancel</span><span class="sbt pri off" id="send">Send to agent</span></div></div>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+</div>
+<script src="fa-icons.js"></script>
+<script src="app.js"></script>
+<script src="clip.js"></script>
+<script src="chapter.js"></script>
+<script>
+  CHAPTER({ n: 4, total: 6, module: "Agent", footerLeft: "Feature Drop · Week 48",
+    title: "Point at a spot<br><em>and tell the Agent.</em>",
+    line: "In an HTML page or PDF the Agent made, turn on notes, click a spot and say what to change there. The note goes to the Agent with the spot quoted." });
+  const D = 14.4;
+  window.HOLDS = [[8.2, 0.6], [12.6, 1.2]];
+  const { $, $$, p, out, type } = C;
+  $("#sb").outerHTML = APP.sidebar("Weekly order report", "Order intake", { rows: [["Weekly order report", {}], ["This morning's order emails", {}], ["Kuipers Hout delivery date", { dot: "new" }],
+    ["Invoices waiting on a PO", { files: true }], ["Price check Van Dijk Metaal", { files: true }], ["Daily open orders", { clock: true }]] });
+  $$("[data-fa]").forEach((el) => (el.innerHTML = fa(el.dataset.fa)));
+  $$("[data-lu]").forEach((el) => (el.innerHTML = lu(el.dataset.lu)));
+  ["#aav0", "#aav2"].forEach((s) => ($(s).innerHTML = APP.logo())); $("#mk2").innerHTML = APP.loader(20);
+  const ROWS = [["Van Dijk Metaal", 38, 0.3, 0], ["Kuipers Hout", 31, 0.5, 2], ["Smit Elektro", 27, 0.4, 1], ["Bakker Installatietechniek", 22, 0.3, 0], ["Brouwer Verpakking", 18, 0.6, 1], ["De Vries Bouw", 12, 0.4, 0]];
+  const body = (mins) => ROWS.map(([c, o, h, hold]) => `<tr><td>${c}</td><td class="n">${o}</td><td class="n${mins ? " chg" : ""}">${mins ? Math.round(h * 60) + " min" : h.toFixed(1) + " h"}</td><td class="n">${hold}</td></tr>`).join("");
+  $("#tb").innerHTML = body(false);
+  const NOTE = "Show handling time in minutes, not hours.";
+  const R = "Done: handling time is in minutes now, 24 minutes on average. The column and the summary are updated.";
+
+  const app = $("#app"), doc = $("#doc");
+  const at = (el, fx = 0.5, fy = 0.5) => { const a = app.getBoundingClientRect(), r = el.getBoundingClientRect(), s = a.width / 1280;
+    return [(r.left - a.left + r.width * fx) / s, (r.top - a.top + r.height * fy) / s]; };
+  // Place the pin on the "Avg. handling" header and the note box 8px under it, in the doc's own coordinates.
+  const dr = doc.getBoundingClientRect(), hr = $("#thh").getBoundingClientRect(), sc = app.getBoundingClientRect().width / 1280;
+  const px = (hr.left + hr.width * 0.55 - dr.left) / sc, py = (hr.top + hr.height / 2 - dr.top) / sc;
+  $("#pin").style.left = px + "px"; $("#pin").style.top = py + "px";
+  $("#nb").style.left = Math.min(px - 40, doc.clientWidth - 300) + "px"; $("#nb").style.top = py + 20 + "px";
+  $("#pin").style.display = "none"; $("#nb").style.display = "flex";
+  const P = { notes: at($("#notes")), th: at($("#thh"), 0.55, 0.5), ta: at($("#ta"), 0.3, 0.4) };
+  $("#ta").textContent = NOTE; $("#send").classList.remove("off"); P.send = at($("#send"));
+  const nb = at($("#nb"), 0, 0), nb1 = at($("#nb"), 1, 1), fp0 = at($("#fp"), 0, 0), fp1 = at($("#fp"), 1, 1);
+  $("#nb").style.display = "none";
+  const VW = C.STAGE_W, VH = C.STAGE_H, FIT = Math.min(VW / 1280, VH / C.APP_H) * 0.98;
+  const fit = (x0, y0, x1, y1) => { const s = Math.min(VW / (x1 - x0), VH / (y1 - y0)); return [(x0 + x1) / 2, (y0 + y1) / 2 + (VH / s - (y1 - y0)) / 2, s]; };
+  // The one zoom, after notes are on: the file panel's width, from the table's header row to under the note box,
+  // while the note is written and sent.
+  const thb = at($("#thh"), 0, 0);
+  const ZOOM = fit(fp0[0], thb[1] - 40, fp1[0], nb1[1] + 16);
+  const FULL = [640, C.APP_H / 2, FIT];
+  const cam = C.camera(app, VW, VH, [[0, ...FULL], [3.1, ...FULL], [3.6, ...ZOOM], [7.3, ...ZOOM], [7.85, ...FULL], [D, ...FULL]]);
+  const F = (t, [x, y]) => { const m = cam(t).map(x, y); return [C.STAGE_X + m[0], C.STAGE_Y + m[1]]; };
+  const OFF = (fx) => [C.W * fx, C.H + 40];
+  const cur = C.cursor([[2.1, ...OFF(0.7)], [2.75, ...F(2.75, P.notes)], [2.95, ...F(2.95, P.notes), true], [3.75, ...F(3.75, P.th)], [3.95, ...F(3.95, P.th), true],
+    [4.4, ...OFF(0.86)], [5.9, ...OFF(0.84)], [6.55, ...F(6.55, P.send)], [6.8, ...F(6.8, P.send), true], [7.4, ...OFF(0.8)]]);
+  const cap = C.captions([
+    [1.9, 6.8, "Turn on notes.<br><em>Click the spot to change.</em>"],
+    [7.1, 99, "Send it to the Agent.<br><em>It changes that spot.</em>"],
+  ]);
+  C.typing(4.25, 5.6);
+  cam(0);
+  C.run(D, (t) => {
+    cap(t); cam(t); cur(t);
+    const noting = t >= 3.0 && t < 11.0;
+    $("#notes").classList.toggle("sel", noting);
+    $("#notes").classList.toggle("hov", t >= 2.7 && t < 3.0);
+    $("#doc").style.cursor = noting ? "crosshair" : "";
+    $("#pin").style.display = t >= 4.0 && t < 11.0 ? "grid" : "none";
+    $("#pin").style.transform = `translate(-50%,-50%) scale(${0.6 + 0.4 * out(p(t, 4.0, 4.2))})`;
+    const open = t >= 4.05 && t < 6.85;
+    $("#nb").style.display = open ? "flex" : "none"; $("#nb").style.opacity = out(p(t, 4.05, 4.2));
+    if (t < 4.25) $("#ta").innerHTML = '<span class="plh">What should the agent change here?</span>'; else type($("#ta"), NOTE, t, 4.25, 5.6, null);
+    $("#send").classList.toggle("off", t < 4.3);
+    $("#send").classList.toggle("press", t >= 6.75 && t < 6.9);
+    // The note arrives in the chat as a message, and the Agent changes the report.
+    $("#um2").style.display = $("#am2").style.display = t >= 6.85 ? "" : "none";
+    $("#um2").style.opacity = out(p(t, 6.85, 7.05));
+    APP.drive($("#mk2"), "working", t);
+    const done = t >= 10.2;
+    $("#mk2").style.display = done ? "none" : "";
+    $("#lbl2").textContent = done ? "Worked for 12s" : "Updating the report";
+    $("#lbl2").classList.toggle("shim", !done);
+    $("#lbl2").style.backgroundPosition = `${200 - ((t / 2) % 1) * 200}% 0`;
+    type($("#rep2"), R, t, 10.3, 11.0, null);
+    const mins = t >= 9.6;
+    if ($("#tb").dataset.m !== String(mins)) { $("#tb").innerHTML = body(mins); $("#tb").dataset.m = String(mins); }
+    $("#kavg").textContent = mins ? "24 min" : "0.4 h";
+  });
+</script>
+</body></html>

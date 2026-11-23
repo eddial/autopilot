@@ -1,0 +1,6 @@
+/* Chapter shell on top of clip.css: numbered title card, optional line under it (extra), and a footer. */
+.card-full .num { position: absolute; left: 96px; top: 120px; font-family: var(--mono); font-size: 22px; letter-spacing: .1em; color: var(--orange); }
+.card-full h1 { font-size: 104px; }
+.card-full .extra { margin-top: 36px; max-width: 860px; }
+.card-full .by { position: absolute; right: 96px; bottom: 96px; font-family: var(--mono); font-size: 20px; letter-spacing: .1em; text-transform: uppercase; color: var(--ll-text-onDarkMuted); }
+.card-full .by b { font-weight: 500; color: var(--ll-text-onDark); }

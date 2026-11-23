@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<title>Set up an empty page with the Agent</title>
+<link rel="stylesheet" href="clip.css">
+<link rel="stylesheet" href="app.css">
+<link rel="stylesheet" href="chapter.css">
+<link rel="stylesheet" href="parts/agent-page.css">
+<style>
+  /* #11031 (LLE-19590): an empty listing page (components/listing-starters.tsx). The EmptyState in the solid box a
+     list's "No results" sits in (ui/empty-state.tsx: rounded-lg border bg-card py-8): a 40px muted round icon (16px
+     muted), the title 14/500, the line 14 muted, max-w-xs. Under it, gap 16, a grid of starter cards (minmax 12rem):
+     Card action size sm (p-16, radius 12, 1px border, hover border foreground and the icon box turns background); a
+     32px muted icon box (radius 12), the title 14/500 and the description 14 muted. Data tables (table-list.tsx
+     745-776): faDatabase, "No tables yet", "Data tables hold the records your workflows and agents read and update.";
+     Import Data (faFileImport), Use a Template (faGrid2), Start from Scratch (faPlus); then "Set this up with the
+     agent" (faSparkles in primary), which drafts "Help me set up my first data table in this workspace. Ask me what
+     data I want to keep track of." in the agent tray (500px since #10867). */
+  .lp { position: absolute; inset: 0; display: flex; flex-direction: column; }
+  .lp .ptb { padding: 16px 32px 0; }
+  .lbody { padding: 24px 32px; display: flex; flex-direction: column; gap: 16px; }
+  .es { border: 1px solid hsl(var(--border)); border-radius: 12px; background: hsl(var(--card)); padding: 32px 16px; display: flex; flex-direction: column; align-items: center; gap: 4px; text-align: center; }
+  .es .ei { width: 40px; height: 40px; border-radius: 999px; background: hsl(var(--muted)); display: grid; place-items: center; margin-bottom: 4px; color: hsl(var(--muted-foreground)); }
+  .es .ei svg { width: 16px; height: 16px; }
+  .es b { font-size: 14px; line-height: 20px; font-weight: 500; }
+  .es p { margin: 0; max-width: 320px; font-size: 14px; line-height: 20px; color: hsl(var(--muted-foreground)); text-wrap: balance; }
+  .sts { display: grid; grid-template-columns: repeat(auto-fit, minmax(192px, 1fr)); gap: 16px; }
+  .stc { border: 1px solid hsl(var(--border)); border-radius: 12px; background: hsl(var(--card)); padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+  .stc .ci { width: 32px; height: 32px; border-radius: 12px; background: hsl(var(--muted)); display: grid; place-items: center; color: hsl(var(--muted-foreground)); }
+  .stc .ci svg { width: 14px; height: 14px; }
+  .stc .ci.pr { color: hsl(var(--primary)); }
+  .stc b { display: block; font-size: 14px; line-height: 19px; font-weight: 500; }
+  .stc small { display: block; margin-top: 4px; font-size: 14px; line-height: 20px; color: hsl(var(--muted-foreground)); }
+  .stc.hov { border-color: hsl(var(--foreground)); }
+  .stc.hov .ci { background: hsl(var(--background)); }
+  .tray { position: absolute; top: 0; right: 0; bottom: 0; width: 500px; background: hsl(var(--card)); border-left: 1px solid hsl(var(--border)); display: flex; flex-direction: column; z-index: 4; }
+  .tray .th { height: 48px; flex: none; display: flex; align-items: center; gap: 6px; padding: 0 12px 0 16px; font-size: 14px; font-weight: 500; }
+  .tray .th .x { margin-left: auto; width: 28px; height: 28px; display: grid; place-items: center; color: hsl(var(--muted-foreground)); }
+  .tray .th .x svg { width: 12px; height: 12px; }
+  .tray .col { width: 100%; padding: 0 20px; }
+  .tray .convo { padding-top: 16px; }
+  .tray .cmp .tx { align-items: flex-start; white-space: normal; padding: 6px 10px; min-height: 64px; }
+</style></head>
+<body>
+<div class="frame">
+  <div class="stage">
+    <div class="app" id="app">
+      <div id="sb"></div>
+      <main class="panel">
+        <div class="lp">
+          <div class="ptb"><h1>Data tables</h1></div>
+          <div class="lbody">
+            <div class="es"><span class="ei" data-fa="faDatabase"></span><b>No tables yet</b><p>Data tables hold the records your workflows and agents read and update.</p></div>
+            <div class="sts">
+              <div class="stc"><span class="ci" data-fa="faFileImport"></span><span><b>Import Data</b><small>Upload a CSV, Excel, or JSON file to create a table</small></span></div>
+              <div class="stc"><span class="ci" data-fa="faGrid2"></span><span><b>Use a Template</b><small>Start with a ready-made table template</small></span></div>
+              <div class="stc"><span class="ci" data-fa="faPlus"></span><span><b>Start from Scratch</b><small>Create a blank table and define your own fields</small></span></div>
+              <div class="stc" id="ag"><span class="ci pr" data-fa="faSparkles"></span><span><b>Set this up with the agent</b><small>Tell the agent what you need and build it together</small></span></div>
+            </div>
+          </div>
+        </div>
+        <div class="tray" id="tray">
+          <div class="th">New chat <span class="x" data-fa="faXmark"></span></div>
+          <div class="convo col" id="convo">
+            <div class="um" id="um"><span class="uav">EV</span><div class="uc"><div class="ub" id="ub"></div></div></div>
+            <div class="am" id="am"><span class="aav" id="aav"></span><div class="ac">
+              <div class="sth"><span class="mk" id="mk"></span><span class="lbl shim" id="lbl">Working</span><span class="chev" data-lu="chevronRight"></span></div>
+              <p id="rep" style="margin-top:6px"></p>
+            </div></div>
+          </div>
+          <div class="foot col">
+            <div class="cmp" id="cmp"><div class="tx" id="tx"></div><span class="cb32" id="cb"></span></div>
+            <div class="under"><span class="l"><span data-fa="faFolder"></span>Order intake</span><span class="r"><b>Sonnet 5.5</b> Medium <span data-lu="chevronDown"></span></span></div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+</div>
+<script src="fa-icons.js"></script>
+<script src="app.js"></script>
+<script src="clip.js"></script>
+<script src="chapter.js"></script>
+<script>
+  CHAPTER({ n: 6, total: 6, module: "Data tables", footerLeft: "Feature Drop · Week 48",
+    title: "Set up an empty page<br><em>with the Agent.</em>",
+    line: "Empty Workflows, Data tables, Skills, Knowledge, Files and Apps pages show starter cards, and Set this up with the agent drafts the ask in the agent panel." });
+  const D = 13.4;
+  window.HOLDS = [[2.0, 0.6], [13.2, 1.2]];
+  const { $, $$, p, out, type } = C;
+  $("#sb").outerHTML = APP.sidebar("Data tables", "Order intake");
+  $$("[data-fa]").forEach((el) => (el.innerHTML = fa(el.dataset.fa)));
+  $$("[data-lu]").forEach((el) => (el.innerHTML = lu(el.dataset.lu)));
+  $("#aav").innerHTML = APP.logo(); $("#mk").innerHTML = APP.loader(20);
+  const Q = "Help me set up my first data table in this workspace. Ask me what data I want to keep track of.";
+  const R = "Happy to. What do you want to keep track of? For order intake, a table of incoming orders works well: customer, PO number, order date, amount and status. Shall I start there?";
+
+  const app = $("#app");
+  const at = (el, fx = 0.5, fy = 0.5) => { const a = app.getBoundingClientRect(), r = el.getBoundingClientRect(), s = a.width / 1280;
+    return [(r.left - a.left + r.width * fx) / s, (r.top - a.top + r.height * fy) / s]; };
+  // Layouts. 0: the empty page. 1: the tray open with the ask drafted. 2: sent, the Agent answering.
+  const L = (k) => { $("#tray").style.display = k >= 1 ? "flex" : "none"; $("#um").style.display = $("#am").style.display = k === 2 ? "" : "none"; };
+  L(0); const P = { ag: at($("#ag"), 0.5, 0.45) };
+  L(1); $("#tx").textContent = Q; $("#cb").innerHTML = lu("arrowUp"); $("#cb").className = "cb32 pri"; P.send = at($("#cb"));
+  const tr0 = at($("#tray"), 0, 0), tr1 = at($("#tray"), 1, 1);
+  L(0);
+  const VW = C.STAGE_W, VH = C.STAGE_H, FIT = Math.min(VW / 1280, VH / C.APP_H) * 0.98;
+  const fit = (x0, y0, x1, y1) => { const s = Math.min(VW / (x1 - x0), VH / (y1 - y0)); return [(x0 + x1) / 2, (y0 + y1) / 2 + (VH / s - (y1 - y0)) / 2, s]; };
+  // The one zoom: the tray's lower part, from where the answer lands to the composer, once the ask is drafted.
+  const ZOOM = fit(tr0[0], tr1[1] - (tr1[0] - tr0[0]) * VH / VW, tr1[0], tr1[1]);
+  const FULL = [640, C.APP_H / 2, FIT];
+  const cam = C.camera(app, VW, VH, [[0, ...FULL], [6.0, ...FULL], [6.55, ...ZOOM], [D, ...ZOOM]]);
+  const F = (t, [x, y]) => { const m = cam(t).map(x, y); return [C.STAGE_X + m[0], C.STAGE_Y + m[1]]; };
+  const OFF = (fx) => [C.W * fx, C.H + 40];
+  const cur = C.cursor([[2.6, ...OFF(0.66)], [3.5, ...F(3.5, P.ag)], [4.4, ...F(4.4, P.ag)], [4.6, ...F(4.6, P.ag), true], [5.2, ...OFF(0.75)],
+    [7.0, ...OFF(0.92)], [7.6, ...F(7.6, P.send)], [7.8, ...F(7.8, P.send), true], [8.3, ...OFF(0.9)]]);
+  const cap = C.captions([
+    [1.9, 4.6, "An empty page.<br><em>Starters show where to begin.</em>"],
+    [4.9, 8.2, "Set it up with the Agent.<br><em>The ask is already written.</em>"],
+    [8.5, 99, "Send it.<br><em>The Agent asks what you need.</em>"],
+  ]);
+  cam(0);
+  C.run(D, (t) => {
+    cap(t); cam(t); cur(t);
+    const k = t < 4.65 ? 0 : t < 7.85 ? 1 : 2; L(k);
+    $("#ag").classList.toggle("hov", t >= 3.4 && t < 4.7);
+    $("#tray").style.transform = `translateX(${(1 - out(p(t, 4.65, 5.1))) * 40}px)`; $("#tray").style.opacity = out(p(t, 4.65, 5.0));
+    if (k === 1) { $("#tx").textContent = Q; $("#cb").innerHTML = lu("arrowUp"); $("#cb").className = "cb32 pri" + (t >= 7.75 ? " press" : ""); }
+    else if (k === 2) { $("#tx").innerHTML = '<span class="plh">Reply to Lleverage…</span>'; const w = t < 10.1; $("#cb").innerHTML = w ? lu("loader2", "", `transform:rotate(${(t * 360) % 360}deg)`) : fa("faPhoneFlip"); $("#cb").className = w ? "cb32 sec" : "cb32"; }
+    $("#ub").textContent = Q; $("#um").style.opacity = out(p(t, 7.85, 8.05));
+    APP.drive($("#mk"), "working", t);
+    const done = t >= 9.4;
+    $("#mk").style.display = done ? "none" : "";
+    $("#lbl").textContent = done ? "Worked for 4s" : "Thinking";
+    $("#lbl").classList.toggle("shim", !done);
+    $("#lbl").style.backgroundPosition = `${200 - ((t / 2) % 1) * 200}% 0`;
+    type($("#rep"), R, t, 9.5, 10.3, null);
+  });
+</script>
+</body></html>

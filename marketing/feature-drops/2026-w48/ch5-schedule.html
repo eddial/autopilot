@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<title>Run a schedule only when something is new</title>
+<link rel="stylesheet" href="clip.css">
+<link rel="stylesheet" href="app.css">
+<link rel="stylesheet" href="chapter.css">
+<style>
+  /* #10705 (LLE-18502): Settings > Schedules (settings/schedules/page.tsx). Card 1 is the inline form, "Edit schedule"
+     with "Update the cadence, prompt and instructions used for future runs."; fields in two columns, labels 14/500 8px
+     above. "Run only when something is new" (192-244): the 12px muted helper, then a two-column grid of 16px
+     checkboxes: New requests and one per data table. Edit mode adds "Recent runs" (248-308): 12px lines, the status in
+     foreground and the rest muted: "Skipped · <when> · Nothing new since <local time>". Buttons: outline Cancel,
+     primary faClock "Update schedule". A tick that finds nothing new is recorded as skipped before any Agent run. */
+  .sp { position: absolute; inset: 0; overflow: hidden; display: flex; flex-direction: column; }
+  .sp .ptb { padding: 16px 32px 0; }
+  .sbody { padding: 20px 32px 32px; position: relative; }
+  .scard { background: hsl(var(--card)); border: 1px solid hsl(var(--border)); border-radius: 12px; }
+  .sch { padding: 20px 24px 0; }
+  .sch b { display: block; font-size: 16px; line-height: 24px; font-weight: 600; }
+  .sch small { display: block; font-size: 14px; line-height: 20px; color: hsl(var(--muted-foreground)); }
+  .scb { padding: 20px 24px 24px; display: flex; flex-direction: column; gap: 16px; }
+  .g2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .fld { display: flex; flex-direction: column; gap: 8px; }
+  .lbl { font-size: 14px; line-height: 14px; font-weight: 500; }
+  .inp { height: 36px; border: 1px solid hsl(var(--input)); border-radius: 10px; background: hsl(var(--background)); display: flex; align-items: center; justify-content: space-between; padding: 0 12px; font-size: 14px; }
+  .inp svg { width: 10px; height: 10px; color: hsl(var(--muted-foreground)); }
+  .ta { border: 1px solid hsl(var(--input)); border-radius: 10px; background: hsl(var(--background)); padding: 8px 12px; font-size: 14px; line-height: 20px; min-height: 64px; }
+  .help { font-size: 12px; line-height: 16px; color: hsl(var(--muted-foreground)); margin: 0; }
+  .ws { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .cbx { display: flex; align-items: center; gap: 8px; font-size: 14px; line-height: 20px; font-weight: 500; }
+  .box { width: 16px; height: 16px; border-radius: 4px; border: 1px solid hsl(var(--primary)); display: grid; place-items: center; flex: none; }
+  .box svg { width: 10px; height: 10px; color: #fff; display: none; }
+  .box.on { background: hsl(var(--primary)); }
+  .box.on svg { display: block; }
+  .runs { display: flex; flex-direction: column; gap: 4px; }
+  .run { font-size: 12px; line-height: 16px; border-radius: 4px; }
+  .run span { color: hsl(var(--muted-foreground)); }
+  .run.new { background: hsl(23 89.4% 52% / .1); margin: 0 -6px; padding: 0 6px; }
+  .acts { display: flex; justify-content: flex-end; gap: 8px; }
+  .btn36 { height: 36px; display: inline-flex; align-items: center; gap: 6px; padding: 0 14px; border-radius: 10px; font-size: 14px; font-weight: 500; }
+  .btn36.out { border: 1px solid hsl(var(--input)); background: hsl(var(--background)); }
+  .btn36.pri { background: hsl(var(--primary)); color: #fff; }
+  .btn36.pri.press { filter: brightness(1.25); }
+  .btn36 svg { width: 12px; height: 12px; }
+  .toast { position: absolute; right: 24px; bottom: 24px; width: 340px; padding: 14px 16px; background: #fff; border: 1px solid hsl(var(--border)); border-radius: 10px; box-shadow: 0 10px 15px -3px rgb(0 0 0 / .1); font-size: 14px; font-weight: 500; z-index: 5; }
+</style></head>
+<body>
+<div class="frame">
+  <div class="stage">
+    <div class="app" id="app">
+      <div id="sb"></div>
+      <main class="panel">
+        <div class="sp">
+          <div class="ptb"><h1>Schedules</h1></div>
+          <div class="sbody" id="sbody">
+            <div class="scard" id="form">
+              <div class="sch"><b>Edit schedule</b><small>Update the cadence, prompt and instructions used for future runs.</small></div>
+              <div class="scb">
+                <div class="g2"><div class="fld"><span class="lbl">Name</span><span class="inp">Hourly new order check</span></div><div class="fld"><span class="lbl">Kind</span><span class="inp">Task <span data-fa="faChevronDown"></span></span></div></div>
+                <div class="g2"><div class="fld"><span class="lbl">Cadence</span><span class="inp">Recurring cron <span data-fa="faChevronDown"></span></span></div><div class="fld"><span class="lbl">Cron expression</span><span class="inp">0 * * * *</span></div></div>
+                <div class="g2"><div class="fld"><span class="lbl">Time zone</span><span class="inp">Europe/Amsterdam</span></div><div class="fld"><span class="lbl">Session</span><span class="inp">Start a new session <span data-fa="faChevronDown"></span></span></div></div>
+                <div class="fld"><span class="lbl">Prompt</span><div class="ta">Check the Orders table and new requests for orders that came in. Draft a sales order in Exact Online for each one, and ask the order desk when a PO number is missing.</div></div>
+                <div class="fld" id="watch"><span class="lbl">Run only when something is new</span>
+                  <p class="help">Before each run, check these for anything added or changed since the last run. With nothing new, the run is skipped and costs nothing. Leave them all unticked to run every time.</p>
+                  <div class="ws"><span class="cbx"><span class="box" id="c1" data-fa="faCheck"></span>New requests</span><span class="cbx"><span class="box" id="c2" data-fa="faCheck"></span>Orders</span>
+                    <span class="cbx"><span class="box" data-fa="faCheck"></span>Customers</span><span class="cbx"><span class="box" data-fa="faCheck"></span>Price agreements</span></div></div>
+                <div class="fld" id="recent"><span class="lbl">Recent runs</span><div class="runs" id="runs"></div></div>
+                <div class="acts"><span class="btn36 out">Cancel</span><span class="btn36 pri" id="upd"><span data-fa="faClock"></span>Update schedule</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+</div>
+<script src="fa-icons.js"></script>
+<script src="app.js"></script>
+<script src="clip.js"></script>
+<script src="chapter.js"></script>
+<script>
+  CHAPTER({ n: 5, total: 6, module: "Schedules", footerLeft: "Feature Drop · Week 48",
+    title: "Run a schedule only<br><em>when something is new.</em>",
+    line: "A schedule can watch new requests and data tables. Before each run it checks them; with nothing new since the last run, the run is skipped and shows as Skipped." });
+  const D = 13.6;
+  window.HOLDS = [[7.6, 0.8], [13.4, 1.0]];
+  const { $, $$, p, out } = C;
+  $("#sb").outerHTML = APP.sidebar("", "Order intake");
+  $$("[data-fa]").forEach((el) => (el.innerHTML = fa(el.dataset.fa)));
+  const R = (st, rest, cls = "") => `<div class="run ${cls}">${st}<span> · ${rest}</span></div>`;
+  const OLD = [["Succeeded", "1 hour ago"], ["Succeeded", "2 hours ago"], ["Succeeded", "3 hours ago"], ["Succeeded", "4 hours ago"]];
+  const runs = (extra) => (extra || []).map(([a, b, c]) => R(a, b, c)).join("") + OLD.slice(0, 5 - (extra || []).length).map(([a, b]) => R(a, b)).join("");
+
+  const app = $("#app");
+  const at = (el, fx = 0.5, fy = 0.5) => { const a = app.getBoundingClientRect(), r = el.getBoundingClientRect(), s = a.width / 1280;
+    return [(r.left - a.left + r.width * fx) / s, (r.top - a.top + r.height * fy) / s]; };
+  // The page is scrolled so the watch section, Recent runs and the buttons are in view.
+
+  $("#runs").innerHTML = runs([["Skipped", "just now · Nothing new since 23/11/2026, 09:00:00"], ["Succeeded", "1 hour ago"]]);
+  const P = { c1: at($("#c1")), c2: at($("#c2")), upd: at($("#upd")) };
+  const w0 = at($("#watch"), 0, 0), f1 = at($("#form"), 1, 1), fl = at($("#form"), 0, 0);
+  $("#runs").innerHTML = runs();
+  const VW = C.STAGE_W, VH = C.STAGE_H, FIT = Math.min(VW / 1280, VH / C.APP_H) * 0.98;
+  const fit = (x0, y0, x1, y1) => { const s = Math.min(VW / (x1 - x0), VH / (y1 - y0)); return [(x0 + x1) / 2, (y0 + y1) / 2 + (VH / s - (y1 - y0)) / 2, s]; };
+  // The one zoom: the form card's width, from "Run only when something is new" to its buttons.
+  const ZOOM = fit(fl[0] - 16, w0[1] - 24, f1[0] + 16, f1[1] + 16);
+  const FULL = [640, C.APP_H / 2, FIT];
+  const cam = C.camera(app, VW, VH, [[0, ...FULL], [1.9, ...FULL], [2.45, ...ZOOM], [D, ...ZOOM]]);
+  const F = (t, [x, y]) => { const m = cam(t).map(x, y); return [C.STAGE_X + m[0], C.STAGE_Y + m[1]]; };
+  const OFF = (fx) => [C.W * fx, C.H + 40];
+  const cur = C.cursor([[2.3, ...OFF(0.4)], [2.9, ...F(2.9, P.c1)], [3.1, ...F(3.1, P.c1), true], [3.6, ...F(3.6, P.c2)], [3.8, ...F(3.8, P.c2), true],
+    [4.5, ...F(4.5, P.upd)], [4.7, ...F(4.7, P.upd), true], [5.2, ...OFF(0.85)]]);
+  const cap = C.captions([
+    [1.9, 5.2, "Tick what it should watch.<br><em>New requests, or a data table.</em>"],
+    [5.5, 9.0, "Nothing new since the last run?<br><em>The run is skipped.</em>"],
+    [9.3, 99, "A new order comes in.<br><em>The next run goes ahead.</em>"],
+  ]);
+  cam(0);
+  C.run(D, (t) => {
+    cap(t); cam(t); cur(t);
+    $("#c1").classList.toggle("on", t >= 3.12); $("#c2").classList.toggle("on", t >= 3.82);
+    $("#upd").classList.toggle("press", t >= 4.65 && t < 4.8);
+    // The next ticks: one skipped, then one that runs after a new order lands in Orders.
+    const k = t < 6.3 ? 0 : t < 10.2 ? 1 : t < 11.6 ? 2 : 3;
+    if ($("#runs").dataset.k !== String(k)) {
+      $("#runs").dataset.k = String(k);
+      $("#runs").innerHTML = k === 0 ? runs() : k === 1 ? runs([["Skipped", "just now · Nothing new since 23/11/2026, 09:00:00", "new"]])
+        : runs([[k === 2 ? "Running" : "Succeeded", "just now", "new"], ["Skipped", "1 hour ago · Nothing new since 23/11/2026, 09:00:00"]]);
+    }
+    const nr = $("#runs .run.new"); if (nr) nr.style.background = `hsl(23 89.4% 52% / ${0.1 * (1 - p(t, k === 1 ? 7.4 : 12.6, k === 1 ? 8.4 : 13.4))})`;
+  });
+</script>
+</body></html>
