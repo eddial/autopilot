@@ -40,7 +40,7 @@
 <script src="clip.js"></script>
 <script src="chapter.js"></script>
 <script>
-  CHAPTER({ n: 1, total: 6, module: "Pages", footerLeft: "Feature Drop · Week 48",
+  CHAPTER({ n: 1, total: 7, module: "Pages", footerLeft: "Feature Drop · Week 48",
     title: "Write a page<br><em>like a document.</em>",
     line: "Pages and the Overview edit in place: type on any line, add blocks from the / menu, and drag a block beside another." });
   const D = 15.2;
@@ -52,7 +52,7 @@
   const IT = (ic, l, ai) => `<div class="it" data-it="${l}">${fa(ic)}<span>${l}${ai ? ' <span class="ai">· Built with AI</span>' : ""}</span></div>`;
   const FULLM = `<div class="gh">Text</div>${IT("faCircleInfo", "Callout")}${IT("faSquareCaretRight", "Toggle")}${IT("faMinus", "Divider")}<div class="sep"></div>`
     + `<div class="gh">Navigation</div>${IT("faFileLines", "Page")}${IT("faBarsStaggered", "Table of contents")}<div class="sep"></div>`
-    + `<div class="gh">Files and data</div>${IT("faFile", "File")}${IT("faTable", "Table")}<div class="sep"></div>`
+    + `<div class="gh">Files and data</div>${IT("faFile", "File")}${IT("piApp", "App")}${IT("faTable", "Table")}<div class="sep"></div>`
     + `<div class="gh">Agent</div>${IT("faSparkles", "AI Composer")}<div class="sep"></div>`
     + `<div class="gh">Dashboarding</div>${IT("faHashtag", "Preset")}${IT("faChartBar", "Bar chart", 1)}`;
   const CALM = `<div class="gh">Text</div>${IT("faCircleInfo", "Callout")}<div class="sep"></div><div class="it">${"<span>Close menu</span>"}<span class="esc">esc</span></div>`;

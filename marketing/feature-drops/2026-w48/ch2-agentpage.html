@@ -11,16 +11,22 @@
   /* #10889: the Agent's Create Page tool makes a page in Pages (title, description, a starting layout) and builds on
      it; #10913 lets it write text on the page; #10914 makes its links to pages open the page. Tool steps with no own
      label read as the title-cased tool name plus the title, with the lucide wrench (agent/parts/tool-meta.ts):
-     "Lleverage Create Page: <title>", "Lleverage Update Page Layout". Links in a reply: text-primary, underlined. */
+     "Lleverage Create Page: <title>", "Lleverage Update Page Layout". A link to a page in a reply is a chip
+     (ai-elements/message-link.tsx: rounded-full, bg-muted, px-2, no underline, hover bg-accent), and on the agent page
+     it opens the page beside the chat, with Close page in its bar (#11122). A new, empty chat has the Incognito
+     button top right (#11399, faGhost). */
   .split { position: absolute; inset: 0; display: flex; }
   .split .ap { position: relative; flex: 1; min-width: 0; }
   .split .col { width: 100%; max-width: 768px; padding: 0 28px; }
   .stp .wr { width: 16px; height: 16px; display: grid; place-items: center; color: hsl(var(--muted-foreground)); }
   .stp .wr svg { width: 12px; height: 12px; }
-  .am .ac a { color: hsl(var(--primary)); text-decoration: underline; text-underline-offset: 2px; }
-  .am .ac a.hov { text-decoration-thickness: 2px; }
-  /* In-app links open in the same tab (ai-elements/message-link.tsx): the page replaces the chat. */
-  .pp { position: absolute; inset: 0; background: hsl(var(--card)); display: none; flex-direction: column; z-index: 3; }
+  .am .ac a { display: inline-flex; align-items: center; border-radius: 999px; background: hsl(var(--muted)); padding: 1px 8px; font-size: .9em; color: hsl(var(--foreground)); text-decoration: none; vertical-align: baseline; }
+  .am .ac a.hov { background: hsl(var(--accent)); }
+  .split .ap { flex: 1 1 100%; }
+  .ghostb { position: absolute; right: 12px; top: 10px; width: 32px; height: 32px; border-radius: 10px; display: grid; place-items: center; color: hsl(var(--muted-foreground)); z-index: 2; }
+  .ghostb svg { width: 14px; height: 14px; }
+  .pp { position: absolute; top: 0; bottom: 0; right: 0; width: 60%; background: hsl(var(--card)); border-left: .5px solid hsl(var(--border)); display: none; flex-direction: column; z-index: 3; }
+  .pp .dp { padding-left: 0; padding-right: 0; } .pp .dcol { padding: 40px 32px; }
   .pp .pbar { opacity: 0; }
   .pp .brow .wcard { height: 100%; }
   .cmp .tx { white-space: normal; }
@@ -33,7 +39,7 @@
       <main class="panel">
         <div class="split">
           <div class="ap">
-            <span class="ap-title" id="ttl">New chat <span data-fa="faChevronDown"></span></span>
+            <span class="ap-title" id="ttl">New chat <span data-fa="faChevronDown"></span></span><span class="ghostb" id="ghostb" data-fa="faGhost"></span>
             <div class="convo col" id="convo">
               <div class="um" id="um"><span class="uav">EV</span><div class="uc"><div class="ub" id="ub"></div></div></div>
               <div class="am" id="am"><span class="aav" id="aav"></span><div class="ac">
@@ -54,7 +60,7 @@
           <div class="dp"><div class="dcol">
             <h1 class="dtitle">Orders waiting on a PO</h1>
             <div class="dl" style="margin-bottom:12px">Orders we can't book in Exact Online until the customer sends a PO number. Call the customer for anything older than two days.</div>
-            <div class="brow"><div class="blk" style="flex:0 0 260px"><div class="wcard stat"><div class="sv">23</div><div class="sl">Orders waiting on a PO</div><div class="sc"><b class="dn">−4</b> vs previous period</div></div></div>
+            <div class="brow"><div class="blk" style="flex:0 0 190px"><div class="wcard stat"><div class="sv">23</div><div class="sl">Orders waiting on a PO</div><div class="sc"><b class="dn">−4</b> vs previous period</div></div></div>
               <div class="blk"><div class="wcard"><div class="fc"><div><b>Waiting on a PO, by customer</b><small>Data from today at 09:14</small></div></div><div class="hbars" id="hb"></div></div></div></div>
           </div></div>
         </div>
@@ -67,9 +73,9 @@
 <script src="clip.js"></script>
 <script src="chapter.js"></script>
 <script>
-  CHAPTER({ n: 2, total: 6, module: "Pages", footerLeft: "Feature Drop · Week 48",
+  CHAPTER({ n: 2, total: 7, module: "Pages", footerLeft: "Feature Drop · Week 48",
     title: "Ask the Agent<br><em>for a new page.</em>",
-    line: "Ask the Agent for a dashboard and it creates a page in Pages and builds on it, text included. Its link in the chat opens the page." });
+    line: "Ask the Agent for a dashboard and it creates a page in Pages and builds on it, text included. Its link in the chat opens the page beside the chat." });
   const D = 14.2;
   window.HOLDS = [[8.0, 0.6], [14.0, 1.2]];
   const { $, $$, p, out, io, type } = C;
@@ -77,7 +83,7 @@
     ["Invoices waiting on a PO", { files: true }], ["Daily open orders", { clock: true }]] });
   $$("[data-fa]").forEach((el) => (el.innerHTML = fa(el.dataset.fa)));
   $$("[data-lu]").forEach((el) => (el.innerHTML = lu(el.dataset.lu)));
-  $("#pb").outerHTML = APP.pagebar("Orders waiting on a PO"); $("#aav").innerHTML = APP.logo(); $("#mk").innerHTML = APP.loader(20);
+  $("#pb").outerHTML = APP.pagebar("Orders waiting on a PO", { close: true }); $("#aav").innerHTML = APP.logo(); $("#mk").innerHTML = APP.loader(20);
   const BARS = [["Kuipers Hout", 6], ["Van Dijk Metaal", 5], ["Smit Elektro", 4], ["Brouwer Verpakking", 4], ["Bakker Installatietechniek", 2], ["De Vries Bouw", 2]];
   $("#hb").innerHTML = BARS.map(([n, v]) => `<div class="r"><span class="nm">${n}</span><span class="tr"><span class="bar" style="width:${(v / 7) * 100}%"></span></span></div>`).join("")
     + `<div class="ax"><span></span><span class="tk"><span>0</span><span>2</span><span>4</span><span>6</span></span></div>`;
@@ -93,6 +99,8 @@
   const L = (k) => {
     $("#um").style.display = $("#am").style.display = k >= 1 ? "" : "none";
     $("#pp").style.display = k === 2 ? "flex" : "none";
+    $(".split").style.right = k === 2 ? "60%" : "0";
+    $("#ghostb").style.display = k === 0 ? "" : "none";
   };
   L(0); $("#tx").textContent = Q; const P = { tx: at($("#tx"), 0.15) }; const c0 = at($("#cmp"), 0, 0), c1 = at($("#cmp"), 1, 1);
   $("#tx").textContent = ""; $("#cb").innerHTML = lu("arrowUp"); $("#cb").className = "cb32 pri"; P.send = at($("#cb"));
@@ -111,14 +119,13 @@
     [9.1, ...OFF(0.42)], [9.65, ...F(9.65, P.link)], [9.85, ...F(9.85, P.link), true], [10.3, ...OFF(0.45)]]);
   const cap = C.captions([
     [1.9, 8.5, "Ask for a page.<br><em>The Agent makes it in Pages.</em>"],
-    [8.8, 99, "Open it from its link.<br><em>The page is ready to use.</em>"],
+    [8.8, 99, "Open it from its link.<br><em>The page opens beside the chat.</em>"],
   ]);
   C.typing(3.05, 4.75);
   cam(0);
   C.run(D, (t) => {
     cap(t); cam(t); cur(t);
     const k = t < 5.2 ? 0 : t < 9.9 ? 1 : 2; L(k);
-    document.querySelectorAll('[data-row="New chat"]').forEach((r) => r.classList.toggle("on", k < 2));
     // The composer: typed, then sent.
     if (k === 0) { if (t < 3.05) $("#tx").innerHTML = '<span class="plh">Ask Lleverage anything…</span>'; else type($("#tx"), Q, t, 3.05, 4.75, null); }
     else $("#tx").innerHTML = '<span class="plh">Reply to Lleverage…</span>';
@@ -137,7 +144,7 @@
     $("#s2").style.display = t >= 6.9 ? "" : "none";
     setRep(Math.round((R1 + LINK + R2).length * p(t, 7.5, 8.15)));
     const l = $("#lnk"); if (l) l.classList.toggle("hov", t >= 9.6 && t < 9.95);
-    // The page opens in place of the chat.
+    // The page opens beside the chat.
     $("#pp").style.opacity = out(p(t, 9.9, 10.25));
   });
 </script>

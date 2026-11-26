@@ -65,8 +65,8 @@
 .arow .rd.wait::before { background: hsl(var(--warning)); }
 .arow.on { background: hsl(var(--border)); }
 .arow.hov { background: hsl(var(--background)); }
-.sb-new { border-top: .5px solid hsl(var(--border)); border-bottom: .5px solid hsl(var(--border)); padding: 6px 8px; margin: 0 0 8px; }
-.sb-bot { display: flex; align-items: center; gap: 4px; padding: 0 8px 8px; }
+.sb-new { border-top: .5px solid hsl(var(--border)); border-bottom: .5px solid hsl(var(--border)); padding: 6px 8px; margin: 0; }
+.sb-bot { display: flex; align-items: center; gap: 4px; padding: 10px 8px 8px; }
 .sb-acct { display: flex; align-items: center; gap: 8px; padding: 4px 8px; font-size: 14px; line-height: 20px; margin-right: auto; }
 .sb-acct .avt { width: 20px; height: 20px; border-radius: 999px; background: hsl(280 30% 42%); color: #fff; font-style: normal; font-size: 9px; font-weight: 600; display: grid; place-items: center; }
 .sb-ic28 { width: 28px; height: 28px; border-radius: 10px; display: grid; place-items: center; color: hsl(var(--foreground)); }
@@ -116,11 +116,11 @@
 /* Week 48 shell (#10825): "New" is "Ask AI", its mark grey and still until hovered; a quiet "New page" row (faPlus, 12px,
    #8F8F8A at 70%) under the pins; a bell before the help buttons. A custom page's bar is its name and a few buttons. */
 .nav .ib.ask svg.loader { color: #8F8F8A; }
-.nav.quiet { margin-top: -4px; font-size: 12px; color: #8F8F8A; opacity: .7; }
-.nav.quiet .ib svg { width: 11px; height: 11px; }
+.nav.quiet { margin-top: -4px; font-size: 14px; color: #8F8F8A; opacity: .7; } /* #11485: 14px */
+.nav.quiet .ib svg { width: 12.25px; height: 12.25px; }
 .pbar { display: flex; align-items: center; gap: 6px; padding: 16px 32px 0; min-height: 44px; }
 .pbar h1 { margin: 0; font-size: 18px; line-height: 28px; font-weight: 600; }
-.pbar .pin { width: 28px; height: 28px; display: grid; place-items: center; color: hsl(var(--muted-foreground)); }
+.pbar .pin { width: 28px; height: 28px; display: grid; place-items: center; color: hsl(var(--foreground)); } /* pinned: piPin in foreground */
 .pbar .pin svg { width: 12px; height: 12px; }
 .pbar .r { margin-left: auto; display: flex; align-items: center; gap: 8px; }
 .pbar .upd { font-size: 12px; color: hsl(var(--muted-foreground)); }
@@ -128,3 +128,7 @@
 .pbar .ob { border: .5px solid hsl(var(--border)); outline: .5px solid hsl(var(--border)); outline-offset: -1px; }
 .pbar .ob svg, .pbar .gb svg { width: 13px; height: 13px; }
 .pbar .ob.on { background: hsl(var(--accent)); }
+
+/* Week 48: Pierre icons are filled, whatever box they sit in; the tab row's search button. */
+.app svg.pi, svg.pi { fill: currentColor !important; stroke: none !important; }
+.atabs .asearch { margin-left: auto; height: 28px; width: 32px; color: hsl(var(--foreground)); }

@@ -17,10 +17,11 @@ CREDIT=${CREDIT:-"Music: Muted Trumpet Jazz Study Session by Alex Morgan · CC B
 PARTS="card-m1.mp4=feature-drop-cards.html?card=1
 fd1-write.mp4=ch1-write.html
 fd2-agentpage.mp4=ch2-agentpage.html
-fd3-edit.mp4=ch3-edit.html
-fd4-notes.mp4=ch4-notes.html
-fd5-schedule.mp4=ch5-schedule.html
-fd6-starters.mp4=ch6-starters.html
+fd3-widget.mp4=ch3-widget.html
+fd4-timeline.mp4=ch4-timeline.html
+fd5-edit.mp4=ch5-edit.html
+fd6-notes.mp4=ch6-notes.html
+fd7-schedule.mp4=ch7-schedule.html
 card-m2.mp4=feature-drop-cards.html?card=2
 card-m3.mp4=feature-drop-cards.html?card=3"
 CLIP_QUERY="credit=$CREDIT" node cards.mjs feature-drop-cards.html card   # card-1.png: the cover, composed, is the thumbnail

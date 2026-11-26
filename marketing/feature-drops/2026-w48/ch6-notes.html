@@ -24,7 +24,7 @@
   .fp-h .nm { font-size: 14px; line-height: 20px; font-weight: 500; margin-right: auto; }
   .gh { width: 32px; height: 32px; border-radius: 10px; display: grid; place-items: center; color: hsl(var(--foreground)); border: 1px solid transparent; }
   .gh svg.lu { width: 14px; height: 14px; }
-  .gh.sel { border-color: hsl(var(--highlight)); background: hsl(23 89.4% 52% / .1); }
+  .gh.sel { border-color: hsl(var(--secondary)); background: hsl(var(--secondary)); } /* #11581: notes on is the secondary button */
   .gh.hov { background: hsl(var(--accent)); }
   .doc { flex: 1; min-height: 0; overflow: hidden; padding: 20px; position: relative; }
   .rep { background: #fff; border: 1px solid hsl(var(--border)); border-radius: 8px; padding: 26px 28px; font-family: "Public Sans", sans-serif; color: #1d2733; }
@@ -107,7 +107,7 @@
 <script src="clip.js"></script>
 <script src="chapter.js"></script>
 <script>
-  CHAPTER({ n: 4, total: 6, module: "Agent", footerLeft: "Feature Drop · Week 48",
+  CHAPTER({ n: 6, total: 7, module: "Agent", footerLeft: "Feature Drop · Week 48",
     title: "Point at a spot<br><em>and tell the Agent.</em>",
     line: "In an HTML page or PDF the Agent made, turn on notes, click a spot and say what to change there. The note goes to the Agent with the spot quoted." });
   const D = 14.4;

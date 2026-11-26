@@ -1,0 +1,235 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<title>Change a live widget yourself</title>
+<link rel="stylesheet" href="clip.css">
+<link rel="stylesheet" href="app.css">
+<link rel="stylesheet" href="chapter.css">
+<link rel="stylesheet" href="parts/page.css">
+<link rel="stylesheet" href="parts/doc-page.css">
+<style>
+  /* #11413 (LLE-20042), read at 590cf45. A live widget's Settings (DG/live/live-widget-settings.tsx, a 384px popover
+     at the block's top right, p-16, gap 20): a muted line, four disabled fields (Title, Source, Chart, Refreshes
+     every), primary "Edit widget", secondary "Chat with agent", then Style. Edit widget opens a full window
+     (ui/dialog size="full": inset 32px, radius 12, no X, backdrop background/80): "Edit widget" / "Your changes save
+     over this widget on the page.", the form on the left (p-24, sections 32px apart) and a 384px Preview column on
+     background. Selects and inputs: 32px, radius 10, 1px border, background fill, PiChevron at 50%. Chart cards
+     (ui/radio-group.tsx RadioGroupCard): two columns, gap 8, p-16, radius 12, a 24px icon with the name 14/500 and a
+     12px muted line (the reason when it doesn't fit, at 60%); the chosen one has the highlight border. The preview
+     blanks to a 220px skeleton for 600ms on a data change. A widget built by hand shows plain numbers (no value
+     format). Bars (charts/bar-chart.tsx): 220px, largest first, 70% of the band up to 32px, chart-1, 2px top corners. */
+  .pbar { opacity: 0; }
+  .lw { position: relative; }
+  .lw .rfb { position: absolute; top: 8px; right: 8px; }
+  .chartsvg { display: block; width: 100%; height: 220px; }
+  .chartsvg text { font: 400 12px var(--sans, "Public Sans", sans-serif); fill: hsl(var(--muted-foreground)); font-variant-numeric: tabular-nums; }
+  .ring { box-shadow: 0 0 0 2px hsl(var(--highlight) / var(--ring, 0)); }
+  /* Settings popover */
+  .spop { position: absolute; width: 384px; background: #fff; border: 1px solid hsl(var(--border)); border-radius: 10px; box-shadow: 0 4px 6px -1px rgb(0 0 0 / .1), 0 2px 4px -2px rgb(0 0 0 / .1); padding: 16px; display: flex; flex-direction: column; gap: 20px; z-index: 6; }
+  .spop .mut { font-size: 14px; line-height: 20px; color: hsl(var(--muted-foreground)); }
+  .fld { display: flex; flex-direction: column; gap: 8px; }
+  .lbl { font-size: 14px; line-height: 14px; font-weight: 500; }
+  .ctl { height: 32px; border: 1px solid hsl(var(--input)); border-radius: 10px; background: hsl(var(--background)); display: flex; align-items: center; justify-content: space-between; padding: 0 12px; font-size: 14px; line-height: 20px; white-space: nowrap; }
+  .ctl.dis { opacity: .5; }
+  .ctl .ph { color: hsl(var(--muted-foreground)); }
+  .ctl svg { width: 16px; height: 16px; opacity: .5; flex: none; }
+  .ctl.open { box-shadow: 0 0 0 1px hsl(var(--ring, 210 33% 12%) / .25); }
+  .b32 { height: 32px; display: flex; align-items: center; justify-content: center; gap: 6px; padding: 0 13px; border-radius: 10px; font-size: 14px; line-height: 20px; font-weight: 500; border: 1px solid transparent; white-space: nowrap; }
+  .b32.pri { background: hsl(var(--highlight)); border-color: hsl(var(--highlight)); color: #fff; }
+  .b32.pri.hov { background: hsl(23 89.4% 46%); border-color: hsl(23 89.4% 46%); }
+  .b32.pri.off { opacity: .5; }
+  .b32.sec { background: hsl(var(--secondary)); border-color: hsl(var(--secondary)); }
+  .b32.out { border-color: hsl(var(--input)); background: hsl(var(--background)); }
+  .b32.press { transform: scale(.98); }
+  .b32 svg { width: 14px; height: 14px; }
+  /* The window */
+  .scrim { position: absolute; inset: 0; background: hsl(60 11.1% 98.2% / .8); z-index: 20; display: none; }
+  .dlg { position: absolute; inset: 32px; background: #fff; border: 1px solid hsl(var(--border)); border-radius: 12px; box-shadow: 0 10px 15px -3px rgb(0 0 0 / .1), 0 4px 6px -4px rgb(0 0 0 / .1); z-index: 21; display: none; flex-direction: column; overflow: hidden; }
+  .dlg .dh { padding: 24px 24px 0; }
+  .dlg .dh b { display: block; font-size: 18px; line-height: 1.375; font-weight: 600; letter-spacing: -.01em; }
+  .dlg .dh small { display: block; margin-top: 4px; font-size: 14px; line-height: 20px; color: hsl(var(--muted-foreground)); }
+  .dlg .db { flex: 1; min-height: 0; display: flex; margin-top: 16px; }
+  .dlg .form { flex: 1; min-width: 0; padding: 24px; display: flex; flex-direction: column; gap: 32px; overflow: hidden; position: relative; }
+  .dlg .prev { width: 384px; flex: none; border-left: 1px solid hsl(var(--border)); background: hsl(var(--background)); padding: 24px; }
+  .dlg .prev > .pl { font-size: 14px; line-height: 20px; font-weight: 500; margin-bottom: 8px; }
+  .dlg .df { padding: 16px 24px 24px; display: flex; justify-content: flex-end; gap: 8px; }
+  .sec { display: flex; flex-direction: column; gap: 16px; }
+  .sec h3 { margin: 0; font-size: 14px; line-height: 20px; font-weight: 600; }
+  .sec h3 small { display: block; margin-top: 2px; font-size: 12px; line-height: 16px; font-weight: 400; color: hsl(var(--muted-foreground)); }
+  .cards { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .cc { background: #fff; border: 1px solid hsl(var(--border)); border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+  .cc b { display: flex; align-items: center; gap: 6px; font-size: 14px; line-height: 24px; font-weight: 500; }
+  .cc b svg { width: 24px; height: 24px; flex: none; }
+  .cc small { font-size: 12px; line-height: 16px; color: hsl(var(--muted-foreground)); }
+  .cc.on { border-color: hsl(var(--highlight)); }
+  .cc.dis { opacity: .6; }
+  .cc.hov { background: hsl(var(--muted)); }
+  .slist { position: absolute; background: #fff; border: 1px solid hsl(var(--border)); border-radius: 10px; box-shadow: 0 4px 6px -1px rgb(0 0 0 / .1), 0 2px 4px -2px rgb(0 0 0 / .1); padding: 4px; z-index: 30; display: none; }
+  .slist .o { padding: 6px 8px; border-radius: 8px; font-size: 14px; line-height: 20px; white-space: nowrap; }
+  .slist .o.hov { background: hsl(var(--accent)); }
+  .pcard { background: #fff; border: 1px solid hsl(var(--border)); border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+  .pcard.stat { gap: 4px; }
+  .skel { height: 220px; border-radius: 10px; background: hsl(var(--accent)); }
+</style></head>
+<body>
+<div class="frame">
+  <div class="stage">
+    <div class="app" id="app">
+      <div id="sb"></div>
+      <main class="panel">
+        <div id="pb"></div>
+        <div class="dp"><div class="dcol" id="dcol">
+          <h1 class="dtitle">Order desk</h1>
+          <div class="dl">Orders come in by email and land in Exact Online as drafts. This page is where the order desk starts the day.</div>
+          <div class="callout"><span data-fa="faCircleInfo"></span><span>Orders over €10,000 need Tom de Groot's approval before they go to Exact Online.</span></div>
+          <div class="brow"><div class="blk" id="wb">
+            <div class="wcard stat lw ring" id="wstat"><span class="ibtn rfb" data-fa="piReload"></span><div class="sv">128</div><div class="sl">Number of orders</div>
+              <span class="srcb" style="margin-top:8px">From Orders <span data-fa="piChevron"></span></span></div>
+            <div class="wcard lw ring" id="wbar" style="display:none"><div class="fc"><div><b>Total amount per customer</b><small>Data from today at 09:14</small></div><span class="ibtn" data-fa="piReload"></span></div>
+              <div id="pagechart"></div><span class="srcb">From Orders <span data-fa="piChevron"></span></span></div>
+          </div></div>
+          <div class="spop" id="spop">
+            <div class="mut">Change this widget yourself, or ask the agent to change it.</div>
+            <div class="fld"><span class="lbl">Title</span><span class="ctl dis">Number of orders</span></div>
+            <div class="fld"><span class="lbl">Source</span><span class="ctl dis">Orders</span></div>
+            <div class="fld"><span class="lbl">Chart</span><span class="ctl dis">Stat card</span></div>
+            <div class="fld"><span class="lbl">Refreshes every</span><span class="ctl dis">5 minutes</span></div>
+            <span class="b32 pri" id="editb">Edit widget</span>
+            <span class="b32 sec">Chat with agent</span>
+            <div class="fld"><span class="lbl">Style</span><span class="ctl">White card <span data-fa="piChevron"></span></span></div>
+          </div>
+        </div></div>
+      </main>
+      <div class="scrim" id="scrim"></div>
+      <div class="dlg" id="dlg">
+        <div class="dh"><b>Edit widget</b><small>Your changes save over this widget on the page.</small></div>
+        <div class="db">
+          <div class="form" id="form">
+            <div class="sec"><h3>What it reads</h3><div class="fld"><span class="lbl">Table</span><span class="ctl">Orders <span data-fa="piChevron"></span></span></div></div>
+            <div class="sec"><h3>What to show</h3>
+              <div class="fld"><span class="lbl">Count or add up</span><span class="ctl" id="msel"><span id="mval"></span> <span data-fa="piChevron"></span></span></div>
+              <div class="fld"><span class="lbl">Grouped by</span><span class="ctl" id="gsel"><span id="gval"></span> <span data-fa="piChevron"></span></span></div></div>
+            <div class="sec"><h3>Chart<small>From the chart library</small></h3><div class="cards" id="cards"></div></div>
+            <div class="sec"><h3>Filters and dates<small>For this widget only</small></h3>
+              <div class="fld"><span class="lbl">Date range</span><span class="ctl">Last 30 days <span data-fa="piChevron"></span></span></div></div>
+            <div class="slist" id="slist"></div>
+          </div>
+          <div class="prev"><div class="pl">Preview</div><div id="pv"></div></div>
+        </div>
+        <div class="df"><span class="b32 out">Cancel</span><span class="b32 pri" id="saveb">Save</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="fa-icons.js"></script>
+<script src="app.js"></script>
+<script src="clip.js"></script>
+<script src="chapter.js"></script>
+<script>
+  CHAPTER({ n: 3, total: 7, module: "Pages", footerLeft: "Feature Drop · Week 48",
+    title: "Change a live widget<br><em>yourself.</em>",
+    line: "A live widget's settings have Edit widget: pick what it counts or adds up, how it is grouped, the chart and the dates in a form, with a live preview." });
+  const D = 12.0;
+  window.HOLDS = [[8.7, 0.9], [11.8, 1.2]];
+  const { $, $$, p, out, io } = C;
+  $("#sb").outerHTML = APP.sidebar("Order desk", "Order intake");
+  $("#pb").outerHTML = APP.pagebar("Order desk");
+  $$("[data-fa]").forEach((el) => (el.innerHTML = fa(el.dataset.fa)));
+  // The beats.
+  const T = { edit: 2.9, mOpen: 4.3, mPick: 4.95, gOpen: 6.5, gPick: 7.15, save: 9.8, saved: 10.25 }, READ = 0.8;
+  // lucide chart-scatter (the one chart icon that is not Pierre).
+  const SCATTER = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="7.5" cy="7.5" r=".5" fill="currentColor"/><circle cx="18.5" cy="5.5" r=".5" fill="currentColor"/><circle cx="11.5" cy="11.5" r=".5" fill="currentColor"/><circle cx="7.5" cy="16.5" r=".5" fill="currentColor"/><circle cx="17.5" cy="14.5" r=".5" fill="currentColor"/><path d="M3 3v16a2 2 0 0 0 2 2h16"/></svg>';
+  const ONE = "Shows one number. Set Grouped by to Nothing.", GRP = "Needs a Grouped by field.", DATE = "Needs a date in Grouped by.";
+  // [name, icon, summary, reason with no group, reason grouped by a field]
+  const CHARTS = [
+    ["Big number", "piLineGraph", "One headline number, with an optional change against the previous period and a target.", null, ONE],
+    ["Bar chart", "piBarChart", "Bars per category or date, upright or across, side by side or stacked.", GRP, null],
+    ["Line chart", "piLineGraphAxis", "Lines over time, one point per period, with an optional dashed plan.", DATE, DATE],
+    ["Table", "piTable", "Rows and columns, for when the person needs to read the values.", null, null],
+    ["Area chart", "piLineGraphArea", "A line over time with the area under it shaded, for when the size of the total matters. The same settings as line.", DATE, DATE],
+    ["Scatter", null, "One point per row placed by two numbers, to spot outliers or a relationship.", "Needs exactly two numbers per row.", "Needs exactly two numbers per row."],
+    ["Progress bar", "piBarChart2", "A figure against its goal: the figure, a bar filling towards the goal and the share reached.", "Needs a goal. Ask the agent to set one.", ONE],
+    ["List", "piListUnordered", "A short list of records people act on: a name, a quieter detail and a number.", GRP, null],
+  ];
+  const cards = (grouped) => CHARTS.map(([n, ic, sum, r0, r1], i) => { const r = grouped ? r1 : r0, on = grouped ? i === 1 : i === 0;
+    return `<div class="cc${on ? " on" : ""}${r ? " dis" : ""}"><b>${ic ? pi(ic) : SCATTER}${n}</b><small>${r || sum}</small></div>`; }).join("");
+  const MEAS = ["Number of orders", "Total of Amount", "Average of Amount", "Lowest Amount", "Highest Amount"];
+  const GROUPS = ["Nothing (one number)", "Order", "Customer", "Status", "Amount", "Created (over time)", "Updated (over time)", "Order date (over time)"];
+  const BARS = [["Kuipers Hout", 52400], ["Van Dijk Metaal", 44900], ["Smit Elektro", 31750], ["Bakker Installatietechniek", 24300], ["Brouwer Verpakking", 18600], ["De Vries Bouw", 12300]];
+  // charts/bar-chart.tsx: 220px; the plot starts 44px in and 8px down, 20px of labels under it; ticks in compact notation.
+  const barSvg = (w) => { const L = 44, T0 = 8, H = 192, max = 60000, band = (w - L) / BARS.length, bw = Math.min(32, band * 0.7), mc = Math.max(4, Math.floor(band / 6.6));
+    const grid = [0, 20000, 40000, 60000].map((v) => { const y = T0 + H - (v / max) * H; return `<line x1="${L}" x2="${w}" y1="${y}" y2="${y}" stroke="hsl(60 6% 83.7%)"/><text x="${L - 8}" y="${y + 4}" text-anchor="end">${v ? v / 1000 + "K" : 0}</text>`; }).join("");
+    const bars = BARS.map(([n, v], i) => { const x = L + band * i + (band - bw) / 2, h = (v / max) * H, y = T0 + H - h, nm = n.length > mc ? n.slice(0, mc - 1) + "…" : n;
+      return `<path d="M${x} ${y + h}V${y + 2}a2 2 0 0 1 2-2h${bw - 4}a2 2 0 0 1 2 2V${y + h}z" fill="hsl(200 35% 42%)"/><text x="${x + bw / 2}" y="${T0 + H + 16}" text-anchor="middle">${nm}</text>`; }).join("");
+    return `<svg class="chartsvg" viewBox="0 0 ${w} 220">${grid}${bars}</svg>`; };
+  const pvStat = (v, l) => `<div class="pcard stat"><div class="sv">${v}</div><div class="sl">${l}</div></div>`;
+  const pvLoad = (title) => `<div class="pcard"><div class="fc"><div><b>${title}</b></div></div><div class="skel" id="skel"></div></div>`;
+  const pvBars = () => `<div class="pcard"><div class="fc"><div><b>Total amount per customer</b><small>Updated less than a minute ago</small></div></div>${barSvg(302)}</div>`;
+
+  const app = $("#app"), dcol = $("#dcol"), form = $("#form");
+  const sc = () => app.getBoundingClientRect().width / 1280;
+  const at = (el, fx = 0.5, fy = 0.5) => { const a = app.getBoundingClientRect(), r = el.getBoundingClientRect(), s = sc();
+    return [(r.left - a.left + r.width * fx) / s, (r.top - a.top + r.height * fy) / s]; };
+  const rel = (el, host) => { const h = host.getBoundingClientRect(), r = el.getBoundingClientRect(), s = sc(); return [(r.left - h.left) / s, (r.top - h.top) / s, r.width / s, r.height / s]; };
+  // The settings popover hangs from the block's top right corner.
+  { const [x, y, w] = rel($("#wb"), dcol); $("#spop").style.left = x + w - 384 - 8 + "px"; $("#spop").style.top = y + 8 + "px"; }
+  let key = "";
+  const set = (el, html) => { if (el.dataset.h !== html) { el.innerHTML = html; el.dataset.h = html; } };
+  // Everything on screen as a function of t; also called to measure each click target in the layout it has then.
+  const draw = (t) => {
+    const open = t >= T.edit + 0.05 && t < T.saved + 0.3, saved = t >= T.saved;
+    $("#spop").style.display = t < T.edit + 0.05 ? "flex" : "none";
+    $("#editb").classList.toggle("hov", t >= T.edit - 0.35 && t < T.edit + 0.05); $("#editb").classList.toggle("press", t >= T.edit - 0.02 && t < T.edit + 0.05);
+    $("#scrim").style.display = $("#dlg").style.display = open ? (t, "flex") : "none"; $("#scrim").style.display = open ? "block" : "none";
+    const o = Math.min(out(p(t, T.edit + 0.05, T.edit + 0.3)), 1 - p(t, T.saved, T.saved + 0.3));
+    $("#scrim").style.opacity = o; $("#dlg").style.opacity = o; $("#dlg").style.transform = `scale(${0.98 + 0.02 * o})`;
+    const total = t >= T.mPick, grouped = t >= T.gPick;
+    set($("#mval"), total ? MEAS[1] : MEAS[0]); set($("#gval"), grouped ? "Customer" : GROUPS[0]);
+    set($("#cards"), cards(grouped));
+    // A select's list, under its trigger.
+    const which = t >= T.mOpen && t < T.mPick + 0.04 ? "m" : t >= T.gOpen && t < T.gPick + 0.04 ? "g" : "";
+    $("#msel").classList.toggle("open", which === "m"); $("#gsel").classList.toggle("open", which === "g");
+    const sl = $("#slist");
+    if (which && open) {
+      const items = which === "m" ? MEAS : GROUPS, tr = which === "m" ? $("#msel") : $("#gsel"), hov = which === "m" ? (t >= T.mPick - 0.3 ? 1 : 0) : (t >= T.gPick - 0.3 ? 2 : 0);
+      set(sl, items.map((x, i) => `<div class="o${i === hov ? " hov" : ""}">${x}</div>`).join(""));
+      sl.style.display = "block"; const [x, y, w, h] = rel(tr, form); sl.style.left = x + "px"; sl.style.top = y + h + 4 + "px"; sl.style.minWidth = w + "px";
+    } else sl.style.display = "none";
+    // The preview: a data change blanks it to the skeleton, then it draws.
+    const loading = (a) => t >= a && t < a + READ;
+    set($("#pv"), loading(T.gPick) ? pvLoad("Total amount per customer") : loading(T.mPick) ? pvLoad("Total amount") : grouped ? pvBars() : total ? pvStat("184,250", "Total amount") : pvStat("128", "Number of orders"));
+    const sk = $("#skel"); if (sk) sk.style.opacity = 0.55 + 0.45 * Math.cos(t * Math.PI * 1.6) ** 2;
+    // Save: enabled once something changed.
+    const sb = $("#saveb"); sb.classList.toggle("off", !total); sb.classList.toggle("hov", t >= T.save - 0.3 && t < T.save); sb.classList.toggle("press", t >= T.save - 0.02 && t < T.save + 0.1);
+    set(sb, t >= T.save ? `${lu("loader2", "", `transform:rotate(${Math.round(t * 360) % 360}deg)`)}Saving...` : "Save");
+    // The page: the widget is the bar chart once saved, landing with a ring.
+    $("#wstat").style.display = saved ? "none" : ""; $("#wbar").style.display = saved ? "" : "none";
+    $("#wbar").style.setProperty("--ring", saved ? 0.9 * (1 - p(t, T.saved + 0.5, T.saved + 1.3)) : 0);
+  };
+  // Measure every target in the layout it has at its click.
+  const P = {};
+  draw(T.edit - 0.1); P.edit = at($("#editb"));
+  draw(T.mOpen - 0.1); P.msel = at($("#msel"), 0.7); draw(T.mPick - 0.1); P.total = at($$("#slist .o")[1], 0.25);
+  draw(T.gOpen - 0.1); P.gsel = at($("#gsel"), 0.7); draw(T.gPick - 0.1); P.cust = at($$("#slist .o")[2], 0.25);
+  draw(T.save - 0.1); P.save = at($("#saveb"));
+  draw(T.saved + 1); $("#pagechart").innerHTML = barSvg(Math.round($("#pagechart").getBoundingClientRect().width / sc()));
+  draw(0);
+  const VW = C.STAGE_W, VH = C.STAGE_H, FIT = Math.min(VW / 1280, VH / C.APP_H) * 0.98;
+  // No zoom: the window is the full view.
+  const FULL = [640, C.APP_H / 2, FIT];
+  const cam = C.camera(app, VW, VH, [[0, ...FULL], [D, ...FULL]]);
+  const F = (t, [x, y]) => { const m = cam(t).map(x, y); return [C.STAGE_X + m[0], C.STAGE_Y + m[1]]; };
+  const OFF = (fx) => [C.W * fx, C.H + 40];
+  const click = (t, pt) => [[t - 0.2, ...F(t, pt)], [t, ...F(t, pt), true]];
+  const cur = C.cursor([[2.0, ...OFF(0.7)], ...click(T.edit, P.edit), [3.5, ...F(3.5, [P.edit[0] - 40, P.edit[1] + 60])],
+    ...click(T.mOpen, P.msel), ...click(T.mPick, P.total), [5.6, ...F(5.6, [P.total[0] + 60, P.total[1] + 50])],
+    ...click(T.gOpen, P.gsel), ...click(T.gPick, P.cust), [7.7, ...OFF(0.55)],
+    [9.2, ...OFF(0.8)], ...click(T.save, P.save), [10.4, ...OFF(0.85)]]);
+  const cap = C.captions([
+    [1.9, 3.9, "Open a live widget's settings.<br><em>Edit widget opens the form.</em>"],
+    [4.2, 9.1, "Choose what it adds up.<br><em>The preview follows each choice.</em>"],
+    [9.4, 99, "Save.<br><em>The widget on the page changes.</em>"],
+  ]);
+  cam(0);
+  C.run(D, (t) => { cap(t); cam(t); cur(t); draw(t); });
+</script>
+</body></html>

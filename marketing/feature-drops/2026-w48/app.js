@@ -28,6 +28,9 @@ const APP = (() => {
       r.style.opacity = o;
     });
   }
+  // Week 48 (590cf45): Pierre icons; the sidebar toggle moved from the top row to the footer (sidebar-bottom-row.tsx),
+  // one Help button (piLifeRaft, #11393) replaces the bug and chat buttons, a search button ends the tab row
+  // (operate-section.tsx), and the Ask AI row lost its bottom margin (#11385).
   // Sidebar after LLE-17451 (#9728, 15 Nov 2026), the one navigation for every project (nav/sidebar-nav.tsx):
   // top row (logo, collapse, project switcher, the Configure compass for builders, faGrip), pinned pages, the agent
   // list (operate-section.tsx: icon-only tabs Needs me · Chats · Completed with counts; rows are a title and small
@@ -46,14 +49,13 @@ const APP = (() => {
       + (f.dot ? `<i class="rd ${f.dot}"></i>` : "") + `</span></div>`;
     const tb = (k, icon, label) => `<span class="atab${k === tab ? " on" : ""}" data-tab="${k}" title="${label}">${fa(icon)}<b>${counts[k]}</b></span>`;
     return `<aside class="sb">
-      <div class="sb-top"><span class="sb-ic32 sb-logo">${LOGO_SVG}</span><span class="sb-ic32">${lu("panelLeft", "", "width:16px;height:16px")}</span>
-        <span class="sb-proj"><i class="org">O</i>${project}</span>${builder ? `<span class="sb-ic32 sb-compass" id="sb-compass">${fa("faGrip")}</span>` : ""}</div>
+      <div class="sb-top"><span class="sb-ic32 sb-logo">${LOGO_SVG}</span><span class="sb-proj"><i class="org">O</i>${project}</span>${builder ? `<span class="sb-ic32 sb-compass" id="sb-compass">${fa("faGrip")}</span>` : ""}</div>
       <div class="sb-body">${pins.map(item).join("")}${o.newPage === false ? "" : `<div class="nav quiet" id="sb-newpage"><span class="ib">${fa("faPlus")}</span><span class="t">New page</span></div>`}</div>
       <div class="sb-list"><div class="sb-div"></div>
-        <div class="atabs">${tb("needs", "faHand", "Needs me")}${tb("chats", "faComment", "Chats")}${tb("done", "faCircleCheck", "Completed")}</div>
+        <div class="atabs">${tb("needs", "faHandSharp", "Needs me")}${tb("chats", "faComment", "Chats")}${tb("done", "faCircleCheck", "Completed")}<span class="sb-ic32 asearch">${pi("piSearch")}</span></div>
         <div class="arows" id="sb-rows">${rows.map(row).join("")}</div></div>
       <div class="sb-new"><div class="nav" id="sb-new"><span class="ib ask">${loader(16)}</span><span class="t">Ask AI</span></div></div>
-      <div class="sb-bot"><span class="sb-acct"><i class="avt">EV</i>Eva Visser</span><span class="sb-ic28">${fa("faBell")}</span><span class="sb-ic28">${fa("faBug")}</span><span class="sb-ic28">${fa("faComment")}</span></div>
+      <div class="sb-bot"><span class="sb-acct"><i class="avt">EV</i>Eva Visser</span><span class="sb-ic32">${pi("piBell")}</span><span class="sb-ic28">${pi("piLifeRaft")}</span><span class="sb-ic32">${pi("piSidebarLeft")}</span></div>
     </aside>`;
   }
   // A custom page's bar after #10825/#10923/#11122 (pages/components/custom-page-view.tsx, ui/page-bar.tsx): the page

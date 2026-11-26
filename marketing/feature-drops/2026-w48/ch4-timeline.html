@@ -1,0 +1,255 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<title>See a table's records on a timeline</title>
+<link rel="stylesheet" href="clip.css">
+<link rel="stylesheet" href="app.css">
+<link rel="stylesheet" href="chapter.css">
+<style>
+  /* #11571 (LLE-20403, LLE-20424) and #11603, read at 590cf45. The table page is one card (rounded-lg border) holding
+     the toolbar (52px: Filter, "Search records...", then outline 32px icon buttons, the last one Columns, piSwitches)
+     and the view. The Columns dialog (manage-columns-dialog.tsx, 576px): "View" toggle List · Board · Cards · Timeline
+     (ui/toggle.tsx: 32px, radius 10, 1px border, the chosen item on muted), and for Timeline its settings
+     (timeline-settings.tsx): Starts, Ends, Lanes, Colour (two columns of 224px selects), Bar title, Time scale
+     (Shift · Day · 3 days · Week), each saved as it changes. With nothing chosen the first two date columns and the
+     first text column are used. The Gantt (ui/gantt.tsx): a sticky 160px lane column and a two-row 24px header (dates
+     "EEE d MMM", today orange with "(today)", hours under it; the visible track is the time scale), lanes 36px per
+     row of bars on surface-subtle, weekends on muted, midnight lines in border and the other ticks white, an orange
+     2px now line with its time chip. Bars: 28px, radius 10, title 12/500 and the detail muted, filled with the Colour
+     choice at 16% and bordered at 45%. A dragged bar leaves a dashed outline, shows "HH:mm to HH:mm" and tints the
+     lane under it; it is at 60% until saved. */
+  .tp { position: absolute; inset: 0; display: flex; flex-direction: column; }
+  .tbody { padding: 12px 32px 24px; }
+  .tcard { border: 1px solid hsl(var(--border)); border-radius: 12px; background: #fff; overflow: hidden; }
+  .tb { display: flex; align-items: center; gap: 8px; min-height: 52px; padding: 10px 16px; border-bottom: 1px solid hsl(var(--border)); }
+  .ob { height: 32px; display: inline-flex; align-items: center; gap: 6px; padding: 0 12px; border-radius: 10px; border: 1px solid hsl(var(--input)); background: hsl(var(--background)); font-size: 14px; font-weight: 500; }
+  .ob svg { width: 14px; height: 14px; }
+  .ob.ico { width: 32px; padding: 0; justify-content: center; }
+  .ob.on { background: hsl(var(--accent)); }
+  .tb .search { width: 240px; font-weight: 400; color: hsl(var(--muted-foreground)); }
+  .tb .rt { margin-left: auto; display: flex; gap: 8px; }
+  table.dt { border-collapse: collapse; width: 100%; table-layout: fixed; font-size: 14px; }
+  .dt th { height: 40px; padding: 0 14px; text-align: left; font-weight: 500; color: hsl(var(--muted-foreground)); border-right: 1px solid hsl(var(--border)); border-bottom: 1px solid hsl(var(--border)); }
+  .dt td { height: 40px; padding: 0 14px; border-right: 1px solid hsl(var(--border)); border-bottom: 1px solid hsl(var(--border)); white-space: nowrap; overflow: hidden; }
+  .dt tr:last-child td { border-bottom: 0; } .dt td:last-child, .dt th:last-child { border-right: 0; }
+  .chip { display: inline-flex; align-items: center; border-radius: 999px; padding: 2px 10px; font-size: 12px; line-height: 16px; font-weight: 500; }
+  /* Gantt */
+  .gantt { position: relative; display: none; }
+  .ghead { display: flex; height: 49px; border-bottom: 1px solid hsl(var(--border)); }
+  .gcorner { width: 160px; flex: none; border-right: 1px solid hsl(var(--border)); }
+  .gtrack { position: relative; flex: 1; min-width: 0; overflow: hidden; }
+  .gday { position: absolute; top: 4px; padding: 0 4px; font-size: 12px; line-height: 16px; font-weight: 500; white-space: nowrap; }
+  .gday.today { color: hsl(var(--highlight)); font-weight: 600; }
+  .ghour { position: absolute; top: 28px; font-size: 12px; line-height: 16px; color: hsl(var(--muted-foreground)); transform: translateX(-50%); font-variant-numeric: tabular-nums; }
+  .gnow { position: absolute; top: 26px; transform: translateX(-50%); border-radius: 999px; background: hsl(var(--highlight)); color: #fff; font-size: 12px; line-height: 20px; font-weight: 500; padding: 0 6px; font-variant-numeric: tabular-nums; z-index: 2; }
+  .glane { display: flex; border-bottom: 1px solid hsl(var(--border)); }
+  .gname { width: 160px; flex: none; border-right: 1px solid hsl(var(--border)); padding: 8px 12px 0; display: flex; align-items: flex-start; gap: 6px; font-size: 14px; line-height: 20px; font-weight: 500; background: #fff; }
+  .gname .d { width: 8px; height: 8px; border-radius: 999px; margin-top: 6px; flex: none; }
+  .gname .n { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .gname .c { font-size: 12px; font-weight: 400; color: hsl(var(--muted-foreground)); }
+  .glane .gtrack { background: hsl(60 11.1% 96.5%); }
+  .glane.over .gname, .glane.over .gtrack { background: hsl(var(--muted)); }
+  .gwk { position: absolute; top: 0; bottom: 0; background: hsl(var(--muted)); }
+  .gtick { position: absolute; top: 0; bottom: 0; width: 1px; background: #fff; }
+  .gtick.mid { background: hsl(var(--border)); }
+  .gline { position: absolute; top: 0; bottom: 0; width: 2px; margin-left: -1px; background: hsl(var(--highlight)); z-index: 1; }
+  .gbar { position: absolute; height: 28px; border-radius: 10px; border: 1px solid hsl(var(--border)); background: #fff; padding: 0 8px; display: flex; align-items: center; gap: 6px; font-size: 12px; line-height: 16px; white-space: nowrap; overflow: hidden; box-shadow: 0 1px 2px rgb(0 0 0 / .05); z-index: 2; }
+  .gbar b { font-weight: 500; } .gbar span { color: hsl(var(--muted-foreground)); overflow: hidden; text-overflow: ellipsis; }
+  .gbar.lift { box-shadow: 0 4px 6px -1px rgb(0 0 0 / .1), 0 2px 4px -2px rgb(0 0 0 / .1); z-index: 4; }
+  .gghost { position: absolute; height: 28px; border-radius: 10px; border: 1px dashed hsl(var(--muted-foreground)); z-index: 1; }
+  .gfoot { display: flex; justify-content: flex-end; gap: 2px; padding: 4px 8px; border-top: 1px solid hsl(var(--border)); margin-top: -1px; }
+  .gfoot span { width: 24px; height: 24px; border-radius: 8px; display: grid; place-items: center; color: hsl(var(--muted-foreground)); }
+  .gfoot svg { width: 12px; height: 12px; }
+  /* Columns dialog */
+  .scrim { position: absolute; inset: 0; background: hsl(60 11.1% 98.2% / .8); z-index: 20; }
+  .dlg { position: absolute; left: 50%; top: 50%; width: 576px; transform: translate(-50%, -50%); background: #fff; border: 1px solid hsl(var(--border)); border-radius: 12px; box-shadow: 0 10px 15px -3px rgb(0 0 0 / .1), 0 4px 6px -4px rgb(0 0 0 / .1); z-index: 21; }
+  .dlg .dh { padding: 24px 24px 0; }
+  .dlg .dh b { display: block; font-size: 18px; line-height: 1.375; font-weight: 600; letter-spacing: -.01em; }
+  .dlg .dh small { display: block; margin-top: 4px; font-size: 14px; line-height: 20px; color: hsl(var(--muted-foreground)); }
+  .dlg .x { position: absolute; top: 16px; right: 16px; width: 32px; height: 32px; border-radius: 10px; display: grid; place-items: center; color: hsl(var(--muted-foreground)); }
+  .dlg .x svg { width: 14px; height: 14px; } .dlg .x.hov { background: hsl(var(--accent)); color: hsl(var(--foreground)); }
+  .dlg .dbd { padding: 16px 24px 0; display: flex; flex-direction: column; gap: 16px; position: relative; }
+  .dlg .dft { padding: 16px 24px 24px; display: flex; justify-content: flex-end; }
+  .lbl { font-size: 14px; line-height: 14px; font-weight: 500; }
+  .fld { display: flex; flex-direction: column; gap: 6px; align-items: flex-start; }
+  .tgl { display: inline-flex; border: 1px solid hsl(var(--border)); border-radius: 10px; overflow: hidden; height: 32px; }
+  .tgl span { display: flex; align-items: center; gap: 6px; padding: 5px 12px; font-size: 14px; line-height: 20px; font-weight: 500; color: hsl(var(--muted-foreground)); }
+  .tgl span svg { width: 14px; height: 14px; }
+  .tgl span.on { background: hsl(var(--muted)); color: hsl(var(--foreground)); }
+  .tgl span.hov { background: hsl(var(--muted)); }
+  .tset { display: none; flex-direction: column; gap: 12px; padding-top: 6px; }
+  .tset .g2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .ctl { width: 224px; height: 32px; border: 1px solid hsl(var(--input)); border-radius: 10px; background: hsl(var(--background)); display: flex; align-items: center; justify-content: space-between; padding: 0 12px; font-size: 14px; line-height: 20px; white-space: nowrap; }
+  .ctl svg { width: 16px; height: 16px; opacity: .5; }
+  .slist { position: absolute; width: 224px; background: #fff; border: 1px solid hsl(var(--border)); border-radius: 10px; box-shadow: 0 4px 6px -1px rgb(0 0 0 / .1), 0 2px 4px -2px rgb(0 0 0 / .1); padding: 4px; z-index: 30; display: none; }
+  .slist .o { padding: 6px 8px; border-radius: 8px; font-size: 14px; line-height: 20px; }
+  .slist .o.hov { background: hsl(var(--accent)); }
+  .crow { display: flex; align-items: center; gap: 8px; border: 1px solid hsl(var(--border)); border-radius: 10px; background: #fff; padding: 0 8px; height: 38px; font-size: 14px; }
+  .crow .gr svg { width: 9px; height: 14px; color: hsl(var(--muted-foreground)); }
+  .crow small { font-size: 12px; color: hsl(var(--muted-foreground)); }
+  .crow .ic { margin-left: auto; display: flex; gap: 2px; } .crow .ic span { width: 28px; height: 28px; display: grid; place-items: center; color: hsl(var(--muted-foreground)); }
+  .crow .ic svg { width: 13px; height: 13px; }
+  .cols { display: flex; flex-direction: column; gap: 8px; }
+</style></head>
+<body>
+<div class="frame">
+  <div class="stage">
+    <div class="app" id="app">
+      <div id="sb"></div>
+      <main class="panel">
+        <div class="tp">
+          <div class="ptb"><h1>Orders</h1></div>
+          <div class="tbody"><div class="tcard">
+            <div class="tb"><span class="ob"><span data-fa="piFilter"></span>Filter</span><span class="ob search"><span data-fa="piSearch"></span>Search records...</span>
+              <span class="rt"><span class="ob ico" id="rowsz" data-fa="piCollapsedRow"></span><span class="ob ico" data-fa="piEye"></span><span class="ob ico" data-fa="piLayers"></span><span class="ob ico" data-fa="piFileImport"></span><span class="ob ico" data-fa="piDownload"></span><span class="ob ico on" id="colsb" data-fa="piSwitches"></span></span></div>
+            <div id="list"></div>
+            <div class="gantt" id="gantt"></div>
+          </div></div>
+        </div>
+      </main>
+      <div class="scrim" id="scrim"></div>
+      <div class="dlg" id="dlg">
+        <div class="dh"><b>Columns</b><small>Drag to rearrange, or edit and delete columns.</small></div>
+        <span class="x" id="xb" data-fa="piX"></span>
+        <div class="dbd" id="dbd">
+          <div class="fld"><span class="lbl">View</span><span class="tgl" id="vt"></span>
+            <div class="tset" id="tset">
+              <div class="g2"><div class="fld"><span class="lbl">Starts</span><span class="ctl">Order date <span data-fa="piChevron"></span></span></div><div class="fld"><span class="lbl">Ends</span><span class="ctl">Delivery date <span data-fa="piChevron"></span></span></div></div>
+              <div class="g2"><div class="fld"><span class="lbl">Lanes</span><span class="ctl" id="lsel"><span id="lval"></span><span data-fa="piChevron"></span></span></div><div class="fld"><span class="lbl">Colour</span><span class="ctl" id="csel"><span id="cval"></span><span data-fa="piChevron"></span></span></div></div>
+              <div class="fld"><span class="lbl">Bar title</span><span class="ctl">Order <span data-fa="piChevron"></span></span></div>
+              <div class="fld"><span class="lbl">Time scale</span><span class="tgl" id="ts"></span></div>
+            </div></div>
+          <div class="fld" style="align-items:stretch"><span class="lbl">Columns</span><div class="cols" id="cols" style="margin-top:2px"></div></div>
+          <div class="slist" id="slist"></div>
+        </div>
+        <div class="dft"><span class="ob"><span data-fa="piPlus"></span>Add column</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="fa-icons.js"></script>
+<script src="app.js"></script>
+<script src="clip.js"></script>
+<script src="chapter.js"></script>
+<script>
+  CHAPTER({ n: 4, total: 7, module: "Data tables", footerLeft: "Feature Drop · Week 48",
+    title: "See a table's records<br><em>on a timeline.</em>",
+    line: "A data table can show as a Timeline: each record a bar between two dates, in lanes, coloured by a field. Drag a bar to change its dates." });
+  const D = 11.8;
+  window.HOLDS = [[8.1, 0.7], [11.6, 1.2]];
+  const { $, $$, p, out, io } = C;
+  $("#sb").outerHTML = APP.sidebar("Data tables", "Order intake");
+  $$("[data-fa]").forEach((el) => (el.innerHTML = fa(el.dataset.fa)));
+  const T = { tl: 2.9, lOpen: 3.9, lPick: 4.45, cOpen: 5.2, cPick: 5.75, week: 6.5, close: 7.3, grab: 8.9, moved: 9.9, drop: 10.1, saved: 10.5 };
+  // Choice colours (lib/data-tables/choice-colours.ts).
+  const CUST = { "Van Dijk Metaal": "#8b5cf6", "Kuipers Hout": "#06b6d4", "Smit Elektro": "#ec4899", "Bakker Installatietechniek": "#3b82f6", "Brouwer Verpakking": "#10b981" };
+  const STAT = { Confirmed: "#3b82f6", "In production": "#f59e0b", Shipped: "#10b981" };
+  const mix = (hex, f) => { const n = parseInt(hex.slice(1), 16), c = [n >> 16, (n >> 8) & 255, n & 255].map((v) => Math.round(255 + (v - 255) * f)); return `rgb(${c.join(" ")})`; };
+  // Orders: start and end in days from Monday 23 Nov 00:00 (today is Thursday 26 Nov, 10:24).
+  const DAYS = ["Mon 23 Nov", "Tue 24 Nov", "Wed 25 Nov", "Thu 26 Nov", "Fri 27 Nov", "Sat 28 Nov", "Sun 29 Nov", "Mon 30 Nov", "Tue 1 Dec"], NOW = 3 + (10 + 24 / 60) / 24;
+  const h = (d, hr) => d + hr / 24;
+  const ORD = [
+    ["SO-1041", "Van Dijk Metaal", h(0, 9), h(2, 12), "Shipped", "Eva Visser"],
+    ["SO-1042", "Kuipers Hout", h(1, 9), h(3, 17), "In production", "Tom de Groot"],
+    ["SO-1043", "Smit Elektro", h(0, 13), h(1, 17), "Shipped", "Mila Jansen"],
+    ["SO-1044", "Bakker Installatietechniek", h(1, 13), h(4, 12), "In production", "Eva Visser"],
+    ["SO-1045", "Smit Elektro", h(2, 9), h(4, 12), "In production", "Mila Jansen"],
+    ["SO-1046", "Van Dijk Metaal", h(3, 9), h(4, 17), "Confirmed", "Tom de Groot"],
+    ["SO-1047", "Kuipers Hout", h(4, 9), h(7, 17), "Confirmed", "Eva Visser"],
+    ["SO-1048", "Brouwer Verpakking", h(3, 13), h(7, 12), "Confirmed", "Mila Jansen"],
+  ];
+  const fmt = (x) => { const d = Math.floor(x), hr = Math.round((x - d) * 24); return `${DAYS[d].slice(4)} ${String(hr).padStart(2, "0")}:00`; };
+  const chip = (t, col) => `<span class="chip" style="background:${mix(col, 0.16)};color:hsl(var(--foreground))">${t}</span>`;
+  $("#list").innerHTML = `<table class="dt"><tr>${["Order", "Customer", "Order date", "Delivery date", "Status", "Owner"].map((c) => `<th>${c}</th>`).join("")}</tr>`
+    + ORD.map(([o, c, s, e, st, w]) => `<tr><td>${o}</td><td>${chip(c, CUST[c])}</td><td>${fmt(s)}</td><td>${fmt(e)}</td><td>${chip(st, STAT[st])}</td><td>${w}</td></tr>`).join("") + "</table>";
+  $("#cols").innerHTML = [["Order", "text"], ["Customer", "single select"], ["Order date", "date"], ["Delivery date", "date"], ["Status", "single select"], ["Owner", "user"]]
+    .map(([n, ty]) => `<div class="crow"><span class="gr">${fa("faGripDotsVertical")}</span>${n}<small>${ty}</small><span class="ic"><span>${pi("piPencil")}</span><span>${pi("piTrash")}</span></span></div>`).join("");
+  const VIEWS = [["List", "piTable"], ["Board", "piBoard"], ["Cards", "piExtensions"], ["Timeline", "piAlignLeft"]], SCALES = ["Shift", "Day", "3 days", "Week"];
+  const LANES = ["One lane", "Order", "Customer", "Status", "Owner"], COLS = ["No colour", "Customer", "Status"];
+
+  const app = $("#app");
+  const sc = () => app.getBoundingClientRect().width / 1280;
+  const at = (el, fx = 0.5, fy = 0.5) => { const a = app.getBoundingClientRect(), r = el.getBoundingClientRect(), s = sc();
+    return [(r.left - a.left + r.width * fx) / s, (r.top - a.top + r.height * fy) / s]; };
+  const rel = (el, host) => { const hb = host.getBoundingClientRect(), r = el.getBoundingClientRect(), s = sc(); return [(r.left - hb.left) / s, (r.top - hb.top) / s, r.width / s, r.height / s]; };
+  const set = (el, html) => { if (el.dataset.h !== html) { el.innerHTML = html; el.dataset.h = html; } };
+  // The Gantt for a state: lanes by customer or one lane, colour by status or none, the scale (days in view), and the
+  // dragged bar's shift in days.
+  const TW = 1280 - 252 - 64 - 2 - 160;
+  const gantt = (byCust, coloured, week, shift, dragging, saving) => {
+    const span = week ? 7 : 1, origin = week ? 0 : 3, ppd = TW / span, X = (d) => 24 + (d - origin) * ppd, step = week ? 12 : 2;
+    let head = "", grid = "";
+    for (let d = origin - 1; d < origin + span + 1; d++) {
+      if (d >= 0 && d < DAYS.length) head += `<span class="gday${d === 3 ? " today" : ""}" style="left:${X(d)}px">${DAYS[d]}${d === 3 ? " (today)" : ""}</span>`;
+      if (d === 5 || d === 6 || d === -1) grid += `<i class="gwk" style="left:${X(d)}px;width:${ppd}px"></i>`;
+      for (let hr = 0; hr < 24; hr += step) { const x = X(d + hr / 24); if (x < -30 || x > TW + 30) continue;
+        grid += `<i class="gtick${hr === 0 ? " mid" : ""}" style="left:${x}px"></i>`;
+        head += `<span class="ghour" style="left:${Math.max(x, 18)}px">${String(hr).padStart(2, "0")}:00</span>`; }
+    }
+    const nowX = X(NOW); head += `<span class="gnow" style="left:${nowX}px">10:24</span>`; grid += `<i class="gline" style="left:${nowX}px"></i>`;
+    const groups = byCust ? Object.keys(CUST).map((c) => [c, ORD.filter((o) => o[1] === c)]) : [["All records", ORD]];
+    const lanes = groups.map(([name, list]) => {
+      const rows = []; let bars = "", over = false;
+      [...list].sort((a, b) => a[2] - b[2]).forEach((o) => {
+        const me = o[0] === "SO-1045", s = o[2] + (me ? shift : 0), e = o[3] + (me ? shift : 0);
+        let r = rows.findIndex((end) => end <= s); if (r < 0) { r = rows.length; rows.push(0); } rows[r] = e;
+        const col = coloured ? STAT[o[4]] : null, style = `left:${X(s)}px;width:${(e - s) * ppd}px;top:${4 + r * 36}px;` + (col ? `background:${mix(col, me && dragging ? 0.28 : 0.16)};border-color:${mix(col, 0.45)};` : "") + (me && saving ? "opacity:.6;" : "");
+        const detail = me && dragging ? "09:00 to 12:00" : `${o[4]} · ${o[5]}`;
+        if (me && dragging) { over = true; bars += `<i class="gghost" style="left:${X(o[2])}px;width:${(o[3] - o[2]) * ppd}px;top:${4 + r * 36}px"></i>`; }
+        bars += `<div class="gbar${me && dragging ? " lift" : ""}" ${me ? 'id="mybar"' : ""} style="${style}"><b>${o[0]}</b><span>${detail}</span></div>`;
+      });
+      const dot = byCust ? `<i class="d" style="background:${CUST[name]}"></i>` : "";
+      return `<div class="glane${over ? " over" : ""}"><div class="gname">${dot}<span class="n">${name}</span><span class="c">${list.length}</span></div><div class="gtrack" style="height:${Math.max(1, rows.length) * 36}px">${grid}${bars}</div></div>`;
+    }).join("");
+    return `<div class="ghead"><div class="gcorner"></div><div class="gtrack">${head}</div></div>${lanes}<div class="gfoot"><span>${pi("piMinus")}</span><span>${pi("piPlus")}</span></div>`;
+  };
+  // Everything on screen as a function of t; also called to measure each click target in the layout it has then.
+  const draw = (t) => {
+    const tl = t >= T.tl, byCust = t >= T.lPick, coloured = t >= T.cPick, week = t >= T.week, open = t < T.close + 0.3;
+    $("#list").style.display = tl ? "none" : ""; $("#gantt").style.display = tl ? "block" : "none"; $("#rowsz").style.display = tl ? "none" : "";
+    const f = io(p(t, T.grab, T.moved)), dragging = t >= T.grab && t < T.drop, shift = t < T.grab ? 0 : t < T.drop ? f : 1;
+    if (tl) set($("#gantt"), gantt(byCust, coloured, week, shift, dragging, t >= T.drop && t < T.saved));
+    $("#colsb").classList.toggle("on", open);
+    $("#scrim").style.display = $("#dlg").style.display = open ? "" : "none";
+    const o = 1 - p(t, T.close + 0.05, T.close + 0.3); $("#scrim").style.opacity = o; $("#dlg").style.opacity = o;
+    set($("#vt"), VIEWS.map(([l, ic], i) => `<span class="${(tl ? i === 3 : i === 0) ? "on" : i === 3 && t >= T.tl - 0.3 ? "hov" : ""}">${pi(ic)}${l}</span>`).join(""));
+    $("#tset").style.display = tl ? "flex" : "none";
+    set($("#lval"), byCust ? "Customer" : "One lane"); set($("#cval"), coloured ? "Status" : "No colour");
+    set($("#ts"), SCALES.map((l, i) => `<span class="${(week ? i === 3 : i === 1) ? "on" : i === 3 && t >= T.week - 0.3 ? "hov" : ""}">${l}</span>`).join(""));
+    $("#xb").classList.toggle("hov", t >= T.close - 0.3 && t < T.close + 0.3);
+    const which = t >= T.lOpen && t < T.lPick + 0.04 ? "l" : t >= T.cOpen && t < T.cPick + 0.04 ? "c" : "", sl = $("#slist");
+    if (which) { const items = which === "l" ? LANES : COLS, tr = which === "l" ? $("#lsel") : $("#csel"), hov = t >= (which === "l" ? T.lPick : T.cPick) - 0.3 ? 2 : 0;
+      set(sl, items.map((x, i) => `<div class="o${i === hov ? " hov" : ""}">${x}</div>`).join(""));
+      sl.style.display = "block"; const [x, y, , hh] = rel(tr, $("#dbd")); sl.style.left = x + "px"; sl.style.top = y + hh + 4 + "px";
+    } else sl.style.display = "none";
+  };
+  // Measure every target in the layout it has at its click.
+  const P = {};
+  draw(T.tl - 0.1); P.tl = at($$("#vt span")[3]);
+  draw(T.lOpen - 0.1); P.lsel = at($("#lsel"), 0.6); draw(T.lPick - 0.1); P.cust = at($$("#slist .o")[2], 0.3);
+  draw(T.cOpen - 0.1); P.csel = at($("#csel"), 0.6); draw(T.cPick - 0.1); P.stat = at($$("#slist .o")[2], 0.3);
+  draw(T.week - 0.1); P.week = at($$("#ts span")[3]);
+  draw(T.close - 0.1); P.x = at($("#xb"));
+  draw(T.grab - 0.1); P.bar = at($("#mybar"), 0.45, 0.5); { const r = $("#mybar").getBoundingClientRect(), w = TW / 7; P.bar2 = [P.bar[0] + w, P.bar[1]]; }
+  draw(0);
+  const VW = C.STAGE_W, VH = C.STAGE_H, FIT = Math.min(VW / 1280, VH / C.APP_H) * 0.98;
+  const fit = (x0, y0, x1, y1) => { const s = Math.min(VW / (x1 - x0), VH / (y1 - y0)); return [(x0 + x1) / 2, (y0 + y1) / 2 + (VH / s - (y1 - y0)) / 2, s]; };
+  // The one zoom: the table card with its timeline, once the dialog is closed, for the drag.
+  draw(T.grab - 0.1); const c0 = at($(".tcard"), 0, 0), c1 = at($(".tcard"), 1, 1); draw(0);
+  const ZOOM = fit(c0[0] - 16, c0[1] - 60, c1[0] + 16, c0[1] - 60 + (c1[0] - c0[0] + 32) * (VH / VW));
+  const FULL = [640, C.APP_H / 2, FIT];
+  const cam = C.camera(app, VW, VH, [[0, ...FULL], [T.close + 0.35, ...FULL], [T.close + 0.95, ...ZOOM], [D, ...ZOOM]]);
+  const F = (t, [x, y]) => { const m = cam(t).map(x, y); return [C.STAGE_X + m[0], C.STAGE_Y + m[1]]; };
+  const OFF = (fx) => [C.W * fx, C.H + 40];
+  const click = (t, pt) => [[t - 0.2, ...F(t, pt)], [t, ...F(t, pt), true]];
+  const cur = C.cursor([[2.1, ...OFF(0.55)], ...click(T.tl, P.tl), ...click(T.lOpen, P.lsel), ...click(T.lPick, P.cust), ...click(T.cOpen, P.csel), ...click(T.cPick, P.stat),
+    ...click(T.week, P.week), ...click(T.close, P.x), [T.close + 0.5, ...OFF(0.9)],
+    [T.grab - 0.6, ...OFF(0.6)], ...click(T.grab, P.bar), [T.moved, ...F(T.moved, P.bar2)], [T.drop, ...F(T.drop, P.bar2), true], [T.drop + 0.6, ...OFF(0.75)]]);
+  const cap = C.captions([
+    [1.9, 3.6, "Set a table's view to Timeline.<br><em>Records become bars between dates.</em>"],
+    [3.9, 7.9, "Pick the lanes, colour and scale.<br><em>Here: customers, status, a week.</em>"],
+    [8.2, 99, "Drag a bar to another day.<br><em>The record's dates move with it.</em>"],
+  ]);
+  cam(0);
+  C.run(D, (t) => { cap(t); cam(t); cur(t); draw(t); });
+</script>
+</body></html>
