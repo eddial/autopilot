@@ -1,7 +1,7 @@
 {% update date="2026-11-23" tags="new-releases,improvements,fixes" %}
 ## Week 48: pages you write and shape yourself, and more ways to steer the Agent
 
-{% embed url="https://www.youtube.com/watch?v=<id>" %}
+{% embed url="https://www.youtube.com/watch?v=ZGiB_h7IY9o" %}
 
 Pages now work like a document: you type on them, add blocks between the lines, and the Agent can make a new page for you. A live widget can be changed by hand in a form, and a data table can show its records on a timeline. You can also correct the Agent while it works, point at the exact spot in a report it made, and let schedules run only when there is something new.
 
